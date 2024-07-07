@@ -17,7 +17,8 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/first-project",
+            "outputPath": "docs",
+            "baseHref": "/AngularFirst/",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
