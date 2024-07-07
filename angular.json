@@ -19,7 +19,7 @@
           "options": {
             "outputPath": "docs",
             "baseHref": "/AngularFirst/",
-            "index": "src/index.html",
+            "index": "docs/browser/index.html",
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
