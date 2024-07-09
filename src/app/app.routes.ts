@@ -1,10 +1,16 @@
-import { Component } from '@angular/core';
 import { Routes } from '@angular/router';
-import { Test1Component } from './test1/test1.component';
-import { Test2Component } from './test2/test2.component';
+import { DashoardComponent } from './Dashoard/dashoard.component';
+import { CalendarComponent } from './Calendar/calendar.component';
+import { ExercisesComponent } from './Exercises/exercises.component';
+import { ProfileComponent } from './Profile/profile.component';
+import { ProgressComponent } from './Progress/progress.component';
+import { WorkoutsComponent } from './Workouts/workouts.component';
 
 export const routes: Routes = [
-    {path: 'test1', component: Test1Component},
-    {path: 'test2', component: Test2Component},
-    
+    {path: 'dashboard', component: DashoardComponent},
+    {path: 'calendar', component: CalendarComponent},
+    {path: 'exercises', component: ExercisesComponent},
+    {path: 'profile', component: ProfileComponent},
+    {path: 'progress', component: ProgressComponent},
+    {path: 'workouts', component: WorkoutsComponent},
 ];
