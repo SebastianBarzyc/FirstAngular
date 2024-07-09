@@ -4,11 +4,13 @@ import { CoursesComponent } from './courses.component';
 import { MatBadgeModule } from '@angular/material/badge';
 import { NavComponent } from './Nav/nav.component';
 import { NavBtnComponent } from './Nav/nav-btn.component';
+import { Test1Component } from "./test1/test1.component";
+import { Test2Component } from './test2/test2.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CoursesComponent, MatBadgeModule , NavComponent, NavBtnComponent],
+  imports: [RouterOutlet, CoursesComponent, MatBadgeModule, NavComponent, NavBtnComponent, Test1Component, Test2Component, RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
