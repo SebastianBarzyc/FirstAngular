@@ -19,7 +19,7 @@
           "options": {
             "baseHref": "/FirstAngular/",
             "index": "src/index.html",
-            "outputPath": "dist/FirstProject",
+            "outputPath": "dist/docs",
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
