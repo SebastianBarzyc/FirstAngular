@@ -2,9 +2,29 @@
     <p class="fs-3 fw-bold">Good morning, (name)</p>
     <p>Here is your summary of today</p>
 
-    <img src="BicepsWorkout.jpg" width="50%" class="float-start">
-    <div class="float-end text-center" style="width: 50%;">
-        <p class="fs-4 fw-bold">Today's workout</p>
-        <p class="fs-5">Biceps Workout</p>
+    <div style="height: 30vh">
+        <img src="BicepsWorkout.jpg" width="50%" class="float-start">
+        <div class="float-end text-center" style="width: 50%;">
+            <p class="fs-4 fw-bold">Today's workout</p>
+            <p class="fs-5">Biceps Workout</p>
+        </div>
+    </div>
+
+    <div class="ProgressBar">
+        <p class="fw-bold">5/10 exercises completed</p>
+        <div class="progress">
+            <div class="progress-bar" style="width: 50%"></div>
+        </div>
+        <p>Keep going to reach your goal</p>
+        <button mat-raised-button class="btn RaisedBtn">Start Workout</button>
+    </div>
+
+    <div class="WhatsNextContener">
+        <div class="WhatsNext">
+            <div *ngFor="let index of indexArray">
+                <p class="fw-bold">{{ WhatsnextDayList[index] }}</p>
+                <p>{{ WhatsnextWorkoutsList[index] }}</p>
+            </div>
+        </div>
     </div>
 </div>

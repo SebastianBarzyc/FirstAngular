@@ -64,3 +64,14 @@ nav a{
   color: $primary-color;
   height: 100%;
 }
+
+.RaisedBtn{
+  background-color: $secondary-color !important;
+  color: white !important;
+  font-weight: bold !important;
+  float: right;
+}
+
+.progress-bar{
+  background-color: $secondary-color !important;
+}
