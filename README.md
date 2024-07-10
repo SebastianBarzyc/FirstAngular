@@ -3,6 +3,7 @@ To acomplish this project I used:
 - Angular CLI
 - Angular Materials
 - Node.Js
+- Typescript
 - Bootstrap
 - SCSS
 
