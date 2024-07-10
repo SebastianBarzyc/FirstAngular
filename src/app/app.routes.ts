@@ -7,10 +7,10 @@ import { ProgressComponent } from './Progress/progress.component';
 import { WorkoutsComponent } from './Workouts/workouts.component';
 
 export const routes: Routes = [
-    {path: 'dashboard', component: DashoardComponent},
-    {path: 'calendar', component: CalendarComponent},
-    {path: 'exercises', component: ExercisesComponent},
-    {path: 'profile', component: ProfileComponent},
-    {path: 'progress', component: ProgressComponent},
-    {path: 'workouts', component: WorkoutsComponent},
+    {path: 'Dashboard', component: DashoardComponent},
+    {path: 'Calendar', component: CalendarComponent},
+    {path: 'Exercises', component: ExercisesComponent},
+    {path: 'Profile', component: ProfileComponent},
+    {path: 'Progress', component: ProgressComponent},
+    {path: 'Workouts', component: WorkoutsComponent},
 ];
