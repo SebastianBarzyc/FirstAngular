@@ -1,3 +1,18 @@
-<div class="mainContent">
-    Workouts
-</div>
+<h2>Utwórz Plan Treningowy</h2>
+<form [formGroup]="workoutPlanForm" (ngSubmit)="submitPlan()">
+  <input formControlName="name" placeholder="Nazwa planu">
+  <button type="button" (click)="addExercise()">Dodaj Ćwiczenie</button>
+  
+  <div formArrayName="exercises" *ngFor="let exercise of exercisesArray.controls; let i = index">
+    <div [formGroupName]="i">
+      <select formControlName="name">
+        <option *ngFor="let exercise of exercises" [value]="exercise">{{ exercise }}</option>
+      </select>
+      <input formControlName="repetitions" type="number" placeholder="Powtórzenia">
+      <input formControlName="sets" type="number" placeholder="Serie">
+      <input formControlName="restTime" type="number" placeholder="Czas przerwy (s)">
+    </div>
+  </div>
+
+  <button type="submit">Zapisz Plan</button>
+</form>

@@ -1,3 +1,10 @@
-<div class="mainContent">
-    Exercises
-</div>
+<h2>Dodaj Ćwiczenie</h2>
+<form [formGroup]="exerciseForm" (ngSubmit)="addExercise()">
+  <input formControlName="name" placeholder="Nazwa ćwiczenia">
+  <button type="submit">Dodaj</button>
+</form>
+
+<h3>Ćwiczenia:</h3>
+<ul>
+  <li *ngFor="let exercise of exercises">{{ exercise }}</li>
+</ul>
