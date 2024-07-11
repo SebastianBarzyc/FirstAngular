@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { WhatsnextService } from './whatsnext.service';
 import { CommonModule } from '@angular/common';
+import { WhatsnextService } from './whatsnext.service';
+import { AchievementsService } from './achievements.service';
 
 @Component({
   selector: 'app-dashoard',
@@ -12,14 +13,25 @@ import { CommonModule } from '@angular/common';
 export class DashoardComponent {
   WhatsnextDayList: string[];
   WhatsnextWorkoutsList: string[];
+  WhatsnextIndexArray: number[];
 
-  indexArray: number[];
+  TitleAchievementList: string[];
+  DescAchievementList: string[];
+  ScoreAchievementList: string[];
+  AchievementsIndexArray: number[];
 
-    constructor(service: WhatsnextService){
-        this.WhatsnextDayList = service.getWhatsnextDay();
-        this.WhatsnextWorkoutsList = service.getWhatsnextWorkout();
+    constructor(Whatsnext: WhatsnextService, Achievement: AchievementsService){
+        this.WhatsnextDayList = Whatsnext.getWhatsnextDay();
+        this.WhatsnextWorkoutsList = Whatsnext.getWhatsnextWorkout();
 
-        const maxLength = Math.min(this.WhatsnextDayList.length, this.WhatsnextWorkoutsList.length);
-        this.indexArray = Array.from({ length: maxLength }, (_, index) => index);
+        const WhatsnextMaxLength = Math.min(this.WhatsnextDayList.length, this.WhatsnextWorkoutsList.length);
+        this.WhatsnextIndexArray = Array.from({ length: WhatsnextMaxLength }, (_, index) => index);
+
+        this.DescAchievementList = Achievement.getDescAchievement();
+        this.TitleAchievementList = Achievement.getTitleAchievement();
+        this.ScoreAchievementList = Achievement.getScoreAchievement();
+
+        const AchievementsMaxLength = Math.min(this.TitleAchievementList.length, this.DescAchievementList.length);
+        this.AchievementsIndexArray = Array.from({ length: AchievementsMaxLength }, (_, index) => index);
     }
 }

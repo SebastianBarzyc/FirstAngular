@@ -20,11 +20,23 @@
     </div>
 
     <div class="WhatsNextContener">
-        <div class="WhatsNext">
-            <div *ngFor="let index of indexArray">
-                <p class="fw-bold">{{ WhatsnextDayList[index] }}</p>
-                <p>{{ WhatsnextWorkoutsList[index] }}</p>
-            </div>
+        <label class="fs-5 fw-bold">What's next</label> 
+        <div *ngFor="let WhatsnextIndex of WhatsnextIndexArray">
+            <button class="btn text-start WhatsNext" [attr.WhatsnextDay]="WhatsnextDayList[WhatsnextIndex]">
+                <p class="mb-0 fw-bolder">{{ WhatsnextDayList[WhatsnextIndex] }}</p>
+                <p>{{ WhatsnextWorkoutsList[WhatsnextIndex] }}</p>
+            </button>
         </div>
+    </div>
+
+    <div class="AchievementsContener">
+        <p class="fs-5 fw-bold">Recent Achievements</p> 
+            <div *ngFor="let AchievementsIndex of AchievementsIndexArray">
+                <div class="Achievements btn text-start float-start" [attr.WhatsnextDay]="TitleAchievementList[AchievementsIndex]">
+                    <p class="mb-0 fw-bolder">{{ TitleAchievementList[AchievementsIndex] }}</p>
+                    <p>{{ DescAchievementList[AchievementsIndex] }}</p>
+                </div>
+                <label class="float-end">{{ ScoreAchievementList[AchievementsIndex] }}</label>
+            </div>
     </div>
 </div>
