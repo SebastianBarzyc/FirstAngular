@@ -9,7 +9,7 @@
       <form>
         <br>
         <label for="ExerciseName" class="fw-bold form-label">Title:</label>
-        <input type="text" class="form-control" id="ExerciseName">
+        <input type="text" class="form-control" id="ExerciseName" required >
         <br>
         <label for="ExerciseDesc" class="fw-bold form-label">Description:</label>
         <input type="text" class="form-control" id="ExerciseDesc">
@@ -17,5 +17,13 @@
         <input type="submit" mat-raised-button class="btn RaisedBtn" value="Create exercise">
       </form>
       </mat-expansion-panel>
+  </div>
+  <div class="ExercisesContainer">
+    <div *ngFor="let ExercisesIndex of ExercisesIndexArray">
+      <button class="btn text-start Exercises" [attr.Exercise]="ExercisesTitleList[ExercisesIndex]">
+          <p class="mb-0 fw-bolder">{{ ExercisesTitleList[ExercisesIndex] }}</p>
+          <p>{{ ExercisesDescList[ExercisesIndex] }}</p>
+      </button>
+    </div>
   </div>
 </div>
