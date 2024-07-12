@@ -1,9 +1,8 @@
-
-
 $background-color: #FAFAFA;
 $primary-color: #1C1E1F;
 $secondary-color: #607AFC;
 
+//GLOBAL
 html, body { height: 100%; }
 body{ 
   margin: 0; 
@@ -41,6 +40,7 @@ nav a{
   background-color: $secondary-color !important;
 }
 
+//Dashboard
 .WhatsNext:hover, .Achievements:hover{
   background-color: lightgray !important;
   border: 1px solid gray !important;
@@ -48,4 +48,19 @@ nav a{
 
 .WhatsNext, .Achievements{
   width: 60%;
+}
+
+//Exercises
+#SearchBar{
+  width: 90%;
+}
+
+.SearchBarContainer{
+  height: 5vh;
+  margin-bottom: 2%;
+}
+
+.CreateExerciseBtn{
+  margin-left: 3%;
+  width: 15%;
 }

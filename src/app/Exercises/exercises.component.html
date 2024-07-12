@@ -1,10 +1,21 @@
-<h2>Dodaj Ćwiczenie</h2>
-<form [formGroup]="exerciseForm" (ngSubmit)="addExercise()">
-  <input formControlName="name" placeholder="Nazwa ćwiczenia">
-  <button type="submit">Dodaj</button>
-</form>
-
-<h3>Ćwiczenia:</h3>
-<ul>
-  <li *ngFor="let exercise of exercises">{{ exercise }}</li>
-</ul>
+<div class="mainContent">
+  <div class="SearchBarContainer d-flex">
+    <input type="text" class="form-control" id="SearchBar" placeholder="Search Exercise">
+    <i class="bi bi-search my-1 mx-2 fs-3"></i>
+    <button class="btn RaisedBtn CreateExerciseBtn" mat-button (click)="togglePanel()">Create exercise</button>
+  </div>
+  <div class="CreateExerciseContainer">
+      <mat-expansion-panel [expanded]="isPanelExpanded">
+      <form>
+        <br>
+        <label for="ExerciseName" class="fw-bold form-label">Title:</label>
+        <input type="text" class="form-control" id="ExerciseName">
+        <br>
+        <label for="ExerciseDesc" class="fw-bold form-label">Description:</label>
+        <input type="text" class="form-control" id="ExerciseDesc">
+        <br>
+        <input type="submit" mat-raised-button class="btn RaisedBtn" value="Create exercise">
+      </form>
+      </mat-expansion-panel>
+  </div>
+</div>

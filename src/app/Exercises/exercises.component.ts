@@ -1,30 +1,18 @@
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ExerciseService } from './exercises.service';
 import { CommonModule } from '@angular/common';
+import {Component} from '@angular/core';
+import {MatExpansionModule} from '@angular/material/expansion';
 
 @Component({
   selector: 'app-exercises',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
-  templateUrl: './exercises.component.html'
+  imports: [MatExpansionModule],
+  templateUrl: './exercises.component.html',
 })
 export class ExercisesComponent {
-  exerciseForm: FormGroup;
-  exercises: string[] = [];
+  isPanelExpanded = false;
 
-  constructor(private fb: FormBuilder, private exercisesService: ExerciseService) {
-    this.exerciseForm = this.fb.group({
-      name: ['']
-    });
-  }
-
-  addExercise() {
-    const exerciseName = this.exerciseForm.value.name;
-    if (exerciseName) {
-      this.exercisesService.addExercise(exerciseName);
-      this.exercises = this.exercisesService.getExercises();
-      this.exerciseForm.reset();
-    }
+  togglePanel() {
+    this.isPanelExpanded = !this.isPanelExpanded;
   }
 }
+ 
