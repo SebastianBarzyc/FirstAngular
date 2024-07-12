@@ -1,28 +1,30 @@
 <div class="mainContent">
-  <div class="SearchBarContainer d-flex">
-    <input type="text" class="form-control" id="SearchBar" placeholder="Search Exercise">
-    <i class="bi bi-search my-1 mx-2 fs-3"></i>
-    <button class="btn RaisedBtn CreateExerciseBtn" mat-button (click)="togglePanel()">Create exercise</button>
+  <div class="SearchBarContainer d-flex align-items-center">
+    <input type="text" class="form-control me-2" id="SearchBar" placeholder="Search Exercise">
+    <button class="btn"><i class="bi bi-search fs-5"></i></button>
+    <button class="btn RaisedBtn CreateExerciseBtn ms-auto" mat-button (click)="togglePanel()">Create exercise</button>
   </div>
-  <div class="CreateExerciseContainer">
-      <mat-expansion-panel [expanded]="isPanelExpanded">
-      <form>
+
+  <div class="CreateExerciseContainer mt-3">
+    <mat-expansion-panel [expanded]="isPanelExpanded">
+      <form (submit)="onSubmit()">
         <br>
-        <label for="ExerciseName" class="fw-bold form-label">Title:</label>
-        <input type="text" class="form-control" id="ExerciseName" required >
+        <label for="ExerciseTitle" class="fw-bold form-label">Title:</label>
+        <input type="text" class="form-control" id="ExerciseTitle" [(ngModel)]="exerciseTitle" [ngModelOptions]="{ standalone: true }" required>
         <br>
         <label for="ExerciseDesc" class="fw-bold form-label">Description:</label>
-        <input type="text" class="form-control" id="ExerciseDesc">
+        <input type="text" class="form-control" id="ExerciseDesc" [(ngModel)]="exerciseDesc" [ngModelOptions]="{ standalone: true }" >
         <br>
-        <input type="submit" mat-raised-button class="btn RaisedBtn" value="Create exercise">
+        <button type="submit" mat-raised-button class="btn RaisedBtn">Create exercise</button>
       </form>
-      </mat-expansion-panel>
+    </mat-expansion-panel>
   </div>
-  <div class="ExercisesContainer">
-    <div *ngFor="let ExercisesIndex of ExercisesIndexArray">
-      <button class="btn text-start Exercises" [attr.Exercise]="ExercisesTitleList[ExercisesIndex]">
-          <p class="mb-0 fw-bolder">{{ ExercisesTitleList[ExercisesIndex] }}</p>
-          <p>{{ ExercisesDescList[ExercisesIndex] }}</p>
+
+  <div class="ExercisesContainer mt-3">
+    <div *ngFor="let index of exercisesIndexArray">
+      <button class="btn text-start Exercises" [attr.Exercise]="exercisesTitleList[index]">
+        <p class="mb-0 fw-bold">{{ exercisesTitleList[index] }}</p>
+        <p>{{ exercisesDescList[index] }}</p>
       </button>
     </div>
   </div>
