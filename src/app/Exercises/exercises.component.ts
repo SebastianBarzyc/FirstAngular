@@ -21,7 +21,7 @@ export class ExercisesComponent {
   exerciseTitle: string = "";
   exerciseDesc: string = "";
 
-  constructor(private cookieService: CookieService, private exerciseService: ExercisesService) {
+  constructor(private cookieService: CookieService, private exerciseService: ExercisesService, ) {
     this.exercisesTitleList = this.exerciseService.getExercisesTitle();
     this.exercisesDescList = this.exerciseService.getExercisesDesc();
     this.loadFromCookies();

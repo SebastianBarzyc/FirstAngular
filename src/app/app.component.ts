@@ -16,7 +16,7 @@ import { CookieService } from 'ngx-cookie-service';
   selector: 'app-root',
   standalone: true,
   imports: [
-    RouterOutlet, CoursesComponent, NavComponent, NavBtnComponent, DashoardComponent,CalendarComponent, ExercisesComponent, ProfileComponent, ProgressComponent, WorkoutsComponent, ReactiveFormsModule],
+    RouterOutlet, CoursesComponent, NavComponent, NavBtnComponent, DashoardComponent,CalendarComponent, ExercisesComponent, ProfileComponent, ProgressComponent, ReactiveFormsModule, WorkoutsComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

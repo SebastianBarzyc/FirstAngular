@@ -1,0 +1,19 @@
+<div class="mainContent">
+    <button class="btn RaisedBtn CreateWorkoutBtn ms-auto" mat-button (click)="togglePanel()">Create workout</button>
+    <div class="CreateWorkoutsContainer mt-3">
+        <mat-expansion-panel [expanded]="isPanelExpanded">
+          <form (submit)="onSubmit()">
+            <br>
+            <label for="WorkoutTitle" class="fw-bold form-label">Title:</label>
+            <input type="text" class="form-control" id="WorkoutTitle" [(ngModel)]="WorkoutTitle" [ngModelOptions]="{ standalone: true }" required>
+            <br>
+            <label for="WorkoutDesc" class="fw-bold form-label">Description:</label>
+            <input type="text" class="form-control" id="WorkoutDesc" [(ngModel)]="WorkoutDesc" [ngModelOptions]="{ standalone: true }" >
+            <br>
+            <button class="btn form-label" (click)="addElement()" style="font-weight: 500">Add exercise</button>
+            <ng-template #parent></ng-template>
+            <button type="submit" mat-raised-button class="btn RaisedBtn">Create workout</button>
+          </form>
+        </mat-expansion-panel>
+      </div>
+</div>
