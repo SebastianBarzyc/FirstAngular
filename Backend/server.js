@@ -1,26 +1,25 @@
 const express = require('express');
-const cors = require('cors'); // Import cors
+const bodyParser = require('body-parser');
+const itemRoutes = require('./routes/items'); // Importowanie routerów dla endpointów items
 
-const app = express();
-const port = 3000;
+const app = express(); // Inicjowanie aplikacji Express
 
-// Użyj cors, aby zezwolić na żądania z http://localhost:4200
-app.use(cors({
-  origin: 'http://localhost:4200'
-}));
+// Ustawianie middleware
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-app.use(express.json());
+// Definiowanie routingu
+app.use('/items', itemRoutes); // Użycie routerów dla endpointów items
 
-app.get('/api/data', (req, res) => {
-  res.json({ message: 'Hello from Express!' });
+// Definiowanie podstawowego endpointu GET
+app.get('/', (req, res) => {
+  res.send('Hello World!'); // Przykładowa odpowiedź na żądanie GET
 });
 
-app.post('/api/submit', (req, res) => {
-  const { title, description } = req.body;
-  console.log(`Title: ${title}, Description: ${description}`);
-  res.status(201).json({ message: 'Data received!' });
-});
+// Ustawianie portu nasłuchiwania
+const PORT = process.env.PORT || 3000;
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+// Uruchamianie serwera
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

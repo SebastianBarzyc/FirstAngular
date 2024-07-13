@@ -5,6 +5,7 @@ To acomplish this project I used:
 - Angular Materials
 - Typescript
 - Express.JS
+- PostgreSQL
 - Bootstrap
 - SCSS
 
