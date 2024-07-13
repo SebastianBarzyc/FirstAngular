@@ -36,10 +36,6 @@ nav a{
   float: right;
 }
 
-.progress-bar{
-  background-color: $secondary-color !important;
-}
-
 //Dashboard
 .WhatsNext:hover, .Achievements:hover{
   background-color: lightgray !important;
@@ -48,6 +44,14 @@ nav a{
 
 .WhatsNext, .Achievements{
   width: 60%;
+}
+
+.progress-bar{
+  background-color: $secondary-color !important;
+}
+
+.ProgressBar{
+  width: 100% !important;
 }
 
 //Exercises

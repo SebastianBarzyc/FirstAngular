@@ -1,4 +1,5 @@
 <div class="mainContent">
+    <p class="fs-2 fw-bold text-center">Workouts</p>
     <button class="btn RaisedBtn CreateWorkoutBtn ms-auto" mat-button (click)="togglePanel()">Create workout</button>
     <div class="CreateWorkoutsContainer mt-3">
         <mat-expansion-panel [expanded]="isPanelExpanded">
@@ -10,7 +11,7 @@
             <label for="WorkoutDesc" class="fw-bold form-label">Description:</label>
             <input type="text" class="form-control" id="WorkoutDesc" [(ngModel)]="WorkoutDesc" [ngModelOptions]="{ standalone: true }" >
             <br>
-            <button class="btn form-label" (click)="addElement()" style="font-weight: 500">Add exercise</button>
+            <button class="btn form-label" (click)="addElement()" style="font-weight: 500">Add exercises</button>
             <ng-template #parent></ng-template>
             <button type="submit" mat-raised-button class="btn RaisedBtn">Create workout</button>
           </form>

@@ -11,12 +11,13 @@ import { ProgressComponent } from './Progress/progress.component';
 import { WorkoutsComponent } from './Workouts/workouts.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CookieService } from 'ngx-cookie-service';
+import { ExampleComponent } from './Data/example.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
-    RouterOutlet, CoursesComponent, NavComponent, NavBtnComponent, DashoardComponent,CalendarComponent, ExercisesComponent, ProfileComponent, ProgressComponent, ReactiveFormsModule, WorkoutsComponent],
+    RouterOutlet, ExampleComponent, CoursesComponent, NavComponent, NavBtnComponent, DashoardComponent,CalendarComponent, ExercisesComponent, ProfileComponent, ProgressComponent, ReactiveFormsModule, WorkoutsComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
