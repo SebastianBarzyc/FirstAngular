@@ -1,14 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { DataService } from './data.service';
-import { FormsModule } from '@angular/forms';
-import { provideHttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms'; 
 
 @Component({
   selector: 'app-example',
   templateUrl: './example.component.html',
   standalone: true,
-  imports: [FormsModule],
-
+  imports: [FormsModule]
 })
 export class ExampleComponent implements OnInit {
   data: any;
