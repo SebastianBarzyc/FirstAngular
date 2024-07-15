@@ -1,62 +1,24 @@
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Component } from '@angular/core';
-import { ExercisesService } from './exercises.service';
+import { Component, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { CookieService } from 'ngx-cookie-service';
+import { ExercisesBackend } from './exercises-backend.component';
 
 @Component({
   selector: 'app-exercises',
   templateUrl: './exercises.component.html',
   standalone: true,
-  imports: [FormsModule, MatExpansionModule, CommonModule]
+  imports: [FormsModule, MatExpansionModule, CommonModule, ExercisesBackend]
 })
 
 export class ExercisesComponent {
-  exercisesTitleList: string[];
-  exercisesDescList: string[];
-  exercisesIndexArray: number[];
+  @ViewChild(ExercisesBackend) exercisesBackend!: ExercisesBackend;
 
-  isPanelExpanded = false;
-  exerciseTitle: string = "";
-  exerciseDesc: string = "";
-
-  constructor(private cookieService: CookieService, private exerciseService: ExercisesService, ) {
-    this.exercisesTitleList = this.exerciseService.getExercisesTitle();
-    this.exercisesDescList = this.exerciseService.getExercisesDesc();
-    this.loadFromCookies();
-
-    const exercisesMaxLength = Math.min(this.exercisesTitleList.length, this.exercisesDescList.length);
-    this.exercisesIndexArray = Array.from({ length: exercisesMaxLength }, (_, index) => index);
-  }
+  constructor() {}
 
   togglePanel() {
-    this.isPanelExpanded = !this.isPanelExpanded;
-  }
-
-  onSubmit() {
-    this.exercisesTitleList.push(this.exerciseTitle);
-    this.exercisesDescList.push(this.exerciseDesc);
-
-    this.exerciseService.addExerciseTitle(this.exerciseTitle);
-    this.exerciseService.addExerciseDesc(this.exerciseDesc);
-
-    this.saveToCookies();
-
-    this.exerciseTitle = "";
-    this.exerciseDesc = "";
-  }
-
-  private saveToCookies() {
-    this.cookieService.set('exercisesTitleList', JSON.stringify(this.exercisesTitleList));
-    this.cookieService.set('exercisesDescList', JSON.stringify(this.exercisesDescList));
-  }
-  private loadFromCookies() {
-    const savedExercisesTitleList = this.cookieService.get('exercisesTitleList');
-    const savedExercisesDescList = this.cookieService.get('exercisesDescList');
-    if (savedExercisesTitleList && savedExercisesDescList) {
-      this.exercisesTitleList = JSON.parse(savedExercisesTitleList);
-      this.exercisesDescList = JSON.parse(savedExercisesDescList);
+    if (this.exercisesBackend) {
+      this.exercisesBackend.togglePanel();
     }
   }
 }

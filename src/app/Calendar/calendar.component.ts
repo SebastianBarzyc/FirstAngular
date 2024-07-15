@@ -1,12 +1,11 @@
 import { Component } from '@angular/core';
-import { ExampleComponent } from '../Data/example.component';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [ExampleComponent],
+  imports: [],
   templateUrl: './calendar.component.html',
 })
 export class CalendarComponent {
-
+  
 }

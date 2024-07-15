@@ -5,28 +5,5 @@
     <button class="btn"><i class="bi bi-search fs-5"></i></button>
     <button class="btn RaisedBtn CreateExerciseBtn ms-auto" mat-button (click)="togglePanel()">Create exercise</button>
   </div>
-
-  <div class="CreateExerciseContainer mt-3">
-    <mat-expansion-panel [expanded]="isPanelExpanded">
-      <form (submit)="onSubmit()">
-        <br>
-        <label for="ExerciseTitle" class="fw-bold form-label">Title:</label>
-        <input type="text" class="form-control" id="ExerciseTitle" [(ngModel)]="exerciseTitle" [ngModelOptions]="{ standalone: true }" required>
-        <br>
-        <label for="ExerciseDesc" class="fw-bold form-label">Description:</label>
-        <input type="text" class="form-control" id="ExerciseDesc" [(ngModel)]="exerciseDesc" [ngModelOptions]="{ standalone: true }" >
-        <br>
-        <button type="submit" mat-raised-button class="btn RaisedBtn">Create exercise</button>
-      </form>
-    </mat-expansion-panel>
-  </div>
-
-  <div class="ExercisesContainer mt-3">
-    <div *ngFor="let index of exercisesIndexArray">
-      <button class="btn text-start Exercises" [attr.Exercise]="exercisesTitleList[index]">
-        <p class="mb-0 fw-bold">{{ exercisesTitleList[index] }}</p>
-        <p>{{ exercisesDescList[index] }}</p>
-      </button>
-    </div>
-  </div>
+  <exercises-backend></exercises-backend>
 </div>

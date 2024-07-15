@@ -15,23 +15,31 @@ const pool = new Pool({
   port: 5432,
 });
 
-// Middleware do parsowania JSON w ciele żądań
 app.use(bodyParser.json());
 app.use(cors());
 
-// Trasa do obsługi żądań POST na /items
-app.post('/items', async (req, res) => {
+app.get('/api/exercises', (req, res) => {
+  pool.query('SELECT * FROM exercises', (error, results) => {
+    if (error) {
+      throw error;
+    }
+    res.json(results.rows);
+  });
+});
+
+app.post('/api/exercises', async (req, res) => {
   const { title, description } = req.body;
-  
+
   try {
-    const result = await pool.query(
-      'INSERT INTO items (title, description) VALUES ($1, $2) RETURNING *',
-      [title, description]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    const query = 'INSERT INTO exercises (title, description) VALUES ($1, $2) RETURNING *';
+    const values = [title, description];
+
+    const result = await pool.query(query, values);
+
+    res.status(201).json({ message: 'Exercise added successfully', exercise: result.rows[0] });
+  } catch (error) {
+    console.error('Error adding exercise:', error);
+    res.status(500).json({ error: 'Failed to add exercise' });
   }
 });
 
