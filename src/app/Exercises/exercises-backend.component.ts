@@ -22,15 +22,9 @@ export class ExercisesBackend implements OnInit {
   private refreshSubscription: Subscription = new Subscription;
 
   ngOnInit(): void {
-    this.loadArticles();
+    this.loadExercises();
   }
 
-  loadArticles(): void {
-    this.exerciseService.getData()
-      .subscribe(data => {
-        this.exercises = data;
-      });
-  }
   ngOnDestroy(): void {
     this.refreshSubscription.unsubscribe();
   }
@@ -57,12 +51,6 @@ export class ExercisesBackend implements OnInit {
           this.resetForm();
         })
       )
-      .subscribe(
-        () => {},
-        error => {
-          console.error('Error adding exercise:', error);
-        }
-      );
   }
 
   resetForm(): void {

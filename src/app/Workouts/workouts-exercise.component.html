@@ -3,21 +3,20 @@
     <div>
     <mat-form-field>
       <mat-label>Choose Exercise</mat-label>
-      <mat-select [(ngModel)]="selectedValue" name="Exercise">
-        @for (Exercise of exercises; track Exercise) {
-          <mat-option [value]="Exercise.value">{{Exercise.value}}</mat-option>
-        }
+      <mat-select [(ngModel)]="selectedExercise">
+        <mat-option *ngFor="let exercise of exercises" [value]="exercise.title">
+          {{ exercise.title }}
+        </mat-option>
       </mat-select>
     </mat-form-field>
   </div>
     <div class="ExerciseInput">
-        <label>Sets</label><br>
-        <input matInput placeholder="Sets" type="number">
+        <label for="sets">Sets</label><br>
+        <input id="sets" name="sets" matInput placeholder="Sets" type="number">
     </div>
     <div class="ExerciseInput">
-      <label>Reps</label><br>
-      <input matInput placeholder="Reps" type="number">
+      <label for="reps">Reps</label><br>
+      <input  id="reps" name="reps" matInput placeholder="Reps" type="number">
       </div>
   </div>
-  
 </div>
