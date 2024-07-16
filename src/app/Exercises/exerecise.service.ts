@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, catchError  } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExerciseService {
   private apiUrl = 'http://localhost:3000/api/exercises';
+  private apiUrlEdit = 'http://localhost:3000/api/update-exercise/';
   private refreshNeeded$ = new Subject<void>();
 
   constructor(private http: HttpClient) {}
@@ -23,7 +24,19 @@ export class ExerciseService {
       })
     );
   }
+
   onRefreshNeeded(): Observable<void> {
     return this.refreshNeeded$.asObservable();
+  }
+
+  editExercise(id: number, newTitle: string, newDescription: string): Observable<any> {
+    const body = { id, newTitle, newDescription };
+
+    return this.http.put<any>(this.apiUrlEdit, body).pipe(
+        catchError(error => {
+        console.error('Error editing exercise:', error);
+        throw error;
+      })
+    );
   }
 }

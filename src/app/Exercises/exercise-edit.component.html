@@ -1,0 +1,19 @@
+<div *ngFor="let exercise of exercises">
+  <div *ngIf="exercise.id === getId()">
+    <h2 mat-dialog-title class="fw-bold">Edit exercise:</h2>
+    <mat-dialog-content>
+      <p class="fw-bold">Title:</p>
+      <mat-form-field>
+        <input matInput name="title-{{exercise.id}}" [(ngModel)]="exercise.title" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
+      </mat-form-field>
+      <br>
+      <p class="fw-bold">Description:</p>
+      <mat-form-field style="width: 90%;">
+        <textarea matInput name="description-{{exercise.id}}" [(ngModel)]="exercise.description" [ngModelOptions]="{ standalone: true }" style="text-align: center;"></textarea>
+      </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions>
+      <button mat-button (click)="Save(exercise.id, exercise.title, exercise.description)" cdkFocusInitial class="RaisedBtn">Save changes</button>
+    </mat-dialog-actions>
+  </div>
+</div>

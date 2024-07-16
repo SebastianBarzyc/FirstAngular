@@ -1,14 +1,18 @@
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ExercisesBackend } from './exercises-backend.component';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
   selector: 'app-exercises',
   templateUrl: './exercises.component.html',
   standalone: true,
-  imports: [FormsModule, MatExpansionModule, CommonModule, ExercisesBackend]
+  imports: [MatFormFieldModule, MatInputModule, FormsModule, MatButtonModule,FormsModule, MatExpansionModule, CommonModule, ExercisesBackend],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 export class ExercisesComponent {

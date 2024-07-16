@@ -36,6 +36,10 @@ nav a{
   float: right;
 }
 
+.fw-bold{
+  color: $primary-color;
+}
+
 //Dashboard
 .WhatsNext:hover, .Achievements:hover{
   background-color: lightgray !important;
@@ -75,6 +79,11 @@ nav a{
 .ExercisesContainer{
   column-count: 2;
   margin-top: 2%;
+}
+
+.exercise-edit {
+  width: 60%;
+  text-align: center;
 }
 
 //Workouts

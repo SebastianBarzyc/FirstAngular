@@ -6,7 +6,7 @@
       <input type="text" class="form-control" id="ExerciseTitle" [(ngModel)]="exercise.title" [ngModelOptions]="{ standalone: true }" required>
       <br>
       <label for="ExerciseDesc" class="fw-bold form-label">Description:</label>
-      <input type="text" class="form-control" id="ExerciseDesc" [(ngModel)]="exercise.description" [ngModelOptions]="{ standalone: true }" >
+      <input type="text" class="form-control" id="ExerciseDesc" [(ngModel)]="exercise.description" [ngModelOptions]="{ standalone: true }">
       <br>
       <button type="submit" mat-raised-button class="btn RaisedBtn">Create exercise</button>
     </form>
@@ -14,12 +14,12 @@
 </div>
 <div class="ExercisesContainer mt-3">
   <div *ngFor="let exercise of exercises">
-    <button class="btn text-start Exercises" [attr.Exercise_ID]="exercise.id">
+    <button class="btn text-start Exercises" (click)="openDialog(exercise.id,exercise.title,exercise.description)">
     <p class="mb-0 fw-bold">{{ exercise.title }}</p>
       <p>{{ exercise.description }}</p>
       </button>
   </div>
   <div *ngIf="exercises.length === 0">
-    <p>Brak artykułów do wyświetlenia.</p>
+    <p>Brak wyników do wyświetlenia.</p>
   </div>
 </div>

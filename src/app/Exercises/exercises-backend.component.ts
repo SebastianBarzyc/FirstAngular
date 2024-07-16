@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,  inject} from '@angular/core';
 import { ExerciseService } from './exerecise.service';
 import { CommonModule } from '@angular/common';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { FormsModule } from '@angular/forms';
 import { Subscription, tap } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { ExerciseEditComponent } from './exercise-edit.component';
 
 @Component({
   selector: 'exercises-backend',
@@ -62,7 +64,19 @@ export class ExercisesBackend implements OnInit {
   private subscribeToRefresh(): void {
     this.refreshSubscription = this.exerciseService.onRefreshNeeded()
       .subscribe(() => {
-        this.loadExercises(); // Automatyczne odświeżenie listy po emitowaniu zdarzenia
+        this.loadExercises();
       });
+  }
+  readonly dialog = inject(MatDialog);
+
+  openDialog(id: number, title: string, description: string): void {
+    const dialogRef = this.dialog.open(ExerciseEditComponent, {
+      data: { id: id, title: title, description: description },
+      panelClass: 'exercise-edit'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+    });
   }
 }
