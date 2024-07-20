@@ -14,8 +14,18 @@ const pool = new Pool({
   port: 5432,
 });
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:4200'); // Domena frontendowa
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
+
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:4200'
+}));
 
 app.get('/api/exercises', (req, res) => {
   pool.query('SELECT * FROM exercises ORDER BY ID ASC;', (error, results) => {
@@ -61,6 +71,27 @@ app.put('/api/update-exercise/', async (req, res) => {
       console.error('Error updating data: ', error);
       res.status(500).json({ message: 'Error updating data' });
     }
+});
+
+app.delete('/api/delete-exercise/:id', async (req, res) => {
+  const id = req.params.id;
+  console.log('DELETE request received for ID:', id);
+
+  try {
+    const query = 'DELETE FROM exercises WHERE id = $1';
+    const values = [id];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Exercise deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Exercise not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting data: ', error);
+    res.status(500).json({ message: 'Error deleting data' });
+  }
 });
 
 app.listen(port, () => {

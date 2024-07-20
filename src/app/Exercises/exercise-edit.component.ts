@@ -1,12 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { ExerciseService } from './exerecise.service';
-import { Component, Inject, inject, model } from '@angular/core';
+import { Component, ElementRef, Inject, inject, model, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {MAT_DIALOG_DATA,MatDialogActions,MatDialogClose,MatDialogContent,MatDialogRef,MatDialogTitle,} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { response } from 'express';
   
   @Component({
     selector: 'exercise-edit',
@@ -25,21 +24,34 @@ import { response } from 'express';
     ],
   })
    
-  export class ExerciseEditComponent { 
+  export class ExerciseEditComponent {
     readonly dialogRef = inject(MatDialogRef<ExerciseEditComponent>);
     exercise = model(this.data);
     exercises: any[] = [];
 
-    constructor(private exerciseService: ExerciseService, @Inject(MAT_DIALOG_DATA) public data: any) { 
-    }
+    constructor(private exerciseService: ExerciseService, @Inject(MAT_DIALOG_DATA) public data: any) {}
+
+    @ViewChild('textarea') textarea!: ElementRef;
+
     ngOnInit(): void {
         this.loadExercises();
+    }
+
+    ngAfterViewInit(): void {
+      if (this.textarea) {
+        this.autoResize(this.textarea.nativeElement);
+      }
     }
     
     loadExercises(): void {
         this.exerciseService.getData()
           .subscribe(data => {
         this.exercises = data;
+        setTimeout(() => {
+          if (this.textarea) {
+            this.autoResize(this.textarea.nativeElement);
+          }
+        }, 0);
         });
     }
 
@@ -60,5 +72,23 @@ import { response } from 'express';
             }
           });
       }
-      
+
+      autoResize(textarea: HTMLTextAreaElement) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      }
+
+      Delete(id: number) {
+        this.exerciseService.deleteExercise(id)
+          .subscribe({
+            next: response => {
+              console.log('Response from server:', response);
+              this.dialogRef.close();
+            },
+            error: error => {
+              console.error('Error from server:', error);
+            }
+          });
+        this.loadExercises();
+      } 
   }

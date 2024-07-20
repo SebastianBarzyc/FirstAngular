@@ -86,6 +86,15 @@ nav a{
   text-align: center;
 }
 
+textarea {
+  box-sizing: border-box !important;
+  resize: none !important;
+}
+
+.DeleteBtn{
+  background-color: #FF4C4C !important;
+}
+
 //Workouts
 
 .AddExercise{

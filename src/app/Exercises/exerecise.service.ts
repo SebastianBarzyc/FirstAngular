@@ -9,6 +9,7 @@ import { tap, catchError  } from 'rxjs/operators';
 export class ExerciseService {
   private apiUrl = 'http://localhost:3000/api/exercises';
   private apiUrlEdit = 'http://localhost:3000/api/update-exercise/';
+  private apiUrlDelete = 'http://localhost:3000/api/delete-exercise/';
   private refreshNeeded$ = new Subject<void>();
 
   constructor(private http: HttpClient) {}
@@ -36,6 +37,14 @@ export class ExerciseService {
         catchError(error => {
         console.error('Error editing exercise:', error);
         throw error;
+      })
+    );
+  }
+
+  deleteExercise(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrlDelete}${id}`).pipe(
+      tap(() => {
+        this.refreshNeeded$.next();
       })
     );
   }
