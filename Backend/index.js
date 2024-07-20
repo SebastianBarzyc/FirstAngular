@@ -36,6 +36,21 @@ app.get('/api/exercises', (req, res) => {
   });
 });
 
+app.get('/api/search-exercises', async (req, res) => {
+  const query = req.query.query || '';
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM exercises WHERE title ILIKE $1',
+      [`%${query}%`]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error searching exercises:', error);
+    res.status(500).json({ message: 'Error searching exercises' });
+  }
+});
+
 app.post('/api/exercises', async (req, res) => {
   const { title, description } = req.body;
 

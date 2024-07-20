@@ -45,7 +45,7 @@ import { MatInputModule } from '@angular/material/input';
     
     loadExercises(): void {
         this.exerciseService.getData()
-          .subscribe(data => {
+        .subscribe(data => {
         this.exercises = data;
         setTimeout(() => {
           if (this.textarea) {
@@ -90,5 +90,5 @@ import { MatInputModule } from '@angular/material/input';
             }
           });
         this.loadExercises();
-      } 
+      }
   }

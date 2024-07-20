@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { tap, catchError  } from 'rxjs/operators';
 
@@ -10,6 +10,7 @@ export class ExerciseService {
   private apiUrl = 'http://localhost:3000/api/exercises';
   private apiUrlEdit = 'http://localhost:3000/api/update-exercise/';
   private apiUrlDelete = 'http://localhost:3000/api/delete-exercise/';
+  private apiUrlSearch = 'http://localhost:3000/api/search-exercises/';
   private refreshNeeded$ = new Subject<void>();
 
   constructor(private http: HttpClient) {}
@@ -47,5 +48,10 @@ export class ExerciseService {
         this.refreshNeeded$.next();
       })
     );
+  }
+
+  searchExercise(query: any): Observable<any>{
+    const params = new HttpParams().set('query', query);
+    return this.http.get<any>(this.apiUrlSearch, { params });
   }
 }

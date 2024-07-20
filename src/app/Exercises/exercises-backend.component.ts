@@ -61,12 +61,7 @@ export class ExercisesBackend implements OnInit {
       description: ''
     };
   }
-  private subscribeToRefresh(): void {
-    this.refreshSubscription = this.exerciseService.onRefreshNeeded()
-      .subscribe(() => {
-        this.loadExercises();
-      });
-  }
+
   readonly dialog = inject(MatDialog);
 
   openDialog(id: number, title: string, description: string): void {
@@ -79,4 +74,5 @@ export class ExercisesBackend implements OnInit {
       console.log('The dialog was closed');
     });
   }
+  
 }
