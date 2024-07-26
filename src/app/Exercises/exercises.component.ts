@@ -13,7 +13,6 @@ import { ExerciseService } from './exerecise.service';
   templateUrl: './exercises.component.html',
   standalone: true,
   imports: [MatFormFieldModule, MatInputModule, FormsModule, MatButtonModule,FormsModule, MatExpansionModule, CommonModule, ExercisesBackend],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 export class ExercisesComponent {

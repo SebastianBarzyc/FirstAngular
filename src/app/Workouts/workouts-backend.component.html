@@ -1,0 +1,28 @@
+<div class="CreateWorkoutsContainer mt-3">
+  <mat-expansion-panel [expanded]="isPanelExpanded">
+    <form (submit)="onSubmit()">
+      <br>
+      <label for="WorkoutTitle" class="fw-bold form-label">Title:</label>
+      <input type="text" class="form-control" id="WorkoutTitle" [(ngModel)]="workout.title" [ngModelOptions]="{ standalone: true }" required>
+      <br>
+      <label for="WorkoutDesc" class="fw-bold form-label">Description:</label>
+      <input type="text" class="form-control" id="WorkoutDesc" [(ngModel)]="workout.description" [ngModelOptions]="{ standalone: true }" >
+      <br>
+      <button class="btn form-label" (click)="addElement()" style="font-weight: 500">Add exercises</button>
+      <ng-template #parent></ng-template>
+      <button type="submit" mat-raised-button class="btn RaisedBtn">Create workout</button> 
+    </form>
+  </mat-expansion-panel>
+</div>
+
+<div class="ExercisesContainer mt-3">
+  <div *ngFor="let workout of workouts">
+    <button class="btn text-start Exercises">
+    <p class="mb-0 fw-bold">{{ workout.title }}</p>
+      <p>{{ workout.description }}</p>
+      </button>
+  </div>
+  <div *ngIf="workouts.length === 0">
+    <p>Brak wyników do wyświetlenia.</p>
+  </div>
+</div>

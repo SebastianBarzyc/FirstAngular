@@ -34,12 +34,12 @@ nav a{
   color: white !important;
   font-weight: 500 !important;
   float: right;
+  width: 15%;
 }
 
 .fw-bold{
   color: $primary-color;
 }
-
 //Dashboard
 .WhatsNext:hover, .Achievements:hover{
   background-color: lightgray !important;
@@ -66,10 +66,6 @@ nav a{
 .SearchBarContainer{
   height: 5vh;
   margin-bottom: 2%;
-}
-
-.CreateExerciseBtn{
-  width: 15%;
 }
 
 .Exercises{
