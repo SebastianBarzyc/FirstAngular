@@ -131,6 +131,27 @@ app.delete('/api/delete-exercise/:id', async (req, res) => {
   }
 });
 
+app.delete('/api/delete-workout/:id', async (req, res) => {
+  const id = req.params.id;
+  console.log('DELETE request received for ID:', id);
+
+  try {
+    const query = 'DELETE FROM training_plans WHERE id = $1';
+    const values = [id];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Workout deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Workout not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting data: ', error);
+    res.status(500).json({ message: 'Error deleting data' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });

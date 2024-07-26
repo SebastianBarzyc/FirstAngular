@@ -17,7 +17,8 @@ import { CommonModule } from '@angular/common';
     constructor(private exerciseService: ExerciseService) { }
 
     exercises: any[] = [];
-    
+    selectedValue: string | null = null;
+
     ngOnInit() {
       this.loadExercises();
     }
@@ -35,5 +36,10 @@ import { CommonModule } from '@angular/common';
       const exercise = this.selectedExercise;
   
       console.log('Submitted:', exercise, sets, reps);
+    }
+
+    onSelectChange(event: any): void {
+      this.selectedValue = event.value;
+      console.log('Wybrana wartość:', this.selectedValue); // Debugging
     }
   }

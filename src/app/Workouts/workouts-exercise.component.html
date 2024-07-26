@@ -1,22 +1,22 @@
-<div>
-  <div class="AddExercise">
-    <div>
+<div class="AddExercise">
+  <div>
     <mat-form-field>
       <mat-label>Choose Exercise</mat-label>
-      <mat-select [(ngModel)]="selectedExercise">
+      <mat-select [(ngModel)]="selectedExercise" (selectionChange)="onSelectChange($event)">
         <mat-option *ngFor="let exercise of exercises" [value]="exercise.title">
           {{ exercise.title }}
         </mat-option>
       </mat-select>
     </mat-form-field>
   </div>
-    <div class="ExerciseInput">
+  <div *ngIf="selectedValue">
+    <div class="ExerciseInput" style="float:left;">
         <label for="sets">Sets</label><br>
         <input id="sets" name="sets" matInput placeholder="Sets" type="number">
     </div>
-    <div class="ExerciseInput">
+    <div class="ExerciseInput" style="float:right;">
       <label for="reps">Reps</label><br>
       <input  id="reps" name="reps" matInput placeholder="Reps" type="number">
-      </div>
+    </div>
   </div>
 </div>
