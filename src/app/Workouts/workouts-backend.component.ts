@@ -1,19 +1,18 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, OnInit, ViewChild, ViewContainerRef, ComponentFactoryResolver, ComponentRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WorkoutService } from './workouts.service';
-
-import { ViewChild, ViewContainerRef, ComponentFactoryResolver, ComponentRef } from '@angular/core';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { WorkoutsExerciseComponent } from './workouts-exercise.component';
-
+import { workoutEditComponent } from './workouts-edit.component';
 
 @Component({
   selector: 'workouts-backend',
   templateUrl: './workouts-backend.component.html',
   standalone: true,
-  providers: [WorkoutService] ,
-  imports: [MatExpansionModule,CommonModule,FormsModule]
+  providers: [WorkoutService],
+  imports: [MatExpansionModule, CommonModule, FormsModule, MatDialogModule]
 })
 export class WorkoutsBackend implements OnInit {
   workouts: any[] = [];
@@ -27,7 +26,11 @@ export class WorkoutsBackend implements OnInit {
   isPanelExpanded = false;
   componentRef: ComponentRef<any> | undefined;
 
-  constructor(private componentFactoryResolver: ComponentFactoryResolver, private workoutsService: WorkoutService) {}
+  constructor(
+    private componentFactoryResolver: ComponentFactoryResolver,
+    private workoutsService: WorkoutService,
+    public dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.workoutsService.getData().subscribe(data => {
@@ -58,5 +61,16 @@ export class WorkoutsBackend implements OnInit {
 
   togglePanel() {
     this.isPanelExpanded = !this.isPanelExpanded;
+  }
+
+  openDialog(id: number, title: string, description: string): void {
+    const dialogRef = this.dialog.open(workoutEditComponent, {
+      data: { id: id, title: title, description: description },
+      panelClass: 'editPanel'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+    });
   }
 }

@@ -77,7 +77,7 @@ export class ExercisesBackend implements OnInit {
   openDialog(id: number, title: string, description: string): void {
     const dialogRef = this.dialog.open(ExerciseEditComponent, {
       data: { id: id, title: title, description: description },
-      panelClass: 'exercise-edit'
+      panelClass: 'editPanel'
     });
 
     dialogRef.afterClosed().subscribe(result => {

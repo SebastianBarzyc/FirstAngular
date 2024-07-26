@@ -77,14 +77,27 @@ app.post('/api/exercises', async (req, res) => {
 });
 
 app.put('/api/update-exercise/', async (req, res) => {
-  console.log('PUT request received');
   const { id, newTitle, newDescription } = req.body;
-  console.log('Updating exercise with ID:', id);
-  console.log('New Title:', newTitle);
-  console.log('New Description:', newDescription);
 
   try {
   const query = `UPDATE exercises SET title = $2, description = $3 WHERE id = $1`;
+  const values = [id, newTitle, newDescription];
+
+  await pool.query(query, values);
+
+  res.status(200).json({ message: 'Data has been updated'});
+
+  } catch (error) {
+      console.error('Error updating data: ', error);
+      res.status(500).json({ message: 'Error updating data' });
+    }
+});
+
+app.put('/api/update-workout/', async (req, res) => {
+  const { id, newTitle, newDescription } = req.body;
+
+  try {
+  const query = `UPDATE training_plans SET title = $2, description = $3 WHERE id = $1`;
   const values = [id, newTitle, newDescription];
 
   await pool.query(query, values);

@@ -1,0 +1,22 @@
+<div *ngFor="let workout of workouts">
+  <div *ngIf="workout.id === getId()">
+    <h2 mat-dialog-title class="fw-bold">Edit workout:</h2>
+    <mat-dialog-content>
+      <p class="fw-bold">Title:</p>
+      <mat-form-field>
+        <input matInput name="title-{{workout.id}}" [(ngModel)]="workout.title" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
+      </mat-form-field>
+      <br>
+      <p class="fw-bold">Description:</p>
+      <mat-form-field style="width: 90%;">
+        <textarea matInput name="description-{{workout.id}}" [(ngModel)]="workout.description" [ngModelOptions]="{ standalone: true }" (input)="autoResize(textarea)" #textarea></textarea>
+      </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions>
+      <div style="width:100%; margin-bottom: 2%">
+        <button mat-button (click)="Delete(workout.id)" cdkFocusInitial class="RaisedBtn DeleteBtn float-start">Delete workout</button>
+        <button mat-button (click)="Save(workout.id, workout.title, workout.description)" cdkFocusInitial class="RaisedBtn float-end">Save changes</button>
+      </div>
+    </mat-dialog-actions>
+  </div>
+</div>
