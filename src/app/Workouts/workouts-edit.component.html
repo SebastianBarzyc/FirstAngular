@@ -3,7 +3,7 @@
     <h2 mat-dialog-title class="fw-bold">Edit workout:</h2>
     <mat-dialog-content>
       <p class="fw-bold">Title:</p>
-      <mat-form-field>
+      <mat-form-field style="width: 70%;">
         <input matInput name="title-{{workout.id}}" [(ngModel)]="workout.title" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
       </mat-form-field>
       <br>
