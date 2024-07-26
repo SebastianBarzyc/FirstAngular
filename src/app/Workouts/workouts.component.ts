@@ -3,6 +3,7 @@ import { Component, ViewChild, ViewContainerRef, ComponentFactoryResolver, Compo
 import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { WorkoutsExerciseComponent } from './workouts-exercise.component';
+import { WorkoutService } from './workouts.service';
 
 @Component({
   selector: 'app-workouts',
@@ -15,12 +16,24 @@ export class WorkoutsComponent {
   WorkoutTitle: string = '';
   WorkoutDesc: string = '';
 
+  workouts: any[] = [];
+  workout = {
+    title: '',
+    description: ''
+  };
+
   @ViewChild('parent', { read: ViewContainerRef })
   target: ViewContainerRef | undefined;
 
   componentRef: ComponentRef<any> | undefined;
 
-  constructor(private componentFactoryResolver: ComponentFactoryResolver) { }
+  constructor(private componentFactoryResolver: ComponentFactoryResolver, private workoutService: WorkoutService) { }
+
+  ngOnInit(): void {
+    this.workoutService.getData().subscribe(data => {
+      this.workouts = data;
+    });
+  }
 
   togglePanel() {
     this.isPanelExpanded = !this.isPanelExpanded;

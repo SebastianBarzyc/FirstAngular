@@ -22,7 +22,7 @@ export class ExercisesComponent {
   constructor(private exerciseService: ExerciseService) {}
 
   exercises: any[] = [];
-    searchQuery: string = '';
+  searchQuery: string = '';
 
   togglePanel() {
     if (this.exercisesBackend) {
@@ -31,9 +31,10 @@ export class ExercisesComponent {
   }
 
   Search() {
-    this.exerciseService.searchExercise(this.searchQuery)
-    .subscribe(data => {
-    this.exercises = data;
+    this.exerciseService.searchExercise(this.searchQuery).subscribe(data => {
+      this.exercises = data;
     });
   }
+  
+  
 }

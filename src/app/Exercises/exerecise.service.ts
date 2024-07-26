@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { tap, catchError  } from 'rxjs/operators';
 
 @Injectable({
@@ -12,6 +12,8 @@ export class ExerciseService {
   private apiUrlDelete = 'http://localhost:3000/api/delete-exercise/';
   private apiUrlSearch = 'http://localhost:3000/api/search-exercises/';
   private refreshNeeded$ = new Subject<void>();
+  private searchResultsSubject = new BehaviorSubject<any[]>([]);
+  searchResults$ = this.searchResultsSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -50,8 +52,14 @@ export class ExerciseService {
     );
   }
 
-  searchExercise(query: any): Observable<any>{
+  searchExercise(query: string): Observable<any[]> {
     const params = new HttpParams().set('query', query);
-    return this.http.get<any>(this.apiUrlSearch, { params });
+    return this.http.get<any[]>(this.apiUrlSearch, { params }).pipe(
+      tap(data => {
+        console.log('Search results:', data);
+        this.searchResultsSubject.next(data);
+      })
+    );
   }
+  
 }

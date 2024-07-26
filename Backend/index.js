@@ -51,6 +51,15 @@ app.get('/api/search-exercises', async (req, res) => {
   }
 });
 
+app.get('/api/workouts', (req, res) => {
+  pool.query('SELECT * FROM training_plans ORDER BY ID ASC;', (error, results) => {
+    if (error) {
+      throw error;
+    }
+    res.json(results.rows);
+  });
+});
+
 app.post('/api/exercises', async (req, res) => {
   const { title, description } = req.body;
 

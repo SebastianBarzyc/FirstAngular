@@ -1,6 +1,6 @@
 <div class="mainContent">
     <p class="fs-2 fw-bold text-center">Workouts</p>
-    <button class="btn RaisedBtn CreateWorkoutBtn ms-auto" mat-button (click)="togglePanel()">Create workout</button>
+    <button class="btn RaisedBtn CreateExerciseBtn ms-auto" mat-button (click)="togglePanel()">Create workout</button>
     <div class="CreateWorkoutsContainer mt-3">
         <mat-expansion-panel [expanded]="isPanelExpanded">
           <form (submit)="onSubmit()">
@@ -13,8 +13,20 @@
             <br>
             <button class="btn form-label" (click)="addElement()" style="font-weight: 500">Add exercises</button>
             <ng-template #parent></ng-template>
-            <button type="submit" mat-raised-button class="btn RaisedBtn">Create workout</button>
+            <button type="submit" mat-raised-button class="btn RaisedBtn">Create workout</button> 
           </form>
         </mat-expansion-panel>
+      </div>
+
+      <div class="ExercisesContainer mt-3">
+        <div *ngFor="let workout of workouts">
+          <button class="btn text-start Exercises">
+          <p class="mb-0 fw-bold">{{ workout.title }}</p>
+            <p>{{ workout.description }}</p>
+            </button>
+        </div>
+        <div *ngIf="workouts.length === 0">
+          <p>Brak wyników do wyświetlenia.</p>
+        </div>
       </div>
 </div>

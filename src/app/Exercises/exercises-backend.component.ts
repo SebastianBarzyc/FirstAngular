@@ -17,6 +17,7 @@ import { ExerciseEditComponent } from './exercise-edit.component';
 export class ExercisesBackend implements OnInit {
   exercises: any[] = [];
   isPanelExpanded = false;
+  searchSubscription: Subscription = new Subscription();
   exercise = {
     title: '',
     description: ''
@@ -24,11 +25,19 @@ export class ExercisesBackend implements OnInit {
   private refreshSubscription: Subscription = new Subscription;
 
   ngOnInit(): void {
-    this.loadExercises();
+    this.searchSubscription = this.exerciseService.searchResults$.subscribe(data => {
+      this.exercises = data;
+      console.log('Data received in exercises-backend:', this.exercises);
+    });
+  
+    this.exerciseService.getData().subscribe(data => {
+      this.exercises = data;
+    });
   }
-
+  
   ngOnDestroy(): void {
     this.refreshSubscription.unsubscribe();
+    this.searchSubscription.unsubscribe();
   }
 
   loadExercises(): void {
@@ -42,7 +51,8 @@ export class ExercisesBackend implements OnInit {
     this.isPanelExpanded = !this.isPanelExpanded;
   }
 
-  constructor(private exerciseService: ExerciseService) { }
+  constructor(private exerciseService: ExerciseService) {}
+
 
   onSubmit(): void {
     this.exerciseService.addExercise(this.exercise)
