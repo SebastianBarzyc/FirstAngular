@@ -10,6 +10,7 @@
     </mat-form-field>
   </div>
   <div *ngIf="selectedExercise">
+    <input type="hidden" *ngIf="selectedExercise" [id]="'title-' + exerciseIdCounter" [value]="selectedExercise">
     <div class="ExerciseInput" style="float:left;">
       <label [attr.for]="'sets-' + exerciseIdCounter">Sets</label><br>
       <input [id]="'sets-' + exerciseIdCounter" name="sets" matInput placeholder="Sets" type="number" [(ngModel)]="sets">
@@ -19,4 +20,5 @@
       <input [id]="'reps-' + exerciseIdCounter" name="reps" matInput placeholder="Reps" type="number" [(ngModel)]="reps">
     </div>
   </div>
+  <button (click)="addExercise()">TEST</button>
 </div>

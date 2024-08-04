@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Output, ViewChild, ViewContainerRef } from "@angular/core";
-import { FormsModule } from "@angular/forms";
-import { MatSelectModule } from '@angular/material/select';
+import { Component, ElementRef, ViewChild, ViewContainerRef } from "@angular/core";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { ExerciseService } from "../Exercises/exerecise.service";
 import { CommonModule } from '@angular/common';
 import { WorkoutService } from "./workouts.service";
@@ -9,12 +9,12 @@ import { WorkoutService } from "./workouts.service";
     selector: 'app-workouts-exercise',
     standalone: true,
     templateUrl: './workouts-exercise.component.html',
-    imports: [FormsModule, MatSelectModule, CommonModule]
+    imports: [FormsModule, MatSelectModule, CommonModule, ReactiveFormsModule]
   })
 
   export class WorkoutsExerciseComponent{
     selectedExercise: any;
-    @Output() exerciseAdded = new EventEmitter<any>();
+
     constructor(private exerciseService: ExerciseService, private workoutService: WorkoutService) { }
 
     exerciseIdCounter = this.workoutService.getId();
@@ -26,6 +26,9 @@ import { WorkoutService } from "./workouts.service";
     workoutPlan: Array<{ exercise: string, sets: number, reps: number }> = [];
     localExercises: any[] = [];
     @ViewChild('parent', { read: ViewContainerRef, static: true }) target!: ViewContainerRef;
+    @ViewChild('inputElement') inputElementRef!: ElementRef;
+
+    workoutExercises: any[] = [];
 
     ngOnInit() {
       this.loadExercises();
@@ -39,47 +42,45 @@ import { WorkoutService } from "./workouts.service";
     }
 
     onSubmit() {
-      const sets = (document.getElementById('sets') as HTMLInputElement).value;
-      const reps = (document.getElementById('reps') as HTMLInputElement).value;
-      const exercise = this.selectedExercise;
-      console.log('Submitted:', exercise, sets, reps);
     }
 
     onSelectChange(event: any): void {
       this.selectedExercise = event.value;
-      console.log('Selected Exercise:', this.selectedExercise);
       this.workoutService.getId();
-      console.log('Exercise ID:', this.exerciseIdCounter);
-      this.checkAndAddExercise();
     }
   
-    onSetsChange(): void {
-      this.checkAndAddExercise();
-    }
-  
-    onRepsChange(): void {
-      this.checkAndAddExercise();
-    }
-
-    private checkAndAddExercise(): void {
-      if (this.selectedExercise && this.sets !== null && this.reps !== null) {
-        const newExercise = {
-          title: this.selectedExercise,
-          sets: this.sets,
-          reps: this.reps
-        };
-        console.log("Adding exercise:", newExercise);
-        this.exerciseService.addExercise(newExercise);
+    addExercise() {
+      for (let i = 0; i <= this.exerciseIdCounter; i++) {
+        const reps = document.getElementById('reps-' + i) as HTMLInputElement;
+        const sets = document.getElementById('sets-' + i) as HTMLInputElement;
+        const title = document.getElementById('title-' + i) as HTMLInputElement;
+    
+        if (reps && sets && title) {
+          const repsValue = reps.value;
+          const setsValue = sets.value;
+          const titleValue = title.value;
+          const existingExerciseIndex = this.workoutExercises.findIndex(exercise => exercise.id === i);
+    
+          if (existingExerciseIndex > -1) {
+            this.workoutExercises[existingExerciseIndex] = {
+              id: i,
+              title: titleValue,
+              sets: setsValue,
+              reps: repsValue
+            };
+          } else {
+            this.workoutExercises.push({
+              id: i,
+              title: titleValue,
+              sets: setsValue,
+              reps: repsValue
+            });
+          }
+          this.workoutService.setWorkoutExercises(this.workoutExercises);
+        } else {
+          console.error('One or more elements not found for ID:', i);
+        }
       }
     }
-  
-    addExercise(): void {
-     if (this.selectedExercise && this.sets && this.reps) {
-        this.workoutService.addExercise({
-          title: this.selectedExercise,
-          sets: this.sets,
-          reps: this.reps
-        });
-      }
-    }
+    
 }

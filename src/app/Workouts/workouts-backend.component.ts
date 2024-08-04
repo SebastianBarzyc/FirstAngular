@@ -16,13 +16,13 @@ import { workoutEditComponent } from './workouts-edit.component';
 })
 export class WorkoutsBackend implements OnInit {
   exerciseIdCounter = this.workoutService.getId();
+  workoutExercises = [];
   exercises: any[] = [];
   workouts: any[] = [];
   workout = {
     title: '',
     description: ''
   };
-
   @ViewChild('parent', { read: ViewContainerRef })
   target: ViewContainerRef | undefined;
   isPanelExpanded = false;
@@ -36,7 +36,6 @@ export class WorkoutsBackend implements OnInit {
     private workoutService: WorkoutService,
     public dialog: MatDialog,
   ) {}
-
   ngOnInit(): void {
     this.workoutService.getData().subscribe(data => {
       this.workouts = data;
@@ -62,8 +61,9 @@ export class WorkoutsBackend implements OnInit {
   }
 
   onSubmit() {
-    console.log("title: " + this.workout.title);
-    console.log("desc: " + this.workout.description);
+    this.exerciseIdCounter = this.workoutService.getId();
+    this.workoutExercises = this.workoutService.getWorkoutExercises();
+    console.log("workout exercises backend:", this.workoutExercises);
   }
 
   togglePanel() {

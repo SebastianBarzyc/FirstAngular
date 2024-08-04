@@ -16,6 +16,7 @@ import { WorkoutsBackend } from './workouts-backend.component';
     private refreshNeeded$ = new Subject<void>();
 
     public exerciseIdCounter = 0;
+    public workoutExercises = [];
       
     getData(): Observable<any> {
         return this.http.get<any>(this.apiUrl);
@@ -69,20 +70,27 @@ import { WorkoutsBackend } from './workouts-backend.component';
   getId() {
     return this.exerciseIdCounter;
   }
-
   setId(value: any) {
     this.exerciseIdCounter = value;
+  }
+
+  getWorkoutExercises(){
+    return this.workoutExercises;
+  }
+  setWorkoutExercises(value: any){
+    this.workoutExercises = value;
+    console.log("workout exercises service:", this.workoutExercises);
   }
 
   private exercisesSubject = new BehaviorSubject<{ title: string, sets: number, reps: number }[]>([]);
   exercises$ = this.exercisesSubject.asObservable();
 
-  addExercise(exercise: { title: string, sets: number, reps: number }) {
+  addExercise(exercise: {id: number, title: string, sets: number, reps: number }) {
     const currentExercises = this.exercisesSubject.value;
     const newExercise = {
       ...exercise,
     };
     this.exercisesSubject.next([...currentExercises, newExercise]);
-    console.log("New exercise added:", newExercise);
+    console.log("New exercise added:", newExercise); 
   }
 }
