@@ -1,16 +1,30 @@
-import { workoutEditComponent } from './workouts-edit.component';
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, catchError, Observable, Subject, tap } from "rxjs";
-import { HttpClient} from '@angular/common/http';
 import { WorkoutsBackend } from './workouts-backend.component';
+import { Injectable } from "@angular/core";
+import { catchError, Observable, Subject, tap, throwError } from "rxjs";
+import { HttpClient} from '@angular/common/http';
 
-@Injectable({
+  export interface WorkoutExercise {
+    id: string;
+    title: string;
+    sets: string;
+    reps: string;
+  };
+
+  @Injectable({
     providedIn: 'root'
   })
   export class WorkoutService {
+    public workoutExercises: WorkoutExercise = {
+      id: '',
+      title: '',
+      sets: '',
+      reps: ''
+    };
+    
     constructor(private http: HttpClient) {}
 
-    private apiUrl = 'http://localhost:3000/api/workouts';
+    private apiUrl = 'http://localhost:3000/api/workouts/';
+    private apiUrlExercise = 'http://localhost:3000/api/exercises';
     private apiUrlEdit = 'http://localhost:3000/api/update-workout/';
     private apiUrlDelete = 'http://localhost:3000/api/delete-workout/';
     private refreshNeeded$ = new Subject<void>();
@@ -18,10 +32,12 @@ import { WorkoutsBackend } from './workouts-backend.component';
     public exerciseIdCounter = 0;
     public exerciseAllCounter = 0;
 
-    public workoutExercises = [];
-      
-    getData(): Observable<any> {
-        return this.http.get<any>(this.apiUrl);
+    getData(): Observable< any> {
+      return this.http.get<{ data: any[] }>(this.apiUrl);
+    }
+
+    onRefreshNeeded(): Observable<void> {
+      return this.refreshNeeded$.asObservable();
     }
 
     addworkout(workout: any): Observable<any> {
@@ -30,7 +46,21 @@ import { WorkoutsBackend } from './workouts-backend.component';
         this.refreshNeeded$.next();
       })
     );
-  }
+    }
+
+    getExerciseByTitle(title: string): Observable<any> {
+      return this.http.get<any>(`${this.apiUrlExercise}/${title}`).pipe(
+        tap(response => {
+          const idFromTitle = response.exercise.id;
+          this.refreshNeeded$.next();
+        }),
+        catchError(error => {
+          console.error('Error in service:', error);
+          return throwError(error);
+        })
+      );
+    }
+    
 
   editworkout(id: number, newTitle: string, newDescription: string): Observable<any> {
     const body = { id, newTitle, newDescription };
@@ -42,6 +72,7 @@ import { WorkoutsBackend } from './workouts-backend.component';
       })
     );
   }
+
 
   deleteworkout(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrlDelete}${id}`).pipe(
@@ -64,7 +95,7 @@ import { WorkoutsBackend } from './workouts-backend.component';
     this.exerciseAllCounter = value;
   }
 
-  getWorkoutExercises(){
+  getWorkoutExercises(){ 
     return this.workoutExercises;
   }
   setWorkoutExercises(value: any){

@@ -15,7 +15,7 @@ const pool = new Pool({
 });
 
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:4200'); // Domena frontendowa
+  res.header('Access-Control-Allow-Origin', 'http://localhost:4200');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   next();
@@ -51,13 +51,55 @@ app.get('/api/search-exercises', async (req, res) => {
   }
 });
 
-app.get('/api/workouts', (req, res) => {
-  pool.query('SELECT * FROM training_plans ORDER BY ID ASC;', (error, results) => {
-    if (error) {
-      throw error;
+app.get('/api/workouts', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM training_plans ORDER BY ID ASC;');
+    const data = result.rows;
+
+    res.json({
+      data: data
+    });
+  } catch (error) {
+    console.error('Error querying database:', error);
+    res.status(500).json({ message: 'Error retrieving data' });
+  }
+});
+
+
+app.get('/api/exercises/:title', async (req, res) => {
+  const title = req.params.title;
+  try {
+    const query = 'SELECT * FROM exercises WHERE title = $1';
+    const values = [title];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Exercise found:', exercise: result.rows[0] });
+    } else {
+      res.status(404).json({ message: 'Exercise not found' });
     }
-    res.json(results.rows);
-  });
+  } catch (error) {
+    console.error('Error finding data:', error);
+    res.status(500).json({ message: 'Error finding data' });
+  }
+});
+
+
+app.post('/api/workouts', async (req, res) => {
+  const { title, description } = req.body;
+
+  try {
+    const query = 'INSERT INTO training_plans (title, description) VALUES ($1, $2) RETURNING *';
+    const values = [title, description];
+
+    const result = await pool.query(query, values);
+
+    res.status(201).json({ message: 'Workout added successfully', workout: result.rows[0] });
+  } catch (error) {
+    console.error('Error adding workout:', error);
+    res.status(500).json({ error: 'Failed to add workout' });
+  }
 });
 
 app.post('/api/exercises', async (req, res) => {

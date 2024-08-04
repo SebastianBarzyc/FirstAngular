@@ -1,6 +1,6 @@
-import { Component, ElementRef, ViewChild, ViewContainerRef } from "@angular/core";
+import { Component, Injectable} from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { MatSelect, MatSelectModule } from '@angular/material/select';
+import {  MatSelectModule } from '@angular/material/select';
 import { ExerciseService } from "../Exercises/exerecise.service";
 import { CommonModule } from '@angular/common';
 import { WorkoutService } from "./workouts.service";
@@ -10,6 +10,10 @@ import { WorkoutService } from "./workouts.service";
   standalone: true,
   templateUrl: './workouts-exercise.component.html',
   imports: [FormsModule, MatSelectModule, CommonModule, ReactiveFormsModule]
+})
+
+@Injectable({
+  providedIn: 'root'
 })
 
 export class WorkoutsExerciseComponent{
