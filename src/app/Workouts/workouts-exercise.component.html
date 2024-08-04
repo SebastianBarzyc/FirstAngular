@@ -13,12 +13,11 @@
     <input type="hidden" *ngIf="selectedExercise" [id]="'title-' + exerciseIdCounter" [value]="selectedExercise">
     <div class="ExerciseInput" style="float:left;">
       <label [attr.for]="'sets-' + exerciseIdCounter">Sets</label><br>
-      <input [id]="'sets-' + exerciseIdCounter" name="sets" matInput placeholder="Sets" type="number" [(ngModel)]="sets">
+      <input [id]="'sets-' + exerciseIdCounter" name="sets" matInput placeholder="Sets" type="number" [(ngModel)]="sets" (change)="addExercise()">
     </div>
     <div class="ExerciseInput" style="float:right;">
       <label [attr.for]="'reps-' + exerciseIdCounter">Reps</label><br>
-      <input [id]="'reps-' + exerciseIdCounter" name="reps" matInput placeholder="Reps" type="number" [(ngModel)]="reps">
+      <input [id]="'reps-' + exerciseIdCounter" name="reps" matInput placeholder="Reps" type="number" [(ngModel)]="reps" (change)="addExercise()">
     </div>
   </div>
-  <button (click)="addExercise()">TEST</button>
 </div>
