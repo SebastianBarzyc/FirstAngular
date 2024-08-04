@@ -15,6 +15,8 @@ import { workoutEditComponent } from './workouts-edit.component';
   imports: [MatExpansionModule, CommonModule, FormsModule, MatDialogModule]
 })
 export class WorkoutsBackend implements OnInit {
+  exerciseIdCounter = this.workoutService.getId();
+  exercises: any[] = [];
   workouts: any[] = [];
   workout = {
     title: '',
@@ -25,21 +27,24 @@ export class WorkoutsBackend implements OnInit {
   target: ViewContainerRef | undefined;
   isPanelExpanded = false;
   componentRef: ComponentRef<any> | undefined;
+  selectedExercise: string = '';
+    sets: number | null = null;
+    reps: number | null = null;
 
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
-    private workoutsService: WorkoutService,
-    public dialog: MatDialog
+    private workoutService: WorkoutService,
+    public dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
-    this.workoutsService.getData().subscribe(data => {
+    this.workoutService.getData().subscribe(data => {
       this.workouts = data;
     });
   }
 
   loadWorkouts(): void {
-    this.workoutsService.getData()
+    this.workoutService.getData()
       .subscribe(data => {
         this.workouts = data;
       });
@@ -52,11 +57,13 @@ export class WorkoutsBackend implements OnInit {
     } else {
       console.error('Target view container reference is undefined.');
     }
+    this.exerciseIdCounter = this.workoutService.getId();
+    this.workoutService.setId(this.exerciseIdCounter + 1);
   }
 
   onSubmit() {
-    console.log(this.workout.title);
-    console.log(this.workout.description);
+    console.log("title: " + this.workout.title);
+    console.log("desc: " + this.workout.description);
   }
 
   togglePanel() {

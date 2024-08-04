@@ -9,14 +9,14 @@
       </mat-select>
     </mat-form-field>
   </div>
-  <div *ngIf="selectedValue">
+  <div *ngIf="selectedExercise">
     <div class="ExerciseInput" style="float:left;">
-        <label for="sets">Sets</label><br>
-        <input id="sets" name="sets" matInput placeholder="Sets" type="number">
+      <label [attr.for]="'sets-' + exerciseIdCounter">Sets</label><br>
+      <input [id]="'sets-' + exerciseIdCounter" name="sets" matInput placeholder="Sets" type="number" [(ngModel)]="sets">
     </div>
     <div class="ExerciseInput" style="float:right;">
-      <label for="reps">Reps</label><br>
-      <input  id="reps" name="reps" matInput placeholder="Reps" type="number">
+      <label [attr.for]="'reps-' + exerciseIdCounter">Reps</label><br>
+      <input [id]="'reps-' + exerciseIdCounter" name="reps" matInput placeholder="Reps" type="number" [(ngModel)]="reps">
     </div>
   </div>
 </div>
