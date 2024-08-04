@@ -2,7 +2,7 @@
   <div>
     <mat-form-field>
       <mat-label>Choose Exercise</mat-label>
-      <mat-select [(ngModel)]="selectedExercise" (selectionChange)="onSelectChange($event)">
+      <mat-select [(ngModel)]="selectedExercise" (selectionChange)="onSelectChange()">
         <mat-option *ngFor="let exercise of exercises" [value]="exercise.title">
           {{ exercise.title }}
         </mat-option>

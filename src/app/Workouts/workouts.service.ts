@@ -16,6 +16,8 @@ import { WorkoutsBackend } from './workouts-backend.component';
     private refreshNeeded$ = new Subject<void>();
 
     public exerciseIdCounter = 0;
+    public exerciseAllCounter = 0;
+
     public workoutExercises = [];
       
     getData(): Observable<any> {
@@ -28,10 +30,6 @@ import { WorkoutsBackend } from './workouts-backend.component';
         this.refreshNeeded$.next();
       })
     );
-  }
-
-  onRefreshNeeded(): Observable<void> {
-    return this.refreshNeeded$.asObservable();
   }
 
   editworkout(id: number, newTitle: string, newDescription: string): Observable<any> {
@@ -53,25 +51,17 @@ import { WorkoutsBackend } from './workouts-backend.component';
     );
   }
 
-  private workoutPlanSource = new BehaviorSubject<Array<{ exercise: string, sets: number, reps: number }>>([]);
-  currentWorkoutPlan = this.workoutPlanSource.asObservable();
-
-  private selectedExerciseSource = new BehaviorSubject<string>('');
-  currentSelectedExercise = this.selectedExerciseSource.asObservable();
-
-  updateWorkoutPlan(workoutPlan: Array<{ exercise: string, sets: number, reps: number }>) {
-    this.workoutPlanSource.next(workoutPlan);
-  }
-
-  updateSelectedExercise(selectedExercise: string) {
-    this.selectedExerciseSource.next(selectedExercise);
-  }
-
   getId() {
     return this.exerciseIdCounter;
   }
   setId(value: any) {
     this.exerciseIdCounter = value;
+  }
+  getCounter() {
+    return this.exerciseAllCounter;
+  }
+  setCounter(value: any) {
+    this.exerciseAllCounter = value;
   }
 
   getWorkoutExercises(){
@@ -79,18 +69,5 @@ import { WorkoutsBackend } from './workouts-backend.component';
   }
   setWorkoutExercises(value: any){
     this.workoutExercises = value;
-    console.log("workout exercises service:", this.workoutExercises);
-  }
-
-  private exercisesSubject = new BehaviorSubject<{ title: string, sets: number, reps: number }[]>([]);
-  exercises$ = this.exercisesSubject.asObservable();
-
-  addExercise(exercise: {id: number, title: string, sets: number, reps: number }) {
-    const currentExercises = this.exercisesSubject.value;
-    const newExercise = {
-      ...exercise,
-    };
-    this.exercisesSubject.next([...currentExercises, newExercise]);
-    console.log("New exercise added:", newExercise); 
   }
 }

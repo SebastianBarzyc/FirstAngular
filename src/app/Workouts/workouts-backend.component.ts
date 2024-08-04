@@ -16,8 +16,8 @@ import { workoutEditComponent } from './workouts-edit.component';
 })
 export class WorkoutsBackend implements OnInit {
   exerciseIdCounter = this.workoutService.getId();
+  exerciseAllCounter = 0;
   workoutExercises = [];
-  exercises: any[] = [];
   workouts: any[] = [];
   workout = {
     title: '',
@@ -27,9 +27,6 @@ export class WorkoutsBackend implements OnInit {
   target: ViewContainerRef | undefined;
   isPanelExpanded = false;
   componentRef: ComponentRef<any> | undefined;
-  selectedExercise: string = '';
-    sets: number | null = null;
-    reps: number | null = null;
 
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
@@ -37,33 +34,34 @@ export class WorkoutsBackend implements OnInit {
     public dialog: MatDialog,
   ) {}
   ngOnInit(): void {
-    this.workoutService.getData().subscribe(data => {
-      this.workouts = data;
-    });
+    this.loadWorkouts()
   }
 
   loadWorkouts(): void {
-    this.workoutService.getData()
-      .subscribe(data => {
-        this.workouts = data;
-      });
+    this.workoutService.getData().subscribe(data => {
+      this.workouts = data;
+    });
   }
 
   addElement() {
     if (this.target) {
       let childComponent = this.componentFactoryResolver.resolveComponentFactory(WorkoutsExerciseComponent);
       this.componentRef = this.target.createComponent(childComponent);
-    } else {
-      console.error('Target view container reference is undefined.');
     }
+
     this.exerciseIdCounter = this.workoutService.getId();
     this.workoutService.setId(this.exerciseIdCounter + 1);
+    this.exerciseAllCounter ++;
+    this.workoutService.setCounter(this.exerciseAllCounter);
   }
 
   onSubmit() {
     this.exerciseIdCounter = this.workoutService.getId();
     this.workoutExercises = this.workoutService.getWorkoutExercises();
+    console.log("Workout Title: ", this.workout.title);
+    console.log("Workout Description: ", this.workout.description);
     console.log("workout exercises backend:", this.workoutExercises);
+    console.log("Exercise Counter: ", this.exerciseAllCounter);
   }
 
   togglePanel() {
