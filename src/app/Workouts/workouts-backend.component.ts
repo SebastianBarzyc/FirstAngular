@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { WorkoutsExerciseComponent } from './workouts-exercise.component';
 import { workoutEditComponent } from './workouts-edit.component';
-import { tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 @Component({
   selector: 'workouts-backend',
@@ -39,11 +39,9 @@ export class WorkoutsBackend implements OnInit {
     reps: ''
   };
 
-  workout2 = {
-    plan_id: '', //getData(count)
-    exercise_id: '', //idFromTitle
-    sets: '', //getWorkoutExercises 1
-    reps: '' //getWorkoutExercises
+  workout2: any = {
+  };
+  workout3: any = {
   };
 
   exercise: any | null = null;
@@ -53,16 +51,15 @@ export class WorkoutsBackend implements OnInit {
     private componentFactoryResolver: ComponentFactoryResolver,
     private workoutService: WorkoutService,
     public dialog: MatDialog,
-    private WorkoutExercise: WorkoutsExerciseComponent,
   ) {}
   ngOnInit(): void {
     this.loadWorkouts()
   }
 
   loadWorkouts(): void {
-    this.workoutService.getData().subscribe(data => {
-      this.workouts = data;
-    });
+    this.workoutService.getData().subscribe(response => {
+      this.workouts = response.data;
+  });
   }
 
   addElement() {
@@ -79,10 +76,9 @@ export class WorkoutsBackend implements OnInit {
 
   onSubmit() {
     this.exerciseIdCounter = this.workoutService.getId();
-    this.workoutExercises = this.workoutService.getWorkoutExercises(); // title ex, reps, sets
-    console.log("workout exercises backend:", this.workoutExercises);
-    console.log("Exercise Counter: ", this.exerciseAllCounter);
-
+    this.workoutExercises = this.workoutService.getWorkoutExercises();
+    this.addworkout2();
+    
     this.workoutService.addworkout(this.workout).pipe(
         tap(response => {
             console.log('Workout added successfully:', response);
@@ -95,46 +91,60 @@ export class WorkoutsBackend implements OnInit {
             console.error('Error adding workout:', error);
         }
     );
-}
-test() {
-  this.exerciseIdCounter = this.workoutService.getId();
-  this.workoutExercises = this.workoutService.getWorkoutExercises();
-  console.log("workout exercises backend:", this.workoutExercises);
-  console.log("Exercise Counter: ", this.exerciseAllCounter);
-  console.log();
-  this.addworkout2();
+    
 }
 
-getExerciseByTitle(title: string) {
-  this.workoutService.getExerciseByTitle(title).subscribe(
-    response => {
-      this.exercise = response.exercise.id;
-      this.error = null;
-    },
-    error => {
-      console.error('Error:', error);
-      this.error = 'Failed to retrieve exercise.';
-      this.exercise = null;
-    }
-  );
+getExerciseByTitle(title: string): Observable<any> {
+  return this.workoutService.getExerciseByTitle(title);
 }
+
+async fetchExerciseByTitle(title: string): Promise<void> {
+  try {
+    const response = await this.workoutService.getExerciseByTitle(title).toPromise();
+    const idTitle = response.exercise.id;
+    this.error = null;
+    return idTitle;
+  } catch (error) {
+    console.error('Error:', error);
+    this.error = 'Failed to retrieve exercise.';
+    this.exercise = null;
+  }
+}
+
 
 addworkout2(){
-  this.workoutService.getData().subscribe(data => {
-   this.workout2.plan_id = data.length+1;
- });
+  this.workoutService.getData().subscribe(async response => {
+    const planID = response.data.length + 1;
 
- this.WorkoutExercise.addExercise(); 
- this.workoutService.getWorkoutExercises();
- const exerciseTitle = this.workoutExercises.title;
- this.getExerciseByTitle(exerciseTitle);
- const exerciseId = this.exercise;
- this.workout2.exercise_id = exerciseId;
-console.log(this.workoutExercises);
-console.log(this.workoutExercises.title);
- this.workout2.reps = this.workoutExercises.reps;
- this.workout2.sets = this.workoutExercises.sets;
- console.log(this.workout2);
+    this.workout2.exercises = [];
+
+    const promises = Object.values(this.workoutExercises).map(async exercise => { 
+      const IDexercise = await this.fetchExerciseByTitle(exercise.title);
+
+      this.workout2.exercises.push({
+        plan_id: planID,
+        exercise_id: IDexercise,
+        sets: exercise.sets,
+        reps: exercise.reps
+      });
+    });
+
+    await Promise.all(promises);
+
+    this.workout3 = this.workout2.exercises;
+    this.workoutService.addworkout2(this.workout3).pipe(
+      tap(response => {
+          console.log('Workout added successfully:', response);
+      })
+  ).subscribe(
+      response => {
+          this.loadWorkouts()
+      },
+      error => {
+          console.error('Error adding workout:', error);
+      }
+  );
+  });
 }
 
   togglePanel() {

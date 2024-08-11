@@ -46,8 +46,8 @@ import { MatInputModule } from '@angular/material/input';
     
     loadworkouts(): void {
         this.workoutService.getData()
-        .subscribe(data => {
-        this.workouts = data;
+        .subscribe(rensponse => {
+        this.workouts = rensponse.data;
         setTimeout(() => {
           if (this.textarea) {
             this.autoResize(this.textarea.nativeElement);

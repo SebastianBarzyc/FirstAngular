@@ -102,6 +102,29 @@ app.post('/api/workouts', async (req, res) => {
   }
 });
 
+app.post('/api/workouts2', async (req, res) => {
+  const workouts = req.body;
+
+  try {
+    const queries = workouts.map(({ plan_id, exercise_id, sets, reps }) => {
+      const query = 'INSERT INTO plan_exercises (plan_id, exercise_id, sets, reps) VALUES ($1, $2, $3, $4) RETURNING *';
+      const values = [plan_id, exercise_id, sets, reps];
+      return pool.query(query, values);
+    });
+
+    const results = await Promise.all(queries);
+
+    res.status(201).json({
+      message: 'Workouts added successfully',
+      workouts: results.map(result => result.rows[0])
+    });
+  } catch (error) {
+    console.error('Error adding workouts:', error);
+    res.status(500).json({ error: 'Failed to add workouts' });
+  }
+});
+
+
 app.post('/api/exercises', async (req, res) => {
   const { title, description } = req.body;
 

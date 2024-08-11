@@ -1,14 +1,18 @@
-import { WorkoutsBackend } from './workouts-backend.component';
 import { Injectable } from "@angular/core";
 import { catchError, Observable, Subject, tap, throwError } from "rxjs";
 import { HttpClient} from '@angular/common/http';
 
   export interface WorkoutExercise {
+    [x: string]: any;
     id: string;
     title: string;
     sets: string;
     reps: string;
   };
+
+  interface WorkoutResponse {
+    data: any[];
+  }
 
   @Injectable({
     providedIn: 'root'
@@ -24,6 +28,7 @@ import { HttpClient} from '@angular/common/http';
     constructor(private http: HttpClient) {}
 
     private apiUrl = 'http://localhost:3000/api/workouts/';
+    private apiUrl2 = 'http://localhost:3000/api/workouts2/';
     private apiUrlExercise = 'http://localhost:3000/api/exercises';
     private apiUrlEdit = 'http://localhost:3000/api/update-workout/';
     private apiUrlDelete = 'http://localhost:3000/api/delete-workout/';
@@ -32,8 +37,8 @@ import { HttpClient} from '@angular/common/http';
     public exerciseIdCounter = 0;
     public exerciseAllCounter = 0;
 
-    getData(): Observable< any> {
-      return this.http.get<{ data: any[] }>(this.apiUrl);
+    getData(): Observable<WorkoutResponse> {
+      return this.http.get<WorkoutResponse>(this.apiUrl);
     }
 
     onRefreshNeeded(): Observable<void> {
@@ -47,6 +52,13 @@ import { HttpClient} from '@angular/common/http';
       })
     );
     }
+    addworkout2(workout: any): Observable<any> {
+      return this.http.post<any>(this.apiUrl2, workout).pipe(
+        tap(() => {
+          this.refreshNeeded$.next();
+        })
+      );
+      }
 
     getExerciseByTitle(title: string): Observable<any> {
       return this.http.get<any>(`${this.apiUrlExercise}/${title}`).pipe(
