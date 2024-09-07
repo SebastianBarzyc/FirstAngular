@@ -92,15 +92,17 @@ textarea {
 }
 
 //Workouts
-
-.AddExercise{
-  display:flex;
-  margin-right: 20%;
+.exercise-grid {
+  display: grid;
+  grid-template-columns: 45% 17.5% 17.5%;
+  gap: 10%;
+  align-items: center; 
 }
 
-.ExerciseInput{
-  width: 30%;
-  margin: 0 5% 0 5%;
-  font-weight: 500;
-  text-align: right;
+.select-field {
+  grid-column: 1;
+}
+
+.input-number {
+  grid-column: span 1;
 }

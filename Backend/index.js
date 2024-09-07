@@ -36,6 +36,24 @@ app.get('/api/exercises', (req, res) => {
   });
 });
 
+app.get('/api/exercises2/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    const query ='SELECT * FROM plan_exercises WHERE plan_id = $1;';
+    const values = [id];
+
+    const result = await pool.query(query, values);
+
+    console.log('Query result:', result.rows);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error searching exercises:', error);
+    res.status(500).json({ message: 'Error searching exercises' });
+  }
+});
+
+
 app.get('/api/search-exercises', async (req, res) => {
   const query = req.query.query || '';
 

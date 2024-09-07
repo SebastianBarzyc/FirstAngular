@@ -10,7 +10,28 @@
       <p class="fw-bold">Description:</p>
       <mat-form-field style="width: 90%;">
         <textarea matInput name="description-{{workout.id}}" [(ngModel)]="workout.description" [ngModelOptions]="{ standalone: true }" (input)="autoResize(textarea)" #textarea></textarea>
-      </mat-form-field>
+          </mat-form-field>
+            <p *ngIf="exercises && exercises.length > 0" class="fw-bold">Exercises:</p>
+            <div *ngFor="let exercise of exercises" class="exercise-grid">
+              <input type="hidden" [id]="exercise.id" #hiddenInput [value]="getExerciseTitleById(exercise.id)">
+              <mat-form-field class="select-field">
+                <mat-label>Exercise</mat-label>
+                <mat-select [value]="exercise.title">
+                  <mat-option *ngFor="let ex2 of exercises2" [value]="ex2.title">
+                    {{ ex2.title }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field class="input-number">
+                <mat-label>Sets</mat-label>
+                <input matInput type="number" [(ngModel)]="exercise.sets">
+              </mat-form-field>
+            
+              <mat-form-field class="input-number">
+                <mat-label>Reps</mat-label>
+                <input matInput type="number" [(ngModel)]="exercise.reps">
+              </mat-form-field>
+            </div>
     </mat-dialog-content>
     <mat-dialog-actions>
       <div style="width:100%; margin-bottom: 2%">

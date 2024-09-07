@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { WorkoutService } from './workouts.service';
-import { Component, ElementRef, Inject, inject, model, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, inject, model, OnInit, ViewChild} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {MAT_DIALOG_DATA,MatDialogActions,MatDialogClose,MatDialogContent,MatDialogRef,MatDialogTitle,} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatOption, MatSelect } from '@angular/material/select';
   
   @Component({
     selector: 'workout-edit',
@@ -20,22 +21,37 @@ import { MatInputModule } from '@angular/material/input';
       MatDialogContent,
       MatDialogActions,
       MatDialogClose,
-      CommonModule
+      CommonModule,
+      MatSelect,
+      MatOption
     ],
   })
    
-  export class workoutEditComponent {
+  export class workoutEditComponent implements OnInit {
+    
+    @ViewChild('hiddenInput') hiddenInput?: ElementRef;
+    @ViewChild('textarea') textarea!: ElementRef
+
     readonly dialogRef = inject(MatDialogRef<workoutEditComponent>);
     workout = model(this.data);
     workouts: any[] = [];
+    exercises: any[] = [];
+    exercises2: any[] = [];
+    selectedValue: string = "";
+    exerciseTitles: { [key: string]: string } = {};
 
-    constructor(private workoutService: WorkoutService, @Inject(MAT_DIALOG_DATA) public data: any) {}
+    constructor(private workoutService: WorkoutService, @Inject(MAT_DIALOG_DATA) public data: any) {};
+    
 
-    @ViewChild('textarea') textarea!: ElementRef;
+    async ngOnInit(): Promise<void> {
+        await this.loadworkouts();
+        await this.loadExercises();
+        await this.loadExercises2();
+    }
 
-
-    ngOnInit(): void {
-        this.loadworkouts();
+    getExerciseTitleById(id: number): string {
+      const exercise = this.exercises2.find(ex => ex.id === id);
+      return exercise ? exercise.title : '';
     }
 
     ngAfterViewInit(): void {
@@ -44,19 +60,46 @@ import { MatInputModule } from '@angular/material/input';
       }
     }
     
-    loadworkouts(): void {
-        this.workoutService.getData()
-        .subscribe(rensponse => {
-        this.workouts = rensponse.data;
+    loadworkouts(): Promise<void> {
+      return this.workoutService.getData().toPromise().then(response => {
+        this.workouts = response.data;
         setTimeout(() => {
           if (this.textarea) {
             this.autoResize(this.textarea.nativeElement);
           }
         }, 0);
-        });
+      });
     }
 
-    getId(): void{
+    loadExercises(): Promise<void> {
+      return this.workoutService.getExercises(this.getId()).toPromise().then(response => {
+        this.exercises = response;
+      });
+      
+    }
+
+    loadExercises2(): Promise<void> {
+      return this.workoutService.getData().toPromise().then(response => {
+        if (response && Array.isArray(response.data)) {
+          this.exercises2 = response.data;
+        }
+        this.exercises = this.exercises.map(exercise => {
+          const foundExercise = this.exercises2.find(ex => ex.id === exercise.id);
+          return {
+            ...exercise,
+            title: foundExercise ? foundExercise.title : 'Unknown Exercise'
+          };
+        });
+      }).catch(error => {
+        console.error('Error loading exercises2:', error);
+        this.exercises2 = [];
+      });
+    }
+    
+    
+    
+  
+    getId(){
        return this.data.id;
     }
 

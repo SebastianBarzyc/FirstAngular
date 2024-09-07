@@ -4,12 +4,14 @@ import {  MatSelectModule } from '@angular/material/select';
 import { ExerciseService } from "../Exercises/exerecise.service";
 import { CommonModule } from '@angular/common';
 import { WorkoutService } from "./workouts.service";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
 
 @Component({
   selector: 'app-workouts-exercise',
   standalone: true,
   templateUrl: './workouts-exercise.component.html',
-  imports: [FormsModule, MatSelectModule, CommonModule, ReactiveFormsModule]
+  imports: [FormsModule, MatSelectModule, CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule]
 })
 
 @Injectable({

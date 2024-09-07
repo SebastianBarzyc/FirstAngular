@@ -156,9 +156,5 @@ addworkout2(){
       data: { id: id, title: title, description: description },
       panelClass: 'editPanel'
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
-    });
   }
 }

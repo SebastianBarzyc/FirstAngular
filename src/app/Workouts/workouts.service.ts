@@ -10,8 +10,10 @@ import { HttpClient} from '@angular/common/http';
     reps: string;
   };
 
-  interface WorkoutResponse {
-    data: any[];
+  export interface Exercise {
+    id: number;
+    title: string;
+    description: string;
   }
 
   @Injectable({
@@ -30,6 +32,7 @@ import { HttpClient} from '@angular/common/http';
     private apiUrl = 'http://localhost:3000/api/workouts/';
     private apiUrl2 = 'http://localhost:3000/api/workouts2/';
     private apiUrlExercise = 'http://localhost:3000/api/exercises';
+    private apiUrlExercise2 = 'http://localhost:3000/api/exercises2';
     private apiUrlEdit = 'http://localhost:3000/api/update-workout/';
     private apiUrlDelete = 'http://localhost:3000/api/delete-workout/';
     private refreshNeeded$ = new Subject<void>();
@@ -37,8 +40,12 @@ import { HttpClient} from '@angular/common/http';
     public exerciseIdCounter = 0;
     public exerciseAllCounter = 0;
 
-    getData(): Observable<WorkoutResponse> {
-      return this.http.get<WorkoutResponse>(this.apiUrl);
+    getData(): Observable<any> {
+      return this.http.get<any>(this.apiUrl);
+    }
+    getExercises(id: number): Observable<any> {
+      const url = `${this.apiUrlExercise2}/${id}`;
+      return this.http.get<any>(url);
     }
 
     onRefreshNeeded(): Observable<void> {
