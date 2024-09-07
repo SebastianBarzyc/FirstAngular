@@ -1,5 +1,5 @@
 import { Component, OnInit,  inject} from '@angular/core';
-import { ExerciseService } from './exerecise.service';
+import { ExerciseService } from './exercises.service';
 import { CommonModule } from '@angular/common';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { FormsModule } from '@angular/forms';

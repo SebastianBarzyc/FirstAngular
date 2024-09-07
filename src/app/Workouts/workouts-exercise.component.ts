@@ -1,7 +1,7 @@
 import { Component, Injectable} from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {  MatSelectModule } from '@angular/material/select';
-import { ExerciseService } from "../Exercises/exerecise.service";
+import { ExerciseService } from "../Exercises/exercises.service";
 import { CommonModule } from '@angular/common';
 import { WorkoutService } from "./workouts.service";
 import { MatFormFieldModule } from "@angular/material/form-field";

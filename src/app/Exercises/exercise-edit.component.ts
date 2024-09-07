@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ExerciseService } from './exerecise.service';
+import { ExerciseService } from './exercises.service';
 import { Component, ElementRef, Inject, inject, model, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';

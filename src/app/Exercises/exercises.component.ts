@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ExercisesBackend } from './exercises-backend.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { ExerciseService } from './exerecise.service';
+import { ExerciseService } from './exercises.service';
 
 @Component({
   selector: 'app-exercises',

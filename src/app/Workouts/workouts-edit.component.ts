@@ -7,6 +7,7 @@ import {MAT_DIALOG_DATA,MatDialogActions,MatDialogClose,MatDialogContent,MatDial
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
+import { ExerciseService } from '../Exercises/exercises.service';
   
   @Component({
     selector: 'workout-edit',
@@ -37,10 +38,11 @@ import { MatOption, MatSelect } from '@angular/material/select';
     workouts: any[] = [];
     exercises: any[] = [];
     exercises2: any[] = [];
+    exercises3: any[] = [];
     selectedValue: string = "";
     exerciseTitles: { [key: string]: string } = {};
 
-    constructor(private workoutService: WorkoutService, @Inject(MAT_DIALOG_DATA) public data: any) {};
+    constructor(private workoutService: WorkoutService, private exerciseService: ExerciseService, @Inject(MAT_DIALOG_DATA) public data: any) {};
     
 
     async ngOnInit(): Promise<void> {
@@ -75,16 +77,22 @@ import { MatOption, MatSelect } from '@angular/material/select';
       return this.workoutService.getExercises(this.getId()).toPromise().then(response => {
         this.exercises = response;
       });
-      
+    }
+
+    loadExercises3(){
+      this.exerciseService.getData().subscribe(data => {
+        this.exercises3 = data;
+      });
     }
 
     loadExercises2(): Promise<void> {
+      this.loadExercises3();
       return this.workoutService.getData().toPromise().then(response => {
         if (response && Array.isArray(response.data)) {
           this.exercises2 = response.data;
         }
         this.exercises = this.exercises.map(exercise => {
-          const foundExercise = this.exercises2.find(ex => ex.id === exercise.id);
+          const foundExercise = this.exercises3.find(ex => ex.id === exercise.id);
           return {
             ...exercise,
             title: foundExercise ? foundExercise.title : 'Unknown Exercise'
