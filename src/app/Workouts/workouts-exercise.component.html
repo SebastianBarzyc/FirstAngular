@@ -1,22 +1,25 @@
 <div class="exercise-grid">
-    <mat-form-field class="select-field">
-      <mat-label>Choose Exercise</mat-label>
-      <mat-select [(ngModel)]="selectedExercise" (selectionChange)="onSelectChange()">
-        <mat-option *ngFor="let exercise of exercises" [value]="exercise.title">
-          {{ exercise.title }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  <div *ngIf="selectedExercise">
+  <mat-form-field class="select-field">
+    <mat-label>Choose Exercise</mat-label>
+    <mat-select [(ngModel)]="selectedExercise" (selectionChange)="onSelectChange()">
+      <mat-option *ngFor="let exercise of exercises" [value]="exercise.title">
+        {{ exercise.title }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div *ngIf="selectedExercise" class="input-group">
     <input type="hidden" *ngIf="selectedExercise" [id]="'title-' + exerciseIdCounter" [value]="selectedExercise">
-      <mat-form-field class="input-number">
-        <mat-label [attr.for]="'sets-' + exerciseIdCounter">Sets</mat-label>
-        <input matInput [id]="'sets-' + exerciseIdCounter" name="sets" placeholder="Sets" type="number" [(ngModel)]="sets" (change)="addExercise()">
-      </mat-form-field>
-      <mat-form-field class="input-number">
-        <mat-label [attr.for]="'reps-' + exerciseIdCounter">Reps</mat-label>
-        <input matInput [id]="'reps-' + exerciseIdCounter" name="reps" placeholder="Reps" type="number" [(ngModel)]="reps" (change)="addExercise()">
-      </mat-form-field>
+    
+    <mat-form-field class="input-number">
+      <mat-label [attr.for]="'sets-' + exerciseIdCounter">Sets</mat-label>
+      <input matInput [id]="'sets-' + exerciseIdCounter" name="sets" placeholder="Sets" type="number" [(ngModel)]="sets" (change)="addExercise()">
+    </mat-form-field>
+    
+    <mat-form-field class="input-number">
+      <mat-label [attr.for]="'reps-' + exerciseIdCounter">Reps</mat-label>
+      <input matInput [id]="'reps-' + exerciseIdCounter" name="reps" placeholder="Reps" type="number" [(ngModel)]="reps" (change)="addExercise()">
+    </mat-form-field>
   </div>
 </div>
 <hr *ngIf="selectedExercise" style="margin-top:0">

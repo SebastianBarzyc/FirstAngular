@@ -92,17 +92,24 @@ textarea {
 }
 
 //Workouts
-.exercise-grid {
+.exercise-grid2 {
   display: grid;
-  grid-template-columns: 45% 17.5% 17.5%;
+  grid-template-columns: 47% 14% 14% 5%; /* trzy kolumny o równej szerokości */
+  gap: 5%;
+  align-items: center;
+}
+
+.exercise-grid {
+  display: flex;
+}
+
+.select-field,
+.input-number { 
+  flex: 1;
+}
+
+.input-group {
   gap: 10%;
-  align-items: center; 
+  flex: 1;
 }
 
-.select-field {
-  grid-column: 1;
-}
-
-.input-number {
-  grid-column: span 1;
-}

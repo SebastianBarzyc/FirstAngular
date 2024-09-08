@@ -159,6 +159,24 @@ app.post('/api/exercises', async (req, res) => {
   }
 });
 
+app.post('/api/update-workout3/', async (req, res) => {
+  const { planId, id, sets, reps } = req.body;
+
+  try {
+    const query = `INSERT INTO plan_exercises (plan_id, exercise_id, sets, reps) VALUES ($1, $2, $3, $4) RETURNING *`;
+    const values = [planId, id, sets, reps];
+
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ message: 'Data has been added', data: result.rows });
+
+  } catch (error) {
+    console.error('Error updating data: ', error);
+    res.status(500).json({ message: 'Error updating data' });
+  }
+});
+
+
 app.put('/api/update-exercise/', async (req, res) => {
   const { id, newTitle, newDescription } = req.body;
 
@@ -228,6 +246,27 @@ app.delete('/api/delete-workout/:id', async (req, res) => {
       res.status(200).json({ message: 'Workout deleted successfully' });
     } else {
       res.status(404).json({ message: 'Workout not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting data: ', error);
+    res.status(500).json({ message: 'Error deleting data' });
+  }
+});
+
+app.delete('/api/update-workout2/:id', async (req, res) => {
+  const id = req.params.id;
+  console.log('DELETE request received for ID:', id);
+
+  try {
+    const query = 'DELETE FROM plan_exercises WHERE plan_id = $1';
+    const values = [id];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Exercise deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Exercise not found' });
     }
   } catch (error) {
     console.error('Error deleting data: ', error);

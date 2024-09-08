@@ -1,0 +1,26 @@
+<div class="exercise-grid2" [id]="'exercise-div-' + exercise.exercise_id">
+  <input type="hidden" [id]="exercise.exercise_id" #hiddenInput [value]="getExerciseTitleById(exercise.exercise_id)">
+  
+  <mat-form-field class="select-field">
+    <mat-label>Exercise</mat-label>
+    <mat-select [(ngModel)]="selectedExercise[index]" [value]="getExerciseTitleById(exercise.exercise_id)" [id]="'exercise-' + index" (change)="inputOnChange()">
+      <mat-option *ngFor="let ex2 of exercises3" [value]="ex2.title">
+        {{ ex2.title }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  
+  <mat-form-field class="input-number">
+    <mat-label>Sets</mat-label>
+    <input matInput type="number" [(ngModel)]="exercise.sets" id="sets-{{index}}"(change)="inputOnChange()">
+  </mat-form-field>
+  
+  <mat-form-field class="input-number">
+    <mat-label>Reps</mat-label>
+    <input matInput type="number" [(ngModel)]="exercise.reps" id="reps-{{index}}" (change)="inputOnChange()">
+  </mat-form-field>
+  
+  <button mat-fab (click)="removeExercise()" style="margin-bottom: 30%;">
+    <mat-icon>delete</mat-icon>
+  </button>
+</div>

@@ -5,6 +5,7 @@
       <p class="fw-bold">Title:</p>
       <mat-form-field style="width: 70%;">
         <input matInput name="title-{{workout.id}}" [(ngModel)]="workout.title" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
+        <input type="hidden" [value]="workout.id" #hiddenInput2>
       </mat-form-field>
       <br>
       <p class="fw-bold">Description:</p>
@@ -12,32 +13,22 @@
         <textarea matInput name="description-{{workout.id}}" [(ngModel)]="workout.description" [ngModelOptions]="{ standalone: true }" (input)="autoResize(textarea)" #textarea></textarea>
           </mat-form-field>
             <p *ngIf="exercises && exercises.length > 0" class="fw-bold">Exercises:</p>
-            <div *ngFor="let exercise of exercises" class="exercise-grid">
-              <input type="hidden" [id]="exercise.id" #hiddenInput [value]="getExerciseTitleById(exercise.id)">
-              <mat-form-field class="select-field">
-                <mat-label>Exercise</mat-label>
-                <mat-select [value]="exercise.title">
-                  <mat-option *ngFor="let ex2 of exercises3" [value]="ex2.title">
-                    {{ ex2.title }}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field class="input-number">
-                <mat-label>Sets</mat-label>
-                <input matInput type="number" [(ngModel)]="exercise.sets">
-              </mat-form-field>
-            
-              <mat-form-field class="input-number">
-                <mat-label>Reps</mat-label>
-                <input matInput type="number" [(ngModel)]="exercise.reps">
-              </mat-form-field>
-            </div>
+            <app-exercise-item
+              *ngFor="let exercise of exercisesList; let i = index"
+              [exercise]="exercise"
+              [index]="i"
+              (remove)="removeExercise($event)">
+            </app-exercise-item>
     </mat-dialog-content>
     <mat-dialog-actions>
       <div style="width:100%; margin-bottom: 2%">
         <button mat-button (click)="Delete(workout.id)" cdkFocusInitial class="RaisedBtn DeleteBtn float-start">Delete workout</button>
+        <button mat-fab style="margin-top: -2%;" (click)="addExercise()">
+          <mat-icon>add</mat-icon>
+        </button>
         <button mat-button (click)="Save(workout.id, workout.title, workout.description)" cdkFocusInitial class="RaisedBtn float-end">Save changes</button>
       </div>
+      <button (click)="test()">test</button>
     </mat-dialog-actions>
   </div>
 </div>

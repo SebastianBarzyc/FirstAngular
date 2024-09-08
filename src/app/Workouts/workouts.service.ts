@@ -10,12 +10,6 @@ import { HttpClient} from '@angular/common/http';
     reps: string;
   };
 
-  export interface Exercise {
-    id: number;
-    title: string;
-    description: string;
-  }
-
   @Injectable({
     providedIn: 'root'
   })
@@ -34,11 +28,15 @@ import { HttpClient} from '@angular/common/http';
     private apiUrlExercise = 'http://localhost:3000/api/exercises';
     private apiUrlExercise2 = 'http://localhost:3000/api/exercises2';
     private apiUrlEdit = 'http://localhost:3000/api/update-workout/';
+    private apiUrlEdit2 = 'http://localhost:3000/api/update-workout2/';
+    private apiUrlEdit3 = 'http://localhost:3000/api/update-workout3/';
     private apiUrlDelete = 'http://localhost:3000/api/delete-workout/';
     private refreshNeeded$ = new Subject<void>();
 
     public exerciseIdCounter = 0;
     public exerciseAllCounter = 0;
+    tempExercises: any [] = [];
+    exercisesList: any [] = [];
 
     getData(): Observable<any> {
       return this.http.get<any>(this.apiUrl);
@@ -83,7 +81,7 @@ import { HttpClient} from '@angular/common/http';
 
   editworkout(id: number, newTitle: string, newDescription: string): Observable<any> {
     const body = { id, newTitle, newDescription };
-
+    console.log(body);
     return this.http.put<any>(this.apiUrlEdit, body).pipe(
         catchError(error => {
         console.error('Error editing workout:', error);
@@ -92,6 +90,26 @@ import { HttpClient} from '@angular/common/http';
     );
   }
 
+  editworkout2(id: number): Observable<any> {
+    console.log("editworkout2: " + id);
+    return this.http.delete<any>(`${this.apiUrlEdit2}${id}`).pipe(
+      catchError(error => {
+        console.error('Error editing workout:', error);
+        throw error;
+      })
+    );
+  }
+
+  editworkout3(planId: number, id: number, sets: number, reps: number): Observable<any> {
+    const body = { planId, id, sets, reps };
+    return this.http.post<any>(this.apiUrlEdit3, body).pipe(
+        catchError(error => {
+        console.error('Error editing workout:', error);
+        throw error;
+      })
+    );
+  }
+  
 
   deleteworkout(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrlDelete}${id}`).pipe(
@@ -117,7 +135,24 @@ import { HttpClient} from '@angular/common/http';
   getWorkoutExercises(){ 
     return this.workoutExercises;
   }
+
   setWorkoutExercises(value: any){
     this.workoutExercises = value;
+  }
+
+  setTempExercises(value: any){
+    this.tempExercises = value;
+  }
+
+  getTempExercises(){
+    return this.tempExercises;
+  }
+
+  setExercisesList(value: any){
+    this.exercisesList = value;
+  }
+
+  getExercisesList(){
+    return this.exercisesList;
   }
 }
