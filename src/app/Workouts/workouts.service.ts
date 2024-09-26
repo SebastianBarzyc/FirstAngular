@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
-import { catchError, Observable, Subject, tap, throwError } from "rxjs";
-import { HttpClient} from '@angular/common/http';
+import { catchError, Observable, of, Subject, tap, throwError } from "rxjs";
+import { HttpClient, HttpHeaders} from '@angular/common/http';
 
   export interface WorkoutExercise {
     [x: string]: any;
@@ -23,7 +23,7 @@ import { HttpClient} from '@angular/common/http';
     
     constructor(private http: HttpClient) {}
 
-    private apiUrl = 'http://localhost:3000/api/workouts/';
+    private apiUrl = 'http://localhost:3000/api/workouts';
     private apiUrl2 = 'http://localhost:3000/api/workouts2/';
     private apiUrlExercise = 'http://localhost:3000/api/exercises';
     private apiUrlExercise2 = 'http://localhost:3000/api/exercises2';
@@ -100,16 +100,34 @@ import { HttpClient} from '@angular/common/http';
     );
   }
 
-  editworkout3(planId: number, id: number, sets: number, reps: number): Observable<any> {
-    const body = { planId, id, sets, reps };
-    return this.http.post<any>(this.apiUrlEdit3, body).pipe(
-        catchError(error => {
-        console.error('Error editing workout:', error);
-        throw error;
+  editworkout3(planId: number, idExercise: number, sets: number, reps: number): Observable<any> {
+    const url = this.apiUrlEdit3;
+  
+    // Przypisanie stałych wartości do body
+    const body = { 
+      planId: planId,  // Użycie przekazanej wartości
+      idExercise: idExercise,  // Użycie przekazanej wartości
+      sets: sets,  // Użycie przekazanej wartości
+      reps: reps  // Użycie przekazanej wartości
+    };
+  
+    console.log('Sending data to server:', body); // Dodaj to logowanie
+  
+    return this.http.post<any>(url, body, {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
       })
+    }).pipe(
+      catchError(this.handleError<any>('editworkout3'))
     );
   }
-  
+
+  private handleError<T>(operation = 'operation', result?: T) {
+    return (error: any): Observable<T> => {
+      console.error(`${operation} failed: ${error.message}`);
+      return of(result as T);
+    };
+  }
 
   deleteworkout(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrlDelete}${id}`).pipe(
@@ -117,6 +135,14 @@ import { HttpClient} from '@angular/common/http';
         this.refreshNeeded$.next();
       })
     );
+  }
+
+  getExercisesForPlan(planId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${planId}/exercises`);
+  }
+   
+  getAvailableExercises(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/available-exercises`);
   }
 
   getId() {

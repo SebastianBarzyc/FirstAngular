@@ -103,6 +103,32 @@ app.get('/api/exercises/:title', async (req, res) => {
   }
 });
 
+// Endpoint do pobierania ćwiczeń dla planu treningowego
+app.get('/api/workouts/:planID/exercises', async (req, res) => {
+  const planID = req.params.planID;
+  try {
+    const query = 'SELECT * FROM plan_exercises WHERE plan_id = $1';
+    const result = await pool.query(query, [planID]);
+    res.status(200).json({ data: result.rows });
+  } catch (error) {
+    console.error('Error fetching exercises:', error);
+    res.status(500).json({ message: 'Error fetching exercises' });
+  }
+});
+
+// Endpoint do pobierania dostępnych ćwiczeń
+app.get('/api/workouts/available-exercises', async (req, res) => {
+  try {
+    const query = 'SELECT * FROM exercises'; // Przykładowe zapytanie
+    const result = await pool.query(query);
+    res.status(200).json({ data: result.rows });
+  } catch (error) {
+    console.error('Error fetching available exercises:', error);
+    res.status(500).json({ message: 'Error fetching available exercises' });
+  }
+});
+
+
 
 app.post('/api/workouts', async (req, res) => {
   const { title, description } = req.body;
@@ -119,14 +145,32 @@ app.post('/api/workouts', async (req, res) => {
     res.status(500).json({ error: 'Failed to add workout' });
   }
 });
-
 app.post('/api/workouts2', async (req, res) => {
-  const workouts = req.body;
+  let workouts = req.body;
+
+  // Log the incoming data
+  console.log('Incoming workouts:', workouts);
+
+  // Check if workouts is an array
+  if (!Array.isArray(workouts)) {
+    console.log('Received data is not an array, wrapping it in an array.');
+    workouts = [workouts]; // Wrap single object in an array
+  }
+
+  // Validate if workouts is now an array
+  if (!Array.isArray(workouts)) {
+    console.error('Invalid input: workouts should be an array:', workouts);
+    return res.status(400).json({ error: 'Invalid input: workouts should be an array' });
+  }
 
   try {
-    const queries = workouts.map(({ plan_id, exercise_id, sets, reps }) => {
-      const query = 'INSERT INTO plan_exercises (plan_id, exercise_id, sets, reps) VALUES ($1, $2, $3, $4) RETURNING *';
-      const values = [plan_id, exercise_id, sets, reps];
+    const queries = workouts.map(({ plan_id, exercise_id, sets, reps, exercise_title }) => {
+      // Ensure sets and reps are numbers
+      const setsNumber = parseInt(sets, 10);
+      const repsNumber = parseInt(reps, 10);
+      
+      const query = 'INSERT INTO plan_exercises (plan_id, exercise_id, sets, reps, exercise_title) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+      const values = [plan_id, exercise_id, setsNumber, repsNumber, exercise_title];
       return pool.query(query, values);
     });
 
@@ -160,19 +204,27 @@ app.post('/api/exercises', async (req, res) => {
 });
 
 app.post('/api/update-workout3/', async (req, res) => {
-  const { planId, id, sets, reps } = req.body;
+  // Zmienna do sprawdzania 
+  const { planId, idExercise, sets, reps } = req.body;
+
+  console.log('Received data:', { planId, idExercise, sets, reps });
+
+  if (planId === undefined || idExercise === undefined || sets === undefined || reps === undefined) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
 
   try {
     const query = `INSERT INTO plan_exercises (plan_id, exercise_id, sets, reps) VALUES ($1, $2, $3, $4) RETURNING *`;
-    const values = [planId, id, sets, reps];
+    const values = [planId, idExercise, sets, reps];
 
+    console.log('Executing query with values:', values);
     const result = await pool.query(query, values);
 
     res.status(200).json({ message: 'Data has been added', data: result.rows });
 
   } catch (error) {
-    console.error('Error updating data: ', error);
-    res.status(500).json({ message: 'Error updating data' });
+    console.error('Error executing query:', error);
+    res.status(500).json({ message: 'Error updating data', error: error.message });
   }
 });
 

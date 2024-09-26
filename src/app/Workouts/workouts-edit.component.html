@@ -1,3 +1,4 @@
+<div *ngIf="workouts.length > 0">
 <div *ngFor="let workout of workouts">
   <div *ngIf="workout.id === getId()">
     <h2 mat-dialog-title class="fw-bold">Edit workout:</h2>
@@ -5,20 +6,23 @@
       <p class="fw-bold">Title:</p>
       <mat-form-field style="width: 70%;">
         <input matInput name="title-{{workout.id}}" [(ngModel)]="workout.title" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
-        <input type="hidden" [value]="workout.id" #hiddenInput2>
+        <input type="hidden" [value]="workout.id" #hiddenInput>
       </mat-form-field>
       <br>
       <p class="fw-bold">Description:</p>
       <mat-form-field style="width: 90%;">
         <textarea matInput name="description-{{workout.id}}" [(ngModel)]="workout.description" [ngModelOptions]="{ standalone: true }" (input)="autoResize(textarea)" #textarea></textarea>
-          </mat-form-field>
-            <p *ngIf="exercises && exercises.length > 0" class="fw-bold">Exercises:</p>
-            <app-exercise-item
-              *ngFor="let exercise of exercisesList; let i = index"
-              [exercise]="exercise"
-              [index]="i"
-              (remove)="removeExercise($event)">
-            </app-exercise-item>
+      </mat-form-field>
+      <p *ngIf="getExercisesForWorkout(workout.id).length > 0" class="fw-bold">Exercises:</p>
+      <div *ngIf="getExercisesForWorkout(workout.id).length === 0">No exercises found.</div>
+      <app-exercise-item
+        *ngFor="let exercise of getExercisesForWorkout(workout.id); let i = index"
+        [exercisesdata]="exercise"
+        [index]="i"
+        [exercisesList]="exercises"
+        [planID]="workout.id"
+        (remove)="removeExercise(exercise.exercise_id)">
+      </app-exercise-item>
     </mat-dialog-content>
     <mat-dialog-actions>
       <div style="width:100%; margin-bottom: 2%">
@@ -28,7 +32,7 @@
         </button>
         <button mat-button (click)="Save(workout.id, workout.title, workout.description)" cdkFocusInitial class="RaisedBtn float-end">Save changes</button>
       </div>
-      <button (click)="test()">test</button>
     </mat-dialog-actions>
   </div>
+</div>
 </div>

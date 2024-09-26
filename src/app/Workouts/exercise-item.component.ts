@@ -1,59 +1,98 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectorRef} from '@angular/core';
-import {MatIconModule} from '@angular/material/icon';
-import { MatOption, MatSelect} from '@angular/material/select';
-import { MatFormFieldModule,} from '@angular/material/form-field';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectorRef,
+  SimpleChanges,
+  OnInit,
+  OnDestroy,
+  OnChanges,
+} from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatOption, MatSelect } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { ExerciseService } from '../Exercises/exercises.service';
 import { WorkoutService } from './workouts.service';
-import { workoutEditComponent } from './workouts-edit.component';
-
-interface Exercise {
-  idExercise: number;
-  sets: number;
-  reps: number;
-}
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-exercise-item',
   templateUrl: './exercise-item.component.html',
   standalone: true,
-  imports: [ 
+  imports: [
     MatIconModule,
     MatOption,
     MatSelect,
-    MatFormFieldModule, 
+    MatFormFieldModule,
     FormsModule,
     MatInputModule,
     CommonModule,
-    MatButtonModule
-  ]
+    MatButtonModule,
+  ],
 })
-export class ExerciseItemComponent {
+export class ExerciseItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() exercise: any;
   @Input() index: number = 0;
   @Output() remove = new EventEmitter<number>();
-
-  selectedExercise: string[] = []; 
-  exercises: any[] = [];
+  @Input() exercisesList: any[] = [];
+  @Input() exercisesdata: any[] = [];
+  @Input() planID: number = 1;
+  
+  selectedExercise: string[] = [];
   exercises2: any[] = [];
   exercises3: any[] = [];
-  tempExercises: Exercise[] = [];
-  ExercisesList: any[] = [];
+  tempExercises: any[] = [];
+  availableExercises: any[] = [];
+  
+  private exercisesLoaded = false;
+  private initialized = false;
+  private unsubscribe$ = new Subject<void>();
+  private isLoading: boolean = false;
 
-  constructor(private workoutService: WorkoutService, private exerciseService: ExerciseService, private WorkoutEdit: workoutEditComponent, private cdr: ChangeDetectorRef) {};
+  constructor(
+    private workoutService: WorkoutService,
+    private exerciseService: ExerciseService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   async ngOnInit(): Promise<void> {
-      await this.loadExercises();
-      await this.loadExercises2();
+
+    // Ładowanie ćwiczeń dla planu
+    this.loadExercisesForPlan();
+
+    if (!this.exercisesLoaded) {
+      this.exercisesLoaded = true;
+
+      await this.loadAvailableExercises();
+      //await this.loadExercises2();
       await this.loadExercises3();
-      await this.getExercisesList();
+    }
   }
 
-  removeExercise() {
-    this.remove.emit(this.exercise.exercise_id);
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+    this.initialized = false;
+    this.exercisesLoaded = false;
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['planID'] && changes['planID'].currentValue !== changes['planID'].previousValue) {
+      this.loadExercisesForPlan();
+    }
+  }
+
+  trackByFn(index: number, item: any): number {
+    return item.exercise_id; // lub inny unikalny identyfikator
+  }
+
+  removeExercise(id: number) {
+    this.remove.emit(id);
   }
 
   getExerciseTitleById(id: number): string {
@@ -61,40 +100,63 @@ export class ExerciseItemComponent {
     return exercise ? exercise.title : '';
   }
 
-  getId(){
-    return this.WorkoutEdit.data.id;
-  }
+  loadExercisesForPlan(): void {
+    if (this.isLoading) {
+      console.log('Exercises are already loading, skipping call.');
+      return;
+    }
 
-  loadExercises(): Promise<void> {
-    return this.workoutService.getExercises(this.getId()).toPromise().then(response => {
-      this.exercises = response;
-    });
-  }
+    this.isLoading = true;
 
-  loadExercises2(): Promise<void> {
-    this.loadExercises3();
-    return this.workoutService.getData().toPromise().then(response => {
-      if (response && Array.isArray(response.data)) {
-        this.exercises2 = response.data;
-      }
-      this.exercises = this.exercises.map(exercise => {
-        const foundExercise = this.exercises3.find(ex => ex.id === exercise.id);
-        return {
-          ...exercise,
-          title: foundExercise ? foundExercise.title : 'Unknown Exercise'
-        };
+    this.workoutService.getExercisesForPlan(this.planID)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: (response) => {
+          console.log('Loaded exercises:', response.data);
+          this.exercisesdata = response.data;
+        },
+        error: (error) => {
+          console.error('Error loading exercises:', error);
+        },
+        complete: () => {
+          this.isLoading = false;
+        }
       });
-      this.cdr.detectChanges();
-    }).catch(error => {
-      console.error('Error loading exercises2:', error);
-      this.exercises2 = [];
+  }
+
+  loadAvailableExercises(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.workoutService.getAvailableExercises()
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe({
+          next: (response) => {
+            this.availableExercises = response.data;
+            resolve();  // Rozwiązuje Promise po załadowaniu
+          },
+          error: (error) => {
+            console.error('Error loading available exercises:', error);
+            reject(error);  // Odrzuca Promise w przypadku błędu
+          }
+        });
     });
   }
 
-  loadExercises3(){
-    this.exerciseService.getData().subscribe(data => {
-      this.exercises3 = data;
-      this.cdr.detectChanges();
+
+  loadExercises3(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.exerciseService.getData()
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe({
+          next: (data) => {
+            this.exercises3 = data;
+            this.cdr.detectChanges();
+            resolve();  // Rozwiązuje Promise po załadowaniu
+          },
+          error: (error) => {
+            console.error('Error loading exercises3:', error);
+            reject(error);  // Odrzuca Promise w przypadku błędu
+          }
+        });
     });
   }
 
@@ -103,28 +165,25 @@ export class ExerciseItemComponent {
     return exercise ? exercise.id : null;
   }
 
-  getExercisesList(){
-    this.ExercisesList = this.workoutService.getExercisesList();
-  }
-  
-  inputOnChange(){
+  inputOnChange() {
     this.tempExercises = [];
-    this.ExercisesList.forEach((exercise, index) => {
-      const selectedValue = this.selectedExercise[index];
-      
-      const inputExercise2 = this.getExerciseIdByTitle(selectedValue);
-      const inputSets = document.getElementById(`sets-${index}`) as HTMLInputElement;
-      const inputReps = document.getElementById(`reps-${index}`) as HTMLInputElement;
 
-      if (inputExercise2 !== null && inputSets) {
+    this.exercisesList.forEach((exercise) => {
+      const exerciseId = this.getExerciseIdByTitle(exercise.title);
+
+      if (exerciseId !== null) {
+        const inputSets = exercise.sets ?? 0;
+        const inputReps = exercise.reps ?? 0;
+
         this.tempExercises.push({
-          idExercise: inputExercise2,
-          sets: parseInt(inputSets.value),
-          reps: parseInt(inputReps.value)
+          idExercise: exerciseId,
+          sets: inputSets,
+          reps: inputReps,
         });
       }
     });
+
     this.workoutService.setTempExercises(this.tempExercises);
-    console.log(this.tempExercises);
+    console.log('Temp exercises:', this.tempExercises);
   }
 }
