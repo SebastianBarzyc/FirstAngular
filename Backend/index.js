@@ -116,20 +116,6 @@ app.get('/api/workouts/:planID/exercises', async (req, res) => {
   }
 });
 
-// Endpoint do pobierania dostępnych ćwiczeń
-app.get('/api/workouts/available-exercises', async (req, res) => {
-  try {
-    const query = 'SELECT * FROM exercises'; // Przykładowe zapytanie
-    const result = await pool.query(query);
-    res.status(200).json({ data: result.rows });
-  } catch (error) {
-    console.error('Error fetching available exercises:', error);
-    res.status(500).json({ message: 'Error fetching available exercises' });
-  }
-});
-
-
-
 app.post('/api/workouts', async (req, res) => {
   const { title, description } = req.body;
 

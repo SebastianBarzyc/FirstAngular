@@ -3,11 +3,7 @@ import {
   Input,
   Output,
   EventEmitter,
-  ChangeDetectorRef,
-  SimpleChanges,
   OnInit,
-  OnDestroy,
-  OnChanges,
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatOption, MatSelect } from '@angular/material/select';
@@ -18,7 +14,6 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { ExerciseService } from '../Exercises/exercises.service';
 import { WorkoutService } from './workouts.service';
-import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-exercise-item',
@@ -35,7 +30,7 @@ import { Subject, takeUntil } from 'rxjs';
     MatButtonModule,
   ],
 })
-export class ExerciseItemComponent implements OnInit, OnDestroy, OnChanges {
+export class ExerciseItemComponent implements OnInit{
   @Input() exercise: any;
   @Input() index: number = 0;
   @Output() remove = new EventEmitter<number>();
@@ -43,52 +38,17 @@ export class ExerciseItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() exercisesdata: any[] = [];
   @Input() planID: number = 1;
   
-  selectedExercise: string[] = [];
-  exercises2: any[] = [];
-  exercises3: any[] = [];
+  exercises: any[] = [];
   tempExercises: any[] = [];
-  availableExercises: any[] = [];
-  
-  private exercisesLoaded = false;
-  private initialized = false;
-  private unsubscribe$ = new Subject<void>();
-  private isLoading: boolean = false;
 
   constructor(
     private workoutService: WorkoutService,
     private exerciseService: ExerciseService,
-    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit(): Promise<void> {
-
-    // Ładowanie ćwiczeń dla planu
-    this.loadExercisesForPlan();
-
-    if (!this.exercisesLoaded) {
-      this.exercisesLoaded = true;
-
-      await this.loadAvailableExercises();
-      //await this.loadExercises2();
-      await this.loadExercises3();
-    }
-  }
-
-  ngOnDestroy() {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
-    this.initialized = false;
-    this.exercisesLoaded = false;
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['planID'] && changes['planID'].currentValue !== changes['planID'].previousValue) {
-      this.loadExercisesForPlan();
-    }
-  }
-
-  trackByFn(index: number, item: any): number {
-    return item.exercise_id; // lub inny unikalny identyfikator
+    await this.loadExercisesForPlan();
+    await this.loadExercises3();
   }
 
   removeExercise(id: number) {
@@ -96,72 +56,46 @@ export class ExerciseItemComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   getExerciseTitleById(id: number): string {
-    const exercise = this.exercises3.find(ex => ex.id === id);
+    const exercise = this.exercises.find(ex => ex.id === id);
     return exercise ? exercise.title : '';
   }
 
-  loadExercisesForPlan(): void {
-    if (this.isLoading) {
-      console.log('Exercises are already loading, skipping call.');
-      return;
-    }
-
-    this.isLoading = true;
-
-    this.workoutService.getExercisesForPlan(this.planID)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe({
-        next: (response) => {
-          console.log('Loaded exercises:', response.data);
-          this.exercisesdata = response.data;
-        },
-        error: (error) => {
-          console.error('Error loading exercises:', error);
-        },
-        complete: () => {
-          this.isLoading = false;
-        }
-      });
-  }
-
-  loadAvailableExercises(): Promise<void> {
+  loadExercisesForPlan(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.workoutService.getAvailableExercises()
-        .pipe(takeUntil(this.unsubscribe$))
-        .subscribe({
-          next: (response) => {
-            this.availableExercises = response.data;
-            resolve();  // Rozwiązuje Promise po załadowaniu
-          },
-          error: (error) => {
-            console.error('Error loading available exercises:', error);
-            reject(error);  // Odrzuca Promise w przypadku błędu
-          }
-        });
+        this.workoutService.getExercisesForPlan(this.planID)
+            .subscribe({
+                next: (response) => {
+                    console.log('Loaded exercises:', response.data);
+                    this.exercisesdata = response.data;
+                    resolve();
+                },
+                error: (error) => {
+                    console.error('Error loading exercises:', error);
+                    reject(error); 
+                },
+            });
     });
-  }
+}
 
 
   loadExercises3(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.exerciseService.getData()
-        .pipe(takeUntil(this.unsubscribe$))
         .subscribe({
           next: (data) => {
-            this.exercises3 = data;
-            this.cdr.detectChanges();
-            resolve();  // Rozwiązuje Promise po załadowaniu
+            this.exercises = data;
+            resolve(); 
           },
           error: (error) => {
             console.error('Error loading exercises3:', error);
-            reject(error);  // Odrzuca Promise w przypadku błędu
+            reject(error);
           }
         });
     });
   }
 
   getExerciseIdByTitle(title: string): number | null {
-    const exercise = this.exercises3.find(ex => ex.title === title);
+    const exercise = this.exercises.find(ex => ex.title === title);
     return exercise ? exercise.id : null;
   }
 

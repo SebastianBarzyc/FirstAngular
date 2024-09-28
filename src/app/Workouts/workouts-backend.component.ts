@@ -88,12 +88,11 @@ export class WorkoutsBackend implements OnInit {
     this.workoutService.setCounter(this.exerciseAllCounter);
   }
 
-  onSubmit() {
+  async onSubmit() {
     this.exerciseIdCounter = this.workoutService.getId();
     this.workoutExercises = this.workoutService.getWorkoutExercises();
-    this.addworkout2();
     
-    this.workoutService.addworkout(this.workout).pipe(
+    await this.workoutService.addworkout(this.workout).pipe(
         tap(response => {
             console.log('Workout added successfully:', response);
         })
@@ -105,6 +104,7 @@ export class WorkoutsBackend implements OnInit {
             console.error('Error adding workout:', error);
         }
     );
+    await this.addworkout2();
     
 }
 

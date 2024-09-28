@@ -1,11 +1,10 @@
 <div *ngIf="exercisesdata && exercisesdata.length > 0">
-  <div *ngFor="let exercise of exercisesdata; trackBy: trackByFn" class="exercise-grid2" [id]="'exercise-div-' + exercise.exercise_id">
-    <input type="hidden" [id]="exercise.exercise_id" [value]="exercise.title">
+  <div *ngFor="let exercise of exercisesdata;" class="exercise-grid2" [id]="'exercise-div-' + exercise.exercise_id">
+    <input type="hidden" [id]="exercise.exercise_id" [value]="exercise.exercise_title">
     <mat-form-field class="select-field">
       <mat-label>Exercise</mat-label>
-      <p>{{exercise.title}}</p>
-      <mat-select [(ngModel)]="exercise.title" (selectionChange)="inputOnChange()">
-        <mat-option *ngFor="let ex2 of exercises3" [value]="ex2.title">
+      <mat-select [(ngModel)]="exercise.exercise_title" (selectionChange)="inputOnChange()">
+        <mat-option *ngFor="let ex2 of exercises" [value]="ex2.title">
           {{ ex2.title }}
         </mat-option>
       </mat-select>
