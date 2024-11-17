@@ -113,3 +113,30 @@ textarea {
   flex: 1;
 }
 
+.calendar h5 {
+  margin: 0;
+}
+
+.calendar .row {
+  margin-bottom: 5px;
+}
+
+.day {
+  border-radius: 15px;
+  width: 80%;
+  aspect-ratio: 1 / 1;
+}
+
+.calendar{
+  width: 45%;
+  margin: 2% 0 0 0;
+}
+
+.calendar .btn-primary {
+  background-color: $secondary-color !important;
+  color: white;
+}
+
+.calendar .btn-light {
+  background-color: #f8f9fa;
+}

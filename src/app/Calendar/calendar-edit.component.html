@@ -1,0 +1,38 @@
+<div *ngIf="plans.length > 0">
+    <div *ngFor="let plan of plans">
+          <div *ngIf="plan.id === getId()">
+            <h2 mat-dialog-title class="fw-bold">Edit Plan for {{ selectedDate | date: 'MMMM d, yyyy' }}</h2>
+            <mat-dialog-content>
+              <p class="fw-bold">Title:</p>
+              <mat-form-field style="width: 70%;">
+                <input matInput name="title-{{plan.id}}" [(ngModel)]="plan.title" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
+                <input type="hidden" [value]="plan.id" #hiddenInput>
+              </mat-form-field>
+              <br>
+              <p class="fw-bold">Description:</p>
+              <mat-form-field style="width: 90%;">
+                <textarea matInput name="description-{{plan.id}}" [(ngModel)]="plan.description" [ngModelOptions]="{ standalone: true }" (input)="autoResize(textarea)" #textarea></textarea>
+              </mat-form-field>
+              <p *ngIf="exercises.length > 0" class="fw-bold">Exercises:</p>
+              <div *ngIf="exercises.length === 0">No exercises found.</div>
+      <calendar-item
+        *ngFor="let exercise of plan.exercises; let i = index"
+        [exercisesdata]="[exercise]"
+        [index]="i"
+        [exercisesList]="plan.exercises"
+        (remove)="plan.exercises.splice(i, 1)">
+      </calendar-item>
+    </mat-dialog-content>
+    <mat-dialog-actions>
+      <div style="width:100%; margin-bottom: 2%">
+        <button mat-button (click)="Delete(plan.id)" cdkFocusInitial class="RaisedBtn DeleteBtn float-start">Delete workout</button>
+        <button mat-fab style="margin-top: -2%;" (click)="addExercise()">
+          <mat-icon>add</mat-icon>
+        </button>
+        <button mat-button (click)="Save(plan.id, plan.title, plan.description)" cdkFocusInitial class="RaisedBtn float-end">Save changes</button>
+      </div>
+    </mat-dialog-actions>
+  </div>
+</div>
+</div>
+  
