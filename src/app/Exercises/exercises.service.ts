@@ -1,7 +1,8 @@
+// exercise.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { tap, catchError  } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -24,20 +25,19 @@ export class ExerciseService {
   addExercise(exercise: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, exercise).pipe(
       tap(() => {
-        this.refreshNeeded$.next();
+        this.refreshNeeded$.next();  // Trigger refresh after adding exercise
       })
     );
-  }
-
-  onRefreshNeeded(): Observable<void> {
-    return this.refreshNeeded$.asObservable();
   }
 
   editExercise(id: number, newTitle: string, newDescription: string): Observable<any> {
     const body = { id, newTitle, newDescription };
 
     return this.http.put<any>(this.apiUrlEdit, body).pipe(
-        catchError(error => {
+      tap(() => {
+        this.refreshNeeded$.next();  // Trigger refresh after editing exercise
+      }),
+      catchError(error => {
         console.error('Error editing exercise:', error);
         throw error;
       })
@@ -47,7 +47,7 @@ export class ExerciseService {
   deleteExercise(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrlDelete}${id}`).pipe(
       tap(() => {
-        this.refreshNeeded$.next();
+        this.refreshNeeded$.next();  // Trigger refresh after deleting exercise
       })
     );
   }
@@ -57,9 +57,12 @@ export class ExerciseService {
     return this.http.get<any[]>(this.apiUrlSearch, { params }).pipe(
       tap(data => {
         console.log('Search results:', data);
-        this.searchResultsSubject.next(data);
+        this.searchResultsSubject.next(data);  // Update search results
       })
     );
   }
-  
+
+  onRefreshNeeded(): Observable<void> {
+    return this.refreshNeeded$.asObservable();
+  }
 }

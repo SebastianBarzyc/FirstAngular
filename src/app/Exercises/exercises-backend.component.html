@@ -6,7 +6,7 @@
       <input type="text" class="form-control" id="ExerciseTitle" [(ngModel)]="exercise.title" [ngModelOptions]="{ standalone: true }" required>
       <br>
       <label for="ExerciseDesc" class="fw-bold form-label">Description:</label>
-      <input type="text" class="form-control" id="ExerciseDesc" [(ngModel)]="exercise.description" [ngModelOptions]="{ standalone: true }">
+      <input type="text" class="form-control" id="ExerciseDesc" [(ngModel)]="exercise.description" [ngModelOptions]="{ standalone: true }" required>
       <br>
       <button type="submit" mat-raised-button class="btn RaisedBtn">Create exercise</button>
     </form>

@@ -1,9 +1,10 @@
-import { Component, OnInit,  inject} from '@angular/core';
+// exercises-backend.component.ts
+import { Component, OnInit, inject } from '@angular/core';
 import { ExerciseService } from './exercises.service';
 import { CommonModule } from '@angular/common';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { FormsModule } from '@angular/forms';
-import { Subscription, tap } from 'rxjs';
+import { Subscription, catchError, tap } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ExerciseEditComponent } from './exercise-edit.component';
 
@@ -11,7 +12,7 @@ import { ExerciseEditComponent } from './exercise-edit.component';
   selector: 'exercises-backend',
   templateUrl: './exercises-backend.component.html',
   standalone: true,
-  providers: [ExerciseService] ,
+  providers: [ExerciseService],
   imports: [CommonModule, MatExpansionModule, FormsModule]
 })
 export class ExercisesBackend implements OnInit {
@@ -22,29 +23,29 @@ export class ExercisesBackend implements OnInit {
     title: '',
     description: ''
   };
-  private refreshSubscription: Subscription = new Subscription;
+  private refreshSubscription: Subscription = new Subscription();
 
   ngOnInit(): void {
-    this.searchSubscription = this.exerciseService.searchResults$.subscribe(data => {
-      this.exercises = data;
-      console.log('Data received in exercises-backend:', this.exercises);
+    // Subskrybuj zdarzenie odświeżenia danych
+    this.refreshSubscription = this.exerciseService.onRefreshNeeded().subscribe(() => {
+      console.log('Refresh needed triggered');
+      this.loadExercises();
     });
-  
-    this.exerciseService.getData().subscribe(data => {
-      this.exercises = data;
-    });
+
+    // Ładuj ćwiczenia na początku
+    this.loadExercises();
   }
-  
+
   ngOnDestroy(): void {
     this.refreshSubscription.unsubscribe();
     this.searchSubscription.unsubscribe();
   }
 
   loadExercises(): void {
-    this.exerciseService.getData()
-      .subscribe(data => {
-        this.exercises = data;
-      });
+    this.exerciseService.getData().subscribe(data => {
+      this.exercises = data;
+      console.log('Loaded exercises:', data);
+    });
   }
 
   togglePanel() {
@@ -53,36 +54,40 @@ export class ExercisesBackend implements OnInit {
 
   constructor(private exerciseService: ExerciseService) {}
 
-
   onSubmit(): void {
-    this.exerciseService.addExercise(this.exercise)
-      .pipe(
-        tap(response => {
-          console.log('Exercise added successfully:', response);
-          this.loadExercises();
-          this.resetForm();
-        })
-      )
+    console.log(this.exercise);  // Check the form data
+
+    this.exerciseService.addExercise(this.exercise).pipe(
+      tap(response => {
+        console.log('Exercise added successfully:', response);
+        this.loadExercises();  // Reload exercises after adding
+        this.resetForm();
+      }),
+      catchError(error => {
+        console.error('Error adding exercise:', error);
+        throw error;
+      })
+    ).subscribe();
   }
 
   resetForm(): void {
-    this.exercise = {
-      title: '',
-      description: ''
-    };
+    this.exercise = { title: '', description: '' };
   }
 
   readonly dialog = inject(MatDialog);
 
   openDialog(id: number, title: string, description: string): void {
     const dialogRef = this.dialog.open(ExerciseEditComponent, {
-      data: { id: id, title: title, description: description },
+      data: { id, title, description },
       panelClass: 'editPanel'
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
+      console.log('Dialog closed');
+      // Po zamknięciu okna dialogowego, odśwież ćwiczenia
+      if (result) {
+        this.loadExercises();
+      }
     });
   }
-  
 }
