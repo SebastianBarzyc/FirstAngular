@@ -10,12 +10,12 @@
     </mat-form-field>
     <mat-form-field class="input-number">
       <mat-label>Sets</mat-label>
-      <input matInput type="number" [(ngModel)]="exercise.sets" (ngModelChange)="inputOnChange()" min="1">
+      <input matInput type="number" [(ngModel)]="exercise.sets" (ngModelChange)="inputOnChange()" min="1" required>
     </mat-form-field>
 
     <mat-form-field class="input-number">
       <mat-label>Reps</mat-label>
-      <input matInput type="number" [(ngModel)]="exercise.reps" (ngModelChange)="inputOnChange()" min="1">
+      <input matInput type="number" [(ngModel)]="exercise.reps" (ngModelChange)="inputOnChange()" min="1" required>
     </mat-form-field>
 
     <button mat-fab (click)="removeExercise(exercise.id)" style="margin-bottom: 30%;">

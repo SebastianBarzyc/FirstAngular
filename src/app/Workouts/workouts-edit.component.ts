@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { WorkoutService } from './workouts.service';
-import { ChangeDetectorRef, Component, ComponentRef, ElementRef, inject, Inject, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ComponentRef, ElementRef, EventEmitter, inject, Inject, Input, OnInit, Output, ViewChild, ViewContainerRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ExerciseItemComponent } from './exercise-item.component';
 import { MatSelectModule } from '@angular/material/select';
 import { forkJoin } from 'rxjs';
+import { WorkoutsBackend } from './workouts-backend.component';
 
 interface Exercise {
   idPlan: number;
@@ -38,7 +39,7 @@ interface Exercise {
   ],
 })
 export class WorkoutEditComponent implements OnInit {
-
+  @Output() workoutChanged = new EventEmitter<void>();
   @ViewChild('hiddenInput') hiddenInput?: ElementRef;
   @ViewChild('textarea') textarea!: ElementRef;
 
@@ -57,7 +58,7 @@ export class WorkoutEditComponent implements OnInit {
   WorkoutTitle: string;
   WorkoutDesc: string;
 
-  constructor(private workoutService: WorkoutService, private cdRef: ChangeDetectorRef,  private exerciseService: ExerciseService, @Inject(MAT_DIALOG_DATA) public data: { id: number, title: string, description: string }) {
+  constructor(private workoutService: WorkoutService, private WorkoutsBackend:WorkoutsBackend, private cdRef: ChangeDetectorRef,  private exerciseService: ExerciseService, @Inject(MAT_DIALOG_DATA) public data: { id: number, title: string, description: string }) {
     this.WorkoutID = data.id;
     this.WorkoutTitle = data.title;
     this.WorkoutDesc = data.description;
@@ -128,6 +129,7 @@ export class WorkoutEditComponent implements OnInit {
     this.workoutService.editworkout(id, newTitle, newDescription).subscribe({
       next: response => {
         console.log('Response from server (editWorkout):', response);
+        this.dialogRef.close();
       },
       error: error => {
         console.error('Error from server (editWorkout):', error);
@@ -172,7 +174,6 @@ export class WorkoutEditComponent implements OnInit {
   Delete(id: number) {
     this.workoutService.deleteworkout(id).subscribe({
       next: response => {
-        console.log('Response from server:', response);
         this.dialogRef.close();
       },
       error: error => {
@@ -192,7 +193,7 @@ export class WorkoutEditComponent implements OnInit {
     console.log("after remove exercises: ", this.exercises);
     console.log("after remove exercises map: ", this.exercisesMap);
     this.cdRef.detectChanges();
-}
+  }
 
   addExercise(): void { 
     const maxId = this.exercises.length > 0 

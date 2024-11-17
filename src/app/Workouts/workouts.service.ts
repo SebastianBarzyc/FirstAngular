@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { EventEmitter, Injectable } from "@angular/core";
 import { catchError, Observable, of, Subject, tap, throwError } from "rxjs";
 import { HttpClient, HttpHeaders} from '@angular/common/http';
 
@@ -14,6 +14,7 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     providedIn: 'root'
   })
   export class WorkoutService {
+    workoutChanged = new EventEmitter<void>();
     public workoutExercises: WorkoutExercise = {
       id: 0,
       title: '',
@@ -31,11 +32,10 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     private apiUrlEdit2 = 'http://localhost:3000/api/update-workout2/';
     private apiUrlEdit3 = 'http://localhost:3000/api/update-workout3/';
     private apiUrlDelete = 'http://localhost:3000/api/delete-workout/';
-    private refreshNeeded$ = new Subject<void>();
+    refreshNeeded$ = new Subject<void>();
 
     public exerciseIdCounter = 0;
     public exerciseAllCounter = 0;
-    tempExercises: any [] = [];
     exercisesList: any [] = [];
 
     getData(): Observable<any> {
@@ -79,16 +79,20 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     }
     
 
-  editworkout(id: number, newTitle: string, newDescription: string): Observable<any> {
-    const body = { id, newTitle, newDescription };
-    console.log(body);
-    return this.http.put<any>(this.apiUrlEdit, body).pipe(
+    editworkout(id: number, newTitle: string, newDescription: string): Observable<any> {
+      const body = { id, newTitle, newDescription };
+      console.log(body);
+    
+      return this.http.put<any>(this.apiUrlEdit, body).pipe(
+        tap(() => {
+          this.refreshNeeded$.next();
+        }),
         catchError(error => {
-        console.error('Error editing workout:', error);
-        throw error;
-      })
-    );
-  }
+          console.error('Error editing workout:', error);
+          throw error;
+        })
+      );
+    }
 
   editworkout2(id: number): Observable<any> {
     console.log("editworkout2: " + id);
@@ -134,9 +138,14 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     return this.http.delete<any>(`${this.apiUrlDelete}${id}`).pipe(
       tap(() => {
         this.refreshNeeded$.next();
+      }),
+      catchError(error => {
+        console.error('Error deleting workout:', error);
+        throw error;
       })
     );
   }
+  
 
   getExercisesForPlan(planId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${planId}/exercises`);

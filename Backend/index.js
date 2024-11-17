@@ -144,7 +144,7 @@ app.post('/api/workouts2', async (req, res) => {
   }
 
   try {
-    const queries = workouts.map(({ plan_id, exercise_id, sets, reps, exercise_title }) => {
+    const queries = workouts.map(({exercise_id, exercise_title, plan_id, reps, sets}) => {
       const setsNumber = parseInt(sets, 10);
       const repsNumber = parseInt(reps, 10);
       
@@ -276,6 +276,8 @@ app.delete('/api/delete-workout/:id', async (req, res) => {
     if (result.rowCount > 0 && result2.rowCount > 0) {
       res.status(200).json({ message: 'Workout deleted successfully' });
     } else {
+      console.log("result.rowCount: " + result.rowCount);
+      console.log("result2.rowCount: " + result2.rowCount);
       res.status(404).json({ message: 'Workout not found' });
     }
   } catch (error) {

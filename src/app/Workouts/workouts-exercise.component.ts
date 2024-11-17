@@ -29,6 +29,7 @@ export class WorkoutsExerciseComponent{
   reps: number | null = null;
   localExercises: any[] = [];
   workoutExercises: any[] = [];
+  
 
   ngOnInit() {
     this.loadExercises();
@@ -46,36 +47,50 @@ export class WorkoutsExerciseComponent{
   
   addExercise() {
     this.exerciseAllCounter = this.workoutService.getCounter();
+    
+    // Zmienna do przechowywania kolejnego unikalnego id
+    let newId = this.workoutExercises.length > 0 ? Math.max(...this.workoutExercises.map(exercise => exercise.id)) + 1 : 1;
+    
     for (let i = 0; i <= this.exerciseAllCounter; i++) {
       const reps = document.getElementById('reps-' + i) as HTMLInputElement;
       const sets = document.getElementById('sets-' + i) as HTMLInputElement;
       const title = document.getElementById('title-' + i) as HTMLInputElement;
-    
+      
       if (reps && sets && title) {
         const repsValue = reps.value;
         const setsValue = sets.value;
         const titleValue = title.value;
-        const id = this.workoutExercises.findIndex(exercise => exercise.title === titleValue);
-        const existingExerciseIndex = this.workoutExercises.findIndex(exercise => exercise.id === i);
-    
+        
+        // Sprawdzamy, czy ćwiczenie już istnieje na podstawie tytułu
+        const existingExerciseIndex = this.workoutExercises.findIndex(exercise => exercise.title === titleValue);
+        
         if (existingExerciseIndex > -1) {
+          // Zaktualizuj ćwiczenie, jeśli już istnieje
           this.workoutExercises[existingExerciseIndex] = {
-            id: id,
+            id: this.workoutExercises[existingExerciseIndex].id,  // Użyj id istniejącego ćwiczenia
             title: titleValue,
             sets: setsValue,
             reps: repsValue
           };
         } else {
+          // Dodajemy nowe ćwiczenie z unikalnym id
           this.workoutExercises.push({
-            id: id,
+            id: newId,  // Nowe unikalne id
             title: titleValue,
             sets: setsValue,
             reps: repsValue
           });
+          
+          // Zwiększamy id, żeby dla kolejnego ćwiczenia było inne
+          newId++;
         }
-        
+  
+        // Ustawiamy ćwiczenia w serwisie
         this.workoutService.setWorkoutExercises(this.workoutExercises);
       }
     }
+  
+    console.log("this.workoutExercises: " + JSON.stringify(this.workoutExercises));
   }
+  
 }
