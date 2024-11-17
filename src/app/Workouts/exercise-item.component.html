@@ -1,6 +1,5 @@
-<div *ngIf="exercisesdata && exercisesdata.length > 0">
-  <div *ngFor="let exercise of exercisesdata;" class="exercise-grid2" [id]="'exercise-div-' + exercise.exercise_id">
-    <input type="hidden" [id]="exercise.exercise_id" [value]="exercise.exercise_title">
+<div *ngIf="exercisesdata">
+  <div *ngFor="let exercise of exercisesdata" class="exercise-grid2">
     <mat-form-field class="select-field">
       <mat-label>Exercise</mat-label>
       <mat-select [(ngModel)]="exercise.exercise_title" (selectionChange)="inputOnChange()">
@@ -19,7 +18,7 @@
       <input matInput type="number" [(ngModel)]="exercise.reps" (ngModelChange)="inputOnChange()" min="1">
     </mat-form-field>
 
-    <button mat-fab (click)="removeExercise(exercise.exercise_id)" style="margin-bottom: 30%;">
+    <button mat-fab (click)="removeExercise(exercise.id)" style="margin-bottom: 30%;">
       <mat-icon>delete</mat-icon>
     </button>
   </div>

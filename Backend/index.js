@@ -103,7 +103,6 @@ app.get('/api/exercises/:title', async (req, res) => {
   }
 });
 
-// Endpoint do pobierania ćwiczeń dla planu treningowego
 app.get('/api/workouts/:planID/exercises', async (req, res) => {
   const planID = req.params.planID;
   try {
@@ -134,16 +133,11 @@ app.post('/api/workouts', async (req, res) => {
 app.post('/api/workouts2', async (req, res) => {
   let workouts = req.body;
 
-  // Log the incoming data
-  console.log('Incoming workouts:', workouts);
-
-  // Check if workouts is an array
   if (!Array.isArray(workouts)) {
     console.log('Received data is not an array, wrapping it in an array.');
-    workouts = [workouts]; // Wrap single object in an array
+    workouts = [workouts];
   }
 
-  // Validate if workouts is now an array
   if (!Array.isArray(workouts)) {
     console.error('Invalid input: workouts should be an array:', workouts);
     return res.status(400).json({ error: 'Invalid input: workouts should be an array' });
@@ -151,7 +145,6 @@ app.post('/api/workouts2', async (req, res) => {
 
   try {
     const queries = workouts.map(({ plan_id, exercise_id, sets, reps, exercise_title }) => {
-      // Ensure sets and reps are numbers
       const setsNumber = parseInt(sets, 10);
       const repsNumber = parseInt(reps, 10);
       
@@ -190,18 +183,17 @@ app.post('/api/exercises', async (req, res) => {
 });
 
 app.post('/api/update-workout3/', async (req, res) => {
-  // Zmienna do sprawdzania 
-  const { planId, idExercise, sets, reps } = req.body;
+  const { planId, idExercise, sets, reps, exercise_title } = req.body;
 
-  console.log('Received data:', { planId, idExercise, sets, reps });
+  console.log('Received data:', { planId, idExercise, sets, reps, exercise_title});
 
   if (planId === undefined || idExercise === undefined || sets === undefined || reps === undefined) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
   try {
-    const query = `INSERT INTO plan_exercises (plan_id, exercise_id, sets, reps) VALUES ($1, $2, $3, $4) RETURNING *`;
-    const values = [planId, idExercise, sets, reps];
+    const query = `INSERT INTO plan_exercises (plan_id, exercise_id, sets, reps, exercise_title) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
+    const values = [planId, idExercise, sets, reps, exercise_title];
 
     console.log('Executing query with values:', values);
     const result = await pool.query(query, values);
@@ -272,15 +264,16 @@ app.delete('/api/delete-exercise/:id', async (req, res) => {
 
 app.delete('/api/delete-workout/:id', async (req, res) => {
   const id = req.params.id;
-  console.log('DELETE request received for ID:', id);
 
   try {
-    const query = 'DELETE FROM training_plans WHERE id = $1';
+    const query = 'DELETE FROM plan_exercises WHERE plan_id = $1';
+    const query2 = 'DELETE FROM training_plans WHERE id = $1';
     const values = [id];
 
     const result = await pool.query(query, values);
+    const result2 = await pool.query(query2, values);
 
-    if (result.rowCount > 0) {
+    if (result.rowCount > 0 && result2.rowCount > 0) {
       res.status(200).json({ message: 'Workout deleted successfully' });
     } else {
       res.status(404).json({ message: 'Workout not found' });

@@ -47,11 +47,13 @@ export class ExerciseItemComponent implements OnInit{
   ) {}
 
   async ngOnInit(): Promise<void> {
-    await this.loadExercisesForPlan();
-    await this.loadExercises3();
+    await this.loadExercises();
+    console.log("exercisesdata: ", this.exercisesdata);
+    console.log("exerciseslist: ", this.exercisesList);
   }
 
   removeExercise(id: number) {
+    console.log("removing: ", id);
     this.remove.emit(id);
   }
 
@@ -60,25 +62,7 @@ export class ExerciseItemComponent implements OnInit{
     return exercise ? exercise.title : '';
   }
 
-  loadExercisesForPlan(): Promise<void> {
-    return new Promise((resolve, reject) => {
-        this.workoutService.getExercisesForPlan(this.planID)
-            .subscribe({
-                next: (response) => {
-                    console.log('Loaded exercises:', response.data);
-                    this.exercisesdata = response.data;
-                    resolve();
-                },
-                error: (error) => {
-                    console.error('Error loading exercises:', error);
-                    reject(error); 
-                },
-            });
-    });
-}
-
-
-  loadExercises3(): Promise<void> {
+  loadExercises(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.exerciseService.getData()
         .subscribe({
@@ -99,25 +83,29 @@ export class ExerciseItemComponent implements OnInit{
     return exercise ? exercise.id : null;
   }
 
-  inputOnChange() {
-    this.tempExercises = [];
-
-    this.exercisesList.forEach((exercise) => {
-      const exerciseId = this.getExerciseIdByTitle(exercise.title);
-
-      if (exerciseId !== null) {
-        const inputSets = exercise.sets ?? 0;
-        const inputReps = exercise.reps ?? 0;
-
-        this.tempExercises.push({
-          idExercise: exerciseId,
+inputOnChange() {
+  this.exercisesdata.forEach((exercise) => {
+    const exerciseId = this.getExerciseIdByTitle(exercise.exercise_title);
+console.log("exerciseId" + exerciseId);
+    if (exerciseId !== null) {
+      const inputSets = exercise.sets ?? 0;
+      const inputReps = exercise.reps ?? 0;
+      const existingExerciseIndex = this.exercisesList.findIndex(e => e.id === exercise.id);
+      
+      if (existingExerciseIndex !== -1) {
+        this.exercisesList[existingExerciseIndex].sets = inputSets;
+        this.exercisesList[existingExerciseIndex].reps = inputReps;
+        this.exercisesList[existingExerciseIndex].exercise_id = exerciseId;
+      } else {
+        this.exercisesList.push({
+          exercise_id: exerciseId,
+          exercise_title: exercise.exercise_title,
           sets: inputSets,
           reps: inputReps,
         });
       }
-    });
+    }
+  });
+}
 
-    this.workoutService.setTempExercises(this.tempExercises);
-    console.log('Temp exercises:', this.tempExercises);
-  }
 }

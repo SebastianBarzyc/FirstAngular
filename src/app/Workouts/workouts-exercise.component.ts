@@ -55,23 +55,25 @@ export class WorkoutsExerciseComponent{
         const repsValue = reps.value;
         const setsValue = sets.value;
         const titleValue = title.value;
+        const id = this.workoutExercises.findIndex(exercise => exercise.title === titleValue);
         const existingExerciseIndex = this.workoutExercises.findIndex(exercise => exercise.id === i);
     
         if (existingExerciseIndex > -1) {
           this.workoutExercises[existingExerciseIndex] = {
-            id: i,
+            id: id,
             title: titleValue,
             sets: setsValue,
             reps: repsValue
           };
         } else {
           this.workoutExercises.push({
-            id: i,
+            id: id,
             title: titleValue,
             sets: setsValue,
             reps: repsValue
           });
         }
+        
         this.workoutService.setWorkoutExercises(this.workoutExercises);
       }
     }

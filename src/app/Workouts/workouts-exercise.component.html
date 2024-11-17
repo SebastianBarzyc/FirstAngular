@@ -13,12 +13,12 @@
     
     <mat-form-field class="input-number">
       <mat-label [attr.for]="'sets-' + exerciseIdCounter">Sets</mat-label>
-      <input matInput [id]="'sets-' + exerciseIdCounter" name="sets" placeholder="Sets" type="number" [(ngModel)]="sets" (change)="addExercise()">
+      <input matInput [id]="'sets-' + exerciseIdCounter" name="sets" placeholder="Sets" type="number" [(ngModel)]="sets" (input)="addExercise()">
     </mat-form-field>
     
     <mat-form-field class="input-number">
       <mat-label [attr.for]="'reps-' + exerciseIdCounter">Reps</mat-label>
-      <input matInput [id]="'reps-' + exerciseIdCounter" name="reps" placeholder="Reps" type="number" [(ngModel)]="reps" (change)="addExercise()">
+      <input matInput [id]="'reps-' + exerciseIdCounter" name="reps" placeholder="Reps" type="number" [(ngModel)]="reps" (input)="addExercise()">
     </mat-form-field>
   </div>
 </div>

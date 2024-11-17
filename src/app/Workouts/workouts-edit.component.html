@@ -13,15 +13,15 @@
       <mat-form-field style="width: 90%;">
         <textarea matInput name="description-{{workout.id}}" [(ngModel)]="workout.description" [ngModelOptions]="{ standalone: true }" (input)="autoResize(textarea)" #textarea></textarea>
       </mat-form-field>
-      <p *ngIf="getExercisesForWorkout(workout.id).length > 0" class="fw-bold">Exercises:</p>
-      <div *ngIf="getExercisesForWorkout(workout.id).length === 0">No exercises found.</div>
+      <p *ngIf="exercises.length > 0" class="fw-bold">Exercises:</p>
+      <div *ngIf="exercises.length === 0">No exercises found.</div>
       <app-exercise-item
-      *ngFor="let exercise of getExercisesForWorkout(workout.id) | slice:0:1; let i = index"
-        [exercisesdata]="exercise"
+      *ngFor="let exercise of exercises; let i = index"
+        [exercisesdata]="[exercise]"
         [index]="i"
         [exercisesList]="exercises"
         [planID]="workout.id"
-        (remove)="removeExercise(exercise.exercise_id)">
+        (remove)="removeExercise($event)">
       </app-exercise-item>
     </mat-dialog-content>
     <mat-dialog-actions>

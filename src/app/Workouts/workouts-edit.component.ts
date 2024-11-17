@@ -1,12 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { WorkoutService } from './workouts.service';
-import { Component, ComponentRef, ElementRef, inject, Inject, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ComponentRef, ElementRef, inject, Inject, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatOption, MatSelect } from '@angular/material/select';
 import { ExerciseService } from '../Exercises/exercises.service';
 import { MatIconModule } from '@angular/material/icon';
 import { ExerciseItemComponent } from './exercise-item.component';
@@ -32,10 +31,7 @@ interface Exercise {
     MatDialogTitle,
     MatDialogContent,
     MatDialogActions,
-    MatDialogClose,
     CommonModule,
-    MatSelect,
-    MatOption,
     MatIconModule,
     ExerciseItemComponent,
     MatSelectModule,
@@ -54,7 +50,6 @@ export class WorkoutEditComponent implements OnInit {
   exercises: any[] = [];
   exercises2: any[] = [];
   exercises3: any[] = [];
-  tempExercises: Exercise[] = [];
   exercisesList: any[] = [];
   planID: number = 0;
 
@@ -62,7 +57,7 @@ export class WorkoutEditComponent implements OnInit {
   WorkoutTitle: string;
   WorkoutDesc: string;
 
-  constructor(private workoutService: WorkoutService, private exerciseService: ExerciseService, @Inject(MAT_DIALOG_DATA) public data: { id: number, title: string, description: string }) {
+  constructor(private workoutService: WorkoutService, private cdRef: ChangeDetectorRef,  private exerciseService: ExerciseService, @Inject(MAT_DIALOG_DATA) public data: { id: number, title: string, description: string }) {
     this.WorkoutID = data.id;
     this.WorkoutTitle = data.title;
     this.WorkoutDesc = data.description;
@@ -74,9 +69,6 @@ export class WorkoutEditComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadWorkouts();
-    await this.loadExercises();
-    await this.loadExercises2();
-    await this.loadExercisesList();
     await this.loadExercisesForPlan(this.WorkoutID);
   }
 
@@ -102,31 +94,21 @@ export class WorkoutEditComponent implements OnInit {
     return exercise ? exercise.title : '';
   }
 
-  async loadExercisesList(): Promise<void> {
-    this.exercisesList = await this.workoutService.getExercisesList();
-  }
-
-  loadExercisesForPlan(planID: number): void {
-    console.log('Loading exercises for planID:', planID);
-    this.workoutService.getExercisesForPlan(planID).subscribe({
-        next: (response) => {
-            console.log('Received exercises for planID:', planID, response.data);
+  loadExercisesForPlan(planID: number): Promise<any> {
+    return new Promise((resolve, reject) => {
+        this.workoutService.getExercisesForPlan(planID).subscribe({
+            next: async (response) => {
+                console.log('Received exercises for planID:', planID, response.data);
                 this.exercisesMap.set(planID, response.data);
-                this.getExercisesForWorkout(planID);
-        }
+                this.exercises = this.exercisesMap.get(planID) || [];
+                resolve(this.exercises || []);
+            },
+            error: (err) => {
+                reject(err);
+            }
+        });
     });
 }
-
-  async loadExercises(): Promise<void> {
-      await this.loadExercises3();
-      const response = await this.workoutService.getExercisesForPlan(this.WorkoutID).toPromise();
-      this.exercises = response.data;
-  }
-
-  updateExercisesMap(): void {
-    this.exercisesMap.set(this.WorkoutID, [...this.exercises]);
-    console.log('Updated exercisesMap:', this.exercisesMap);
-  }
 
   async loadExercises3(): Promise<void> {
     try {
@@ -138,30 +120,11 @@ export class WorkoutEditComponent implements OnInit {
     }
   }
 
-  async loadExercises2(): Promise<void> {
-    return this.workoutService.getData().toPromise().then(response => {
-      if (response && Array.isArray(response.data)) {
-        this.exercises2 = response.data;
-      }
-      this.exercises = this.exercises.map(exercise => {
-        const foundExercise = this.exercises3.find(ex => ex.id === exercise.id);
-        return {
-          ...exercise,
-          title: foundExercise ? foundExercise.title : 'Unknown Exercise'
-        };
-      });
-    }).catch(error => {
-      console.error('Error loading exercises2:', error);
-      this.exercises2 = [];
-    });
-  }
-
   getId() {
     return this.data.id;
   }
 
   Save(id: number, newTitle: string, newDescription: string): void {
-    // Update workout
     this.workoutService.editworkout(id, newTitle, newDescription).subscribe({
       next: response => {
         console.log('Response from server (editWorkout):', response);
@@ -171,27 +134,25 @@ export class WorkoutEditComponent implements OnInit {
       }
     });
 
-    // Retrieve the list of exercises and temporary exercises
-    this.exercisesList = this.workoutService.getExercisesList();
-    this.tempExercises = this.workoutService.getTempExercises();
+    this.workoutService.editworkout2(this.WorkoutID).subscribe({
+      next: response => {
+        console.log('Response from server (editWorkout):', response);
+      },
+      error: error => {
+        console.error('Error from server (editWorkout):', error);
+      }
+    });
 
-    // Update planID in tempExercises
-    const updatedTempExercises = this.tempExercises.map(exercise => ({
-      ...exercise,
-      planId: this.planID
-    }));
-
-    // Save each exercise
-    const saveObservables = updatedTempExercises.map(exercise =>
+    const saveObservables = this.exercises.map(exercise =>
       this.workoutService.editworkout3(
-        exercise.planId,
-        exercise.idExercise,
+        this.WorkoutID,
+        exercise.exercise_id,
         exercise.sets,
-        exercise.reps
+        exercise.reps,
+        exercise.exercise_title
       )
     );
 
-    // Wait for all saves to complete
     forkJoin(saveObservables).subscribe({
       next: () => {
         this.dialogRef.close();
@@ -201,9 +162,6 @@ export class WorkoutEditComponent implements OnInit {
         console.error('Error occurred while saving exercises:', error);
       }
     });
-
-    console.log('PlanID:', this.planID);
-    console.log('TempExercises:', this.tempExercises);
   }
 
   autoResize(textarea: HTMLTextAreaElement) {
@@ -224,27 +182,31 @@ export class WorkoutEditComponent implements OnInit {
     this.loadWorkouts();
   }
 
-  removeExercise(exerciseId: number): void {
-    console.log('Removing exercise ID:', exerciseId);
-    const currentExercises = this.getExercisesForWorkout(this.workout.id);
-    const updatedExercises = currentExercises.filter(ex => ex.exercise_id !== exerciseId);
-    this.exercisesMap.set(this.workout.id, updatedExercises);
-  }
-
-  getExercisesForWorkout(planID: number): any[] {
-    const exercises = this.exercisesMap.get(planID);
-    return exercises || [];
+  removeExercise(ID: number): void {
+    console.log('Removing exercise ID:', ID);
+    
+    const currentExercises = this.exercises;
+    const updatedExercises = currentExercises.filter(ex => ex.id !== ID);
+    this.exercisesMap.set(this.WorkoutID, updatedExercises);
+    this.exercises = updatedExercises;
+    console.log("after remove exercises: ", this.exercises);
+    console.log("after remove exercises map: ", this.exercisesMap);
+    this.cdRef.detectChanges();
 }
 
-  addExercise(): void {
-    const newExercise = {
-      exercise_id: this.exercisesList.length + 1, // Unique ID
-      title: '',  // Default exercise title
-      sets: 0,    // Default number of sets
-      reps: 0     // Default number of reps
-    };
+  addExercise(): void { 
+    const maxId = this.exercises.length > 0 
+    ? Math.max(...this.exercises.map(exercise => exercise.id))
+    : 0;
 
-    this.exercisesList.push(newExercise);  // Add to main list
-    this.workoutService.setExercisesList(this.exercisesList);  // Save updated list
+    const newExercise = {
+      id: maxId + 1,
+      plan_id: this.WorkoutID,
+      exercise_id: 0, 
+      sets: 0, 
+      reps: 0, 
+      exercise_title: ''
+    };
+    this.exercises.push(newExercise);
   }
 }

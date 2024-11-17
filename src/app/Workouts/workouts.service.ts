@@ -4,10 +4,10 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
 
   export interface WorkoutExercise {
     [x: string]: any;
-    id: string;
+    id: number;
     title: string;
-    sets: string;
-    reps: string;
+    sets: number;
+    reps: number;
   };
 
   @Injectable({
@@ -15,10 +15,10 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
   })
   export class WorkoutService {
     public workoutExercises: WorkoutExercise = {
-      id: '',
+      id: 0,
       title: '',
-      sets: '',
-      reps: ''
+      sets: 0,
+      reps: 0
     };
     
     constructor(private http: HttpClient) {}
@@ -100,19 +100,20 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     );
   }
 
-  editworkout3(planId: number, idExercise: number, sets: number, reps: number): Observable<any> {
+  editworkout3(planId: number, idExercise: number, sets: number, reps: number, exercise_title: string): Observable<any> {
+    console.log('editworkout3 called with:', { planId, idExercise, sets, reps, exercise_title }); // Logowanie
     const url = this.apiUrlEdit3;
-  
-    // Przypisanie stałych wartości do body
+    
     const body = { 
-      planId: planId,  // Użycie przekazanej wartości
-      idExercise: idExercise,  // Użycie przekazanej wartości
-      sets: sets,  // Użycie przekazanej wartości
-      reps: reps  // Użycie przekazanej wartości
+      planId: planId,
+      idExercise: idExercise,
+      sets: sets,
+      reps: reps,
+      exercise_title: exercise_title,
     };
   
-    console.log('Sending data to server:', body); // Dodaj to logowanie
-  
+    console.log('Sending data to server:', body);
+    
     return this.http.post<any>(url, body, {
       headers: new HttpHeaders({
         'Content-Type': 'application/json'
@@ -121,7 +122,7 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
       catchError(this.handleError<any>('editworkout3'))
     );
   }
-
+  
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
       console.error(`${operation} failed: ${error.message}`);
@@ -164,21 +165,5 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
 
   setWorkoutExercises(value: any){
     this.workoutExercises = value;
-  }
-
-  setTempExercises(value: any){
-    this.tempExercises = value;
-  }
-
-  getTempExercises(){
-    return this.tempExercises;
-  }
-
-  setExercisesList(value: any){
-    this.exercisesList = value;
-  }
-
-  getExercisesList(){
-    return this.exercisesList;
   }
 }

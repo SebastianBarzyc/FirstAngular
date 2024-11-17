@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ViewContainerRef, ComponentFactoryResolver, ComponentRef, Injectable } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { WorkoutExercise, WorkoutService } from './workouts.service';
+import { WorkoutService } from './workouts.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -8,6 +8,13 @@ import { WorkoutsExerciseComponent } from './workouts-exercise.component';
 import { WorkoutEditComponent } from './workouts-edit.component';
 import { Observable, tap } from 'rxjs';
 import { ExerciseService } from '../Exercises/exercises.service';
+
+interface Exercise {
+  id: number;
+  title: string;
+  sets: number;
+  reps: number; 
+}
 
 @Component({
   selector: 'workouts-backend',
@@ -19,6 +26,7 @@ import { ExerciseService } from '../Exercises/exercises.service';
 @Injectable({
   providedIn: 'root'
 })
+
 
 export class WorkoutsBackend implements OnInit {
   exerciseIdCounter = this.workoutService.getId();
@@ -33,12 +41,12 @@ export class WorkoutsBackend implements OnInit {
   isPanelExpanded = false;
   componentRef: ComponentRef<any> | undefined;
 
-  workoutExercises: WorkoutExercise = {
-    id: '',
+  workoutExercises: Exercise = {
+    id: 0,
     title: '',
-    sets: '',
-    reps: ''
-  };
+    sets: 0,
+    reps: 0
+};
 
   updatedExercises: any;
   exercises: any[] = [];
@@ -92,7 +100,7 @@ export class WorkoutsBackend implements OnInit {
     this.exerciseIdCounter = this.workoutService.getId();
     this.workoutExercises = this.workoutService.getWorkoutExercises();
     
-    await this.workoutService.addworkout(this.workout).pipe(
+    this.workoutService.addworkout(this.workout).pipe(
         tap(response => {
             console.log('Workout added successfully:', response);
         })
@@ -104,34 +112,17 @@ export class WorkoutsBackend implements OnInit {
             console.error('Error adding workout:', error);
         }
     );
-    await this.addworkout2();
-    
+    await this.addworkout();
 }
 
-getExerciseByTitle(title: string): Observable<any> {
-  return this.workoutService.getExerciseByTitle(title);
-}
-
-async fetchExerciseByTitle(title: string): Promise<void> {
-  try {
-    const response = await this.workoutService.getExerciseByTitle(title).toPromise();
-    const idTitle = response.exercise.id;
-    this.error = null;
-    return idTitle;
-  } catch (error) {
-    console.error('Error:', error);
-    this.error = 'Failed to retrieve exercise.';
-    this.exercise = null;
-  }
-}
-
-async addworkout2() {
-  this.updatedExercises = []; // Initialize here to avoid carry over
+async addworkout() {
+  this.updatedExercises = [];
 
   this.workoutService.getData().subscribe(async response => {
-      const planID = response.data.length + 1;
-
-      this.workout2.exercises = [];
+        const planID = response.data.reduce((maxId: number, item: Exercise) => {
+        const planID2 = item.id > maxId ? item.id : maxId;
+        return planID2;
+      }, 0);      this.workout2.exercises = [];
 
       const promises = Object.values(this.workoutExercises).map(async exercise => { 
           const IDexercise = await this.fetchExerciseByTitle(exercise.title);
@@ -165,6 +156,23 @@ async addworkout2() {
   });
 }
 
+getExerciseByTitle(title: string): Observable<any> {
+  return this.workoutService.getExerciseByTitle(title);
+}
+
+async fetchExerciseByTitle(title: string): Promise<void> {
+  try {
+    const response = await this.workoutService.getExerciseByTitle(title).toPromise();
+    const idTitle = response.exercise.id;
+    this.error = null;
+    return idTitle;
+  } catch (error) {
+    console.error('Error:', error);
+    this.error = 'Failed to retrieve exercise.';
+    this.exercise = null;
+  }
+}
+
 async getExerciseTitleById(id: number): Promise<string> {
   console.log("this.exercises: ", this.exercises);
   const exercise = this.exercises.find((ex: { id: number; }) => ex.id === id);
@@ -173,31 +181,16 @@ async getExerciseTitleById(id: number): Promise<string> {
 
 async addTitlesToExercises(): Promise<void> {
   for (const exercise of this.workout3) {
-      console.log('Exercise before title assignment:', exercise);
-      
-      if (!exercise.title) { // Check if title is not already assigned
-          try {
-              const title = await this.getExerciseTitleById(exercise.exercise_id);
-              console.log("title: ", title);
-              if (title) {
-                  exercise.exercise_title = title;
-                  console.log('Added title:', title, 'to exercise ID:', exercise.exercise_id, 'exercise.title: ', exercise.title);
-              } else {
-                  console.error(`Title not found for exercise ID ${exercise.exercise_id}`);
-              }
-          } catch (error) {
-              console.error(`Error retrieving title for exercise ID ${exercise.exercise_id}:`, error);
-          }
-      } else {
-          console.log('Title already assigned:', exercise.title, 'for exercise ID:', exercise.exercise_id);
-      }
-      
-      // After the title assignment (successful or not), push the updated exercise to the new array
+    try {
+      const title = await this.getExerciseTitleById(exercise.exercise_id);
+      exercise.exercise_title = title;
+    } catch (error) {
+      console.error(`Error retrieving title for exercise ID ${exercise.exercise_id}:`, error);
+    }
       this.updatedExercises.push(exercise);
       console.log('Exercise after title assignment:', exercise);
   }
 }
-
 
   togglePanel() {
     this.isPanelExpanded = !this.isPanelExpanded;
