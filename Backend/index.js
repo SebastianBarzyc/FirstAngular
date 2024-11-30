@@ -194,6 +194,22 @@ app.post('/api/workouts2', async (req, res) => {
   }
 });
 
+app.post('/api/sessions', async (req, res) => {
+  const { date, title, description } = req.body;
+
+  try {
+    const query = 'INSERT INTO sessions (date, title, description) VALUES ($1, $2, $3) RETURNING *';
+    const values = [date, title, description];
+
+    const result = await pool.query(query, values);
+
+    res.status(201).json({ message: 'Session added successfully', session: result.rows[0] });
+  } catch (error) {
+    console.error('Error adding session:', error);
+    res.status(500).json({ error: 'Failed to add session' });
+  }
+});
+
 app.post('/api/exercises', async (req, res) => {
   const { title, description } = req.body;
 
@@ -256,6 +272,23 @@ app.put('/api/update-workout/', async (req, res) => {
 
   try {
   const query = `UPDATE training_plans SET title = $2, description = $3 WHERE id = $1`;
+  const values = [id, newTitle, newDescription];
+
+  await pool.query(query, values);
+
+  res.status(200).json({ message: 'Data has been updated'});
+
+  } catch (error) {
+      console.error('Error updating data: ', error);
+      res.status(500).json({ message: 'Error updating data' });
+    }
+});
+
+app.put('/api/update-session/', async (req, res) => {
+  const { id, newTitle, newDescription } = req.body;
+
+  try {
+  const query = `UPDATE sessions SET title = $2, description = $3 WHERE session_id = $1`;
   const values = [id, newTitle, newDescription];
 
   await pool.query(query, values);

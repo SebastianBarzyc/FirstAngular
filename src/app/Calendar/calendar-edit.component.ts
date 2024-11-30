@@ -1,18 +1,17 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
-import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { CalendarItemComponent } from './calendar-item.component';
 import { FormsModule } from '@angular/forms';
-import { MatIcon } from '@angular/material/icon';
 import { CalendarService} from './calendar.service';
 import { MatOptionModule } from '@angular/material/core';
+import { tap } from 'rxjs';
+import { MatSelectModule } from '@angular/material/select';
 
 interface Session {
   session_id: number;
-  plan_id: number;
   date: string;
   title: string,
   description: string
@@ -32,29 +31,30 @@ interface Workout {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    CalendarItemComponent,
     MatDialogModule,
     FormsModule,
-    MatIcon,
-    MatOptionModule
+    MatOptionModule,
+    MatSelectModule
   ],
 })
 
 export class CalendarEditComponent implements OnInit {
-  
-  selectedDate: Date;
   exercises = [];
   workouts: Workout[] = [];
   sessions: Session[] = [];
   exercisesSession: any[] = [];
   selectedWorkoutTitle: string = '';
+  newSession = {
+    date: this.getDate(),
+    title: '',
+    description: ''
+  };
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { date: Date },
     private calendarService: CalendarService,
     public dialogRef: MatDialogRef<CalendarEditComponent>
   ) {
-    this.selectedDate = data.date;
   }
 
   ngOnInit(): void {
@@ -75,22 +75,24 @@ export class CalendarEditComponent implements OnInit {
       this.workouts = response.data;
     });
   }
-
+  
   getSessionOrEmpty(): any {
-    const selectedDate = this.getDate().toISOString();
-    const session = this.sessions.find(s => s.date === selectedDate);
+    const date = this.getDate();
+    const formattedDate = date;
+    const session = this.sessions.find(s => s.date === formattedDate);
+ 
     if (session) {
       return session;
     } else {
-      return { 
-        session_id: null,
-        plan_id: null,
-        date: selectedDate,
+      return {
+        session_id: '',
+        date: formattedDate,
         title: '',
         description: ''
       };
     }
   }
+  
   
   addExercise(): void {
     const newExercise = { name: '', description: '' };
@@ -102,9 +104,42 @@ export class CalendarEditComponent implements OnInit {
     this.dialogRef.close(this.sessions);
   }
 
-  Save(id: number, title: string, description: string): void {
-    console.log('Plan saved:', id, title, description);
+  Save(session: any): void {
+
+    if (this.isDateExist()) {
+      this.updateSession(session);
+    } else {
+      this.createSession(session);
+    }
+    console.log('Session data:', 'Date: ', session.date, 'Title: ', session.title, 'Description: ', session.description);
     this.dialogRef.close(this.sessions);
+  }
+
+  createSession(session: any) {
+    console.log(session);
+    this.calendarService.addSession(session).pipe(
+      tap(response => {
+          console.log('Session added successfully:', response);
+      })
+    ).subscribe(
+      response => {
+        console.log('Session created:', 'Date: ', session.date, 'Title: ', session.title, 'Description: ', session.description);
+      },
+      error => {
+          console.error('Error adding session:', error);
+      }
+    );
+  }
+  updateSession(session: any) {
+    this.calendarService.editSession(session.session_id, session.title, session.description).subscribe({
+      next: response => {
+        console.log('Response from server (updateSession):', response);
+        this.dialogRef.close();
+      },
+      error: error => {
+        console.error('Error from server (updateSession):', error);
+      }
+    });
   }
 
   autoResize(textarea: HTMLTextAreaElement) {
@@ -113,7 +148,12 @@ export class CalendarEditComponent implements OnInit {
   }
 
   getDate() {
-    return this.data.date;
+    return this.data.date.toLocaleDateString('pl-PL');
   }
-  
+
+  isDateExist(): boolean{ 
+    return this.sessions.some(session => {
+      return session.date === this.getDate();
+    });
+  }
 }
