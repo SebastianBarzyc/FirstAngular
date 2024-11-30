@@ -346,6 +346,30 @@ app.delete('/api/delete-workout/:id', async (req, res) => {
   }
 });
 
+app.delete('/api/delete-session/:id', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const query = 'DELETE FROM sessions WHERE session_id = $1';
+    const query2 = 'DELETE FROM session_exercises WHERE session_id = $1';
+    const values = [id];
+
+    const result = await pool.query(query, values);
+    const result2 = await pool.query(query2, values);
+
+    if (result.rowCount > 0 && result2.rowCount > 0) {
+      res.status(200).json({ message: 'Session deleted successfully' });
+    } else {
+      console.log("result.rowCount: " + result.rowCount);
+      console.log("result2.rowCount: " + result2.rowCount);
+      res.status(404).json({ message: 'Session not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting data: ', error);
+    res.status(500).json({ message: 'Error deleting data' });
+  }
+});
+
 app.delete('/api/update-workout2/:id', async (req, res) => {
   const id = req.params.id;
   console.log('DELETE request received for ID:', id);

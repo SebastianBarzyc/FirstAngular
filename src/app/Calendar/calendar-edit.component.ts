@@ -99,9 +99,16 @@ export class CalendarEditComponent implements OnInit {
       this.exercisesSession.push(newExercise);
   }
 
-  Delete(id:number): void {
-    console.log('Plan deleted: ', id);
-    this.dialogRef.close(this.sessions);
+  Delete(id: number) {
+    this.calendarService.deleteSession(id).subscribe({
+      next: response => {
+        this.dialogRef.close();
+      },
+      error: error => {
+        console.error('Error from server:', error);
+      }
+    });
+    this.loadSessions();
   }
 
   Save(session: any): void {
@@ -112,7 +119,8 @@ export class CalendarEditComponent implements OnInit {
       this.createSession(session);
     }
     console.log('Session data:', 'Date: ', session.date, 'Title: ', session.title, 'Description: ', session.description);
-    this.dialogRef.close(this.sessions);
+    this.loadSessions();
+    this.dialogRef.close();
   }
 
   createSession(session: any) {
@@ -130,6 +138,7 @@ export class CalendarEditComponent implements OnInit {
       }
     );
   }
+
   updateSession(session: any) {
     this.calendarService.editSession(session.session_id, session.title, session.description).subscribe({
       next: response => {
@@ -141,6 +150,7 @@ export class CalendarEditComponent implements OnInit {
       }
     });
   }
+
 
   autoResize(textarea: HTMLTextAreaElement) {
     textarea.style.height = 'auto';

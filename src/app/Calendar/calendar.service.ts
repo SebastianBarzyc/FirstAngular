@@ -16,6 +16,7 @@ export class CalendarService {
 
   private apiUrl = 'http://localhost:3000/api/sessions';
   private apiUrlEdit = 'http://localhost:3000/api/update-session/';
+  private apiUrlDelete = 'http://localhost:3000/api/delete-session/';
   private apiUrlWorkouts = 'http://localhost:3000/api/workouts/';
   refreshNeeded$ = new Subject<void>();
 
@@ -37,7 +38,7 @@ export class CalendarService {
     );
   }
 
-  editSession(id: string, newTitle: string, newDescription: string): Observable<any> {
+  editSession(id: number, newTitle: string, newDescription: string): Observable<any> {
     const body = { id, newTitle, newDescription };
   
     return this.http.put<any>(this.apiUrlEdit, body).pipe(
@@ -50,4 +51,16 @@ export class CalendarService {
       })
     );
   }
-}
+
+  deleteSession(id: number): Observable<any> {
+      return this.http.delete<any>(`${this.apiUrlDelete}${id}`).pipe(
+        tap(() => {
+          this.refreshNeeded$.next();
+        }),
+        catchError(error => {
+          console.error('Error deleting session:', error);
+          throw error;
+        })
+      );
+    }
+  }
