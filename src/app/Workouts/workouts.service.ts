@@ -145,7 +145,6 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
       })
     );
   }
-  
 
   getExercisesForPlan(planId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${planId}/exercises`);

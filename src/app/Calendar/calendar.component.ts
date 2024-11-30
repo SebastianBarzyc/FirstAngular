@@ -58,7 +58,7 @@ export class CalendarComponent {
   openDayEditor(day: number): void {
     const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
     const dialogRef = this.dialog.open(CalendarEditComponent, {
-      data: { date: selectedDate },
+      data: { date: selectedDate},
       panelClass: 'editPanel'
     });
   }

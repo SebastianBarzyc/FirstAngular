@@ -6,6 +6,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
+import { ExerciseService } from '../Exercises/exercises.service';
 @Component({
   selector: 'calendar-item',
   templateUrl: './calendar-item.component.html',
@@ -23,9 +24,17 @@ import { MatOption, MatSelect } from '@angular/material/select';
   ],
 })
 export class CalendarItemComponent {
-  @Input() exercisesdata: any[] = [];
+  constructor(
+    private exerciseService: ExerciseService,
+  ) {}
+
+  @Input() exercises: any[] = [];
   @Input() index: number = 0;
   @Input() exercisesList: any[] = [];
+
+  async ngOnInit(): Promise<void> {
+    await this.loadExercises();
+  }
 
   removeExercise(index: number): void {
     //this.plan.exercises.splice(index, 1);
@@ -33,6 +42,22 @@ export class CalendarItemComponent {
 
   inputOnChange(){
 
+  }
+
+  loadExercises(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.exerciseService.getData()
+        .subscribe({
+          next: (data) => {
+            this.exercises = data;
+            resolve(); 
+          },
+          error: (error) => {
+            console.error('Error loading exercises3:', error);
+            reject(error);
+          }
+        });
+    });
   }
 }
 

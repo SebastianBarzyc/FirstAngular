@@ -115,6 +115,35 @@ app.get('/api/workouts/:planID/exercises', async (req, res) => {
   }
 });
 
+app.get('/api/sessions', async (req, res) => { 
+  try {
+    const result = await pool.query('SELECT * FROM sessions ORDER BY session_id ASC;');
+    const data = result.rows;
+
+    res.json(data); 
+  } catch (error) {
+    console.error('Error querying database:', error);
+    res.status(500).json({ message: 'Error retrieving data' });
+  }
+});
+
+app.get('/api/sessions/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    const query ='SELECT * FROM sessions WHERE plan_id = $1;';
+    const values = [id];
+
+    const result = await pool.query(query, values);
+
+    console.log('Query result:', result.rows);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error searching exercises:', error);
+    res.status(500).json({ message: 'Error searching exercises' });
+  }
+});
+
 app.post('/api/workouts', async (req, res) => {
   const { title, description } = req.body;
 
@@ -165,7 +194,6 @@ app.post('/api/workouts2', async (req, res) => {
   }
 });
 
-
 app.post('/api/exercises', async (req, res) => {
   const { title, description } = req.body;
 
@@ -205,7 +233,6 @@ app.post('/api/update-workout3/', async (req, res) => {
     res.status(500).json({ message: 'Error updating data', error: error.message });
   }
 });
-
 
 app.put('/api/update-exercise/', async (req, res) => {
   const { id, newTitle, newDescription } = req.body;
