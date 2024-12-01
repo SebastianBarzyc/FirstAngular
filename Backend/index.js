@@ -127,23 +127,58 @@ app.get('/api/sessions', async (req, res) => {
   }
 });
 
-app.get('/api/sessions/:id', async (req, res) => {
-  const id = req.params.id;
+app.get('/api/session/:id/exercises', async (req, res) => {
+  const sessionId = req.params.id;
+
   try {
-    const query ='SELECT * FROM sessions WHERE plan_id = $1;';
-    const values = [id];
+    const query = `
+      SELECT 
+    session_exercises.exercise_id AS id,
+    sessions.session_id,
+    sessions.title AS session_title,  
+    exercises.title AS exercise_title, 
+    json_agg(
+        json_build_object(
+            'reps', sets.reps,
+            'weight', sets.weight
+        )
+    ) AS sets
+FROM 
+    sessions
+JOIN 
+    session_exercises ON sessions.session_id = session_exercises.session_id
+JOIN 
+    sets ON session_exercises.exercise_id = sets.exercise_id 
+    AND sessions.session_id = sets.session_id
+JOIN 
+    exercises ON session_exercises.exercise_id = exercises.id 
+WHERE 
+    sessions.session_id = $1
+GROUP BY 
+    session_exercises.exercise_id, sessions.session_id, sessions.title, exercises.title;
 
-    const result = await pool.query(query, values);
+    `;
+    const result = await pool.query(query, [sessionId]);
 
-    console.log('Query result:', result.rows);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No exercises found' });
+    }
 
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error searching exercises:', error);
-    res.status(500).json({ message: 'Error searching exercises' });
+    res.json(result.rows.map(row => ({
+      exercise_id: row.id,
+      exercise_title: row.exercise_title,
+      title: row.session_title,
+      sets: row.sets.map(set => ({
+        reps: set.reps,
+        weight: set.weight,
+      })),
+    })));
+  } catch (err) {
+    console.error('Błąd podczas pobierania ćwiczeń:', err);
+    res.status(500).json({ error: 'Error while fetching exercises' });
   }
 });
-
+ 
 app.post('/api/workouts', async (req, res) => {
   const { title, description } = req.body;
 

@@ -9,6 +9,19 @@ interface Session {
   description: string,
 }
 
+interface Exercise {
+  id: number;
+  exercise_id: number;
+  exercise_title: string;
+  title: string;
+  sets: Set[];
+}
+
+interface Set {
+  reps: number;
+  weight: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -18,6 +31,8 @@ export class CalendarService {
   private apiUrlEdit = 'http://localhost:3000/api/update-session/';
   private apiUrlDelete = 'http://localhost:3000/api/delete-session/';
   private apiUrlWorkouts = 'http://localhost:3000/api/workouts/';
+  private apiUrlExercises = 'http://localhost:3000/api/exercises';
+
   refreshNeeded$ = new Subject<void>();
 
   constructor(private http: HttpClient) {}
@@ -63,4 +78,12 @@ export class CalendarService {
         })
       );
     }
+
+  getExercises(): Observable<any> {
+    return this.http.get<any>(this.apiUrlExercises);
   }
+
+  getExercisesList(id: number): Observable<Exercise[]> {
+    return this.http.get<Exercise[]>(`http://localhost:3000/api/session/${id}/exercises`);
+  }
+}

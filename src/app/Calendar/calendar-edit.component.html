@@ -18,24 +18,22 @@
           [ngModelOptions]="{ standalone: true }">
         </textarea>
       </mat-form-field>
+      <p *ngIf="exercisesList.length > 0" class="fw-bold">Exercises:</p>
+      <div *ngIf="exercisesList.length === 0">No exercises found.</div>
+      <div *ngFor="let exercise of exercisesList">
+        <calendar-item
+          [exercise]="exercise"
+          (removeExerciseEvent)="removeExercise($event)">
+        </calendar-item>
+      </div>
 
-      <p class="fw-bold">Exercises</p>
-        <mat-form-field>
-          <mat-label>Workouts</mat-label>
-          <mat-select [(ngModel)]="selectedWorkoutTitle" name="workouts">
-            <mat-option *ngFor="let workout of workouts" [value]="workout.title">
-              {{ workout.title }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        
-      
-      <p *ngIf="exercisesSession.length > 0" class="fw-bold">Exercises:</p>
-      <div *ngIf="exercisesSession.length === 0">No exercises found.</div>
     </mat-dialog-content>
     <mat-dialog-actions>
       <div style="width:100%; margin-bottom: 2%">
-        <button *ngIf="getSessionOrEmpty().session_id" mat-button (click)="Delete(getSessionOrEmpty().session_id)" class="RaisedBtn DeleteBtn float-start">Delete plan</button>
+        <button mat-button (click)="Delete(getSessionOrEmpty().session_id)" class="RaisedBtn DeleteBtn float-start">Delete plan</button>
+        <button mat-fab style="margin-top: -2%;" (click)="addExercise()">
+          <mat-icon>add</mat-icon>
+        </button>
         <button mat-button (click)="Save(getSessionOrEmpty())" class="RaisedBtn float-end">Save plan</button>
       </div>
     </mat-dialog-actions>
@@ -65,9 +63,27 @@
           [ngModelOptions]="{ standalone: true }" 
           placeholder="Enter session description"></textarea>
       </mat-form-field>
+      <p class="fw-bold">Exercises</p>
+        <mat-form-field>
+          <mat-label>Workouts</mat-label>
+          <mat-select [(ngModel)]="selectedWorkoutTitle" name="workouts">
+            <mat-option *ngFor="let workout of workouts" [value]="workout.title">
+              {{ workout.title }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div *ngFor="let exercise of exercisesList">
+          <calendar-item 
+          [exercise]="exercise"
+          (removeExerciseEvent)="removeExercise($event)">
+        </calendar-item>
+        </div>
     </mat-dialog-content>
     <mat-dialog-actions>
       <div style="width:100%; margin-bottom: 2%">
+        <button mat-fab style="margin-top: -2%;" (click)="addExercise()">
+          <mat-icon>add</mat-icon>
+        </button>
         <button mat-button (click)="Save(newSession)" class="RaisedBtn float-end">Save new plan</button>
       </div>
     </mat-dialog-actions>

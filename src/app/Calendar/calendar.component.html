@@ -19,13 +19,15 @@
     <div *ngFor="let week of days" class="row g-1">
       <div *ngFor="let day of week" class="col p-0">
         <button 
-          class="btn btn-light day" 
+          class="btn btn-light day align-items-center" 
           [class.btn-primary]="day !== 0 && isToday(day)" 
-          [disabled]="day === 0" 
+          [disabled]="day === 0"
           (click)="openDayEditor(day)">
-          {{ day !== 0 ? day : '' }}
+          {{ day !== 0 ? day : '' }}<br>
+          <small *ngIf="getPlanForDay(day)">{{ getPlanForDay(day) }}</small>
         </button>
       </div>
     </div>
   </div>
+  
 </div>

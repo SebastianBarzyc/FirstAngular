@@ -140,3 +140,38 @@ textarea {
 .calendar .btn-light {
   background-color: #f8f9fa;
 }
+.exercisesSession {
+  display: flex; /* Układ w dwóch kolumnach */
+  justify-content: space-between;
+  gap: 20px; /* Odstęp między kolumnami */
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Wysuwanie elementów na początek kolumny */
+  gap: 10px; /* Odstępy między elementami w kolumnie */
+}
+
+.sets-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Wyrównanie do środka w pionie */
+  align-items: center; /* Wyrównanie w poziomie */
+  gap: 10px;
+}
+
+.set {
+  display: flex; /* Użycie flex do ustawienia powtórzeń i wagi obok siebie */
+  gap: 10px; /* Odstęp między polami dla reps i weight */
+  align-items: center; /* Wyrównanie w pionie */
+}
+
+
+.add-button {
+  align-self: flex-start; /* Przycisk 'Add' będzie na samej górze kolumny */
+}
+
+.remove-button {
+  margin-top: auto; /* Umieszczenie przycisku 'Remove' na dole kolumny */
+}

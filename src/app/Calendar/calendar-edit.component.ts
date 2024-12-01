@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,8 +7,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CalendarService} from './calendar.service';
 import { MatOptionModule } from '@angular/material/core';
-import { tap } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { CalendarItemComponent } from "./calendar-item.component";
 
 interface Session {
   session_id: number;
@@ -20,6 +22,19 @@ interface Session {
 interface Workout {
   title: string,
   descripe: string
+}
+
+interface Exercise {
+  id: number;
+  exercise_id: number;
+  exercise_title: string;
+  title: string;
+  sets: Set[];
+}
+
+interface Set {
+  reps: number;
+  weight: number;
 }
 
 @Component({
@@ -34,15 +49,19 @@ interface Workout {
     MatDialogModule,
     FormsModule,
     MatOptionModule,
-    MatSelectModule
-  ],
+    MatSelectModule,
+    MatIconModule,
+    CalendarItemComponent
+],
 })
 
 export class CalendarEditComponent implements OnInit {
+  @Input() refreshNeeded$!: Subject<void>;
+
   exercises = [];
+  exercisesList: Exercise[] = [];
   workouts: Workout[] = [];
   sessions: Session[] = [];
-  exercisesSession: any[] = [];
   selectedWorkoutTitle: string = '';
   newSession = {
     date: this.getDate(),
@@ -57,18 +76,19 @@ export class CalendarEditComponent implements OnInit {
   ) {
   }
 
-  ngOnInit(): void {
-    this.loadSessions();
+  async ngOnInit(): Promise<void> {
+    await this.loadSessions().toPromise();
     this.loadWorkouts();
+    this.loadExercisesList();
   }
-
-  loadSessions(): void {
-    this.calendarService.getSessions().subscribe(
-      (data: Session[]) => {
+  
+  loadSessions(): Observable<Session[]> {
+    return this.calendarService.getSessions().pipe(
+      tap((data: Session[]) => {
         this.sessions = data;
-      }
+      })
     );
-  }
+  } 
 
   loadWorkouts(): Promise<void> {
     return this.calendarService.getWorkouts().toPromise().then(response => {
@@ -78,48 +98,38 @@ export class CalendarEditComponent implements OnInit {
   
   getSessionOrEmpty(): any {
     const date = this.getDate();
-    const formattedDate = date;
-    const session = this.sessions.find(s => s.date === formattedDate);
- 
+    const session = this.sessions.find(s => s.date === date);
     if (session) {
       return session;
     } else {
       return {
         session_id: '',
-        date: formattedDate,
+        date: date,
         title: '',
         description: ''
       };
     }
   }
-  
-  
-  addExercise(): void {
-    const newExercise = { name: '', description: '' };
-      this.exercisesSession.push(newExercise);
-  }
 
   Delete(id: number) {
     this.calendarService.deleteSession(id).subscribe({
       next: response => {
+        this.refreshNeeded$.next();
         this.dialogRef.close();
       },
       error: error => {
         console.error('Error from server:', error);
       }
     });
-    this.loadSessions();
   }
 
   Save(session: any): void {
-
     if (this.isDateExist()) {
       this.updateSession(session);
     } else {
       this.createSession(session);
     }
-    console.log('Session data:', 'Date: ', session.date, 'Title: ', session.title, 'Description: ', session.description);
-    this.loadSessions();
+    this.refreshNeeded$.next();
     this.dialogRef.close();
   }
 
@@ -151,7 +161,6 @@ export class CalendarEditComponent implements OnInit {
     });
   }
 
-
   autoResize(textarea: HTMLTextAreaElement) {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
@@ -166,4 +175,57 @@ export class CalendarEditComponent implements OnInit {
       return session.date === this.getDate();
     });
   }
+
+  loadExercises(): Promise<void> {
+    return this.calendarService.getExercises().toPromise().then(response => {
+      this.exercises = response.data;
+    });
+  }
+
+  removeExercise(ID: number): void {
+    this.exercisesList = this.exercisesList.filter(exercise => exercise.id !== ID);
+    console.log('Updated exercises list:', this.exercisesList);
+  }
+
+  addExercise(): void {
+    const maxId = this.exercisesList.length > 0 
+    ? Math.max(...this.exercisesList.map(exercise => exercise.id))
+    : 0;
+
+    const newExercise: Exercise = {
+      id: maxId + 1,
+      exercise_id: 0,
+      exercise_title: '', 
+      title: '',
+      sets: [
+        { reps: 0, weight: 0 },
+      ]
+    };
+    this.exercisesList.push(newExercise);
+    console.log('Updated exercises list:', this.exercisesList);
+  }
+
+  loadExercisesList(): void {
+    const session = this.getSessionOrEmpty();
+    this.calendarService.getExercisesList(session.session_id).subscribe({
+      next: (response) => {
+        const maxId = this.exercisesList.length > 0 
+          ? Math.max(...this.exercisesList.map(exercise => exercise.id))
+          : 0;
+  
+        this.exercisesList = response.map((exercise, index) => ({
+          ...exercise,
+          id: maxId + index + 1
+        }));
+        console.log('Updated exercises list with IDs:', this.exercisesList);
+      },
+      error: (error) => {
+        console.error('Error during exercise fetch:', error);
+        this.exercisesList = [];
+      }
+    });
+  }
+  
+  
 }
+ 
