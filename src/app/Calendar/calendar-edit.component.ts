@@ -58,7 +58,7 @@ interface Set {
 export class CalendarEditComponent implements OnInit {
   @Input() refreshNeeded$!: Subject<void>;
 
-  exercises = [];
+  exercises: Exercise[] = [];
   exercisesList: Exercise[] = [];
   workouts: Workout[] = [];
   sessions: Session[] = [];
@@ -129,9 +129,45 @@ export class CalendarEditComponent implements OnInit {
     } else {
       this.createSession(session);
     }
+  
+    this.exercisesList.forEach(exercise => {
+      exercise.sets.forEach(set => {
+        this.calendarService.editSession3(
+          exercise.exercise_id,
+          exercise.exercise_title,
+          exercise.title,
+          set.reps,
+          set.weight,
+          session.session_id
+        ).subscribe({
+          next: response => {
+            console.log('Ćwiczenie zapisane:', response);
+            console.log('list: ', this.exercisesList);
+          },
+          error: error => {
+            console.error('Błąd przy zapisywaniu ćwiczenia:', error);
+          }
+        });
+      });
+    });
+  
     this.refreshNeeded$.next();
     this.dialogRef.close();
   }
+
+  updateExerciseTitle(): void {
+    this.exercisesList.forEach(ex => {
+      if (ex.exercise_id === 0) {
+        const matchingExercise = this.exercises.find(exercise => exercise.title === ex.exercise_title);
+        if (matchingExercise) {
+          ex.exercise_id = matchingExercise.exercise_id;
+        }
+      }
+    });
+  
+    console.log("Updated exercises list:", this.exercisesList);
+  }
+  
 
   createSession(session: any) {
     console.log(session);
@@ -157,6 +193,15 @@ export class CalendarEditComponent implements OnInit {
       },
       error: error => {
         console.error('Error from server (updateSession):', error);
+      }
+    });
+
+    this.calendarService.editSession2(session.session_id).subscribe({
+      next: response => {
+        console.log('Response from server (editSession2):', response);
+      },
+      error: error => {
+        console.error('Error from server (editSession2):', error);
       }
     });
   }
@@ -193,13 +238,13 @@ export class CalendarEditComponent implements OnInit {
     : 0;
 
     const newExercise: Exercise = {
-      id: maxId + 1,
       exercise_id: 0,
       exercise_title: '', 
-      title: '',
+      title: this.getSessionOrEmpty().title || '',
       sets: [
         { reps: 0, weight: 0 },
-      ]
+      ],
+      id: maxId + 1
     };
     this.exercisesList.push(newExercise);
     console.log('Updated exercises list:', this.exercisesList);

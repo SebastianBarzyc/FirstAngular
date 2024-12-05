@@ -49,16 +49,34 @@ export class CalendarItemComponent {
 
   exercisesList: Exercise[] = [];
 
+
+  @Output() updateExercise = new EventEmitter<any>();
+
+  updateExerciseTitle(selectedTitle: string): void {
+    const selectedExercise = this.exercises.find(ex => ex.title === selectedTitle);
+    
+    if (selectedExercise) {
+      this.exercise.exercise_title = selectedExercise.title;
+      this.exercise.exercise_id = selectedExercise.id;
+  
+      this.updateExercise.emit({
+        exercise_id: this.exercise.exercise_id,
+        exercise_title: this.exercise.exercise_title
+      });
+  
+      console.log("Updated exercise:", this.exercise.exercise_id, this.exercise.exercise_title);
+    } else {
+      console.error(`Exercise with title "${selectedTitle}" not found.`);
+    }
+  }
+  
+
   async ngOnInit(): Promise<void> {
     await this.loadExercises();
   }
 
   removeExercise(id: number): void {
     this.removeExerciseEvent.emit(id);
-
-  }
-
-  inputOnChange(){
 
   }
 

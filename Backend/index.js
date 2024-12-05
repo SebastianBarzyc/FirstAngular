@@ -132,32 +132,29 @@ app.get('/api/session/:id/exercises', async (req, res) => {
 
   try {
     const query = `
-      SELECT 
-    session_exercises.exercise_id AS id,
-    sessions.session_id,
-    sessions.title AS session_title,  
-    exercises.title AS exercise_title, 
+    SELECT 
+    se.exercise_id AS id,
+    se.session_id,
+    s.title AS session_title,  
+    e.title AS exercise_title, 
     json_agg(
         json_build_object(
-            'reps', sets.reps,
-            'weight', sets.weight
+            'reps', se.reps,
+            'weight', se.weight
         )
     ) AS sets
 FROM 
-    sessions
+    session_exercises se
 JOIN 
-    session_exercises ON sessions.session_id = session_exercises.session_id
+    sessions s ON se.session_id = s.session_id
 JOIN 
-    sets ON session_exercises.exercise_id = sets.exercise_id 
-    AND sessions.session_id = sets.session_id
-JOIN 
-    exercises ON session_exercises.exercise_id = exercises.id 
+    exercises e ON se.exercise_id = e.id
 WHERE 
-    sessions.session_id = $1
+    se.session_id = $1
 GROUP BY 
-    session_exercises.exercise_id, sessions.session_id, sessions.title, exercises.title;
+    se.exercise_id, se.session_id, s.title, e.title;
 
-    `;
+`;
     const result = await pool.query(query, [sessionId]);
 
     if (result.rows.length === 0) {
@@ -273,6 +270,26 @@ app.post('/api/update-workout3/', async (req, res) => {
   try {
     const query = `INSERT INTO plan_exercises (plan_id, exercise_id, sets, reps, exercise_title) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
     const values = [planId, idExercise, sets, reps, exercise_title];
+
+    console.log('Executing query with values:', values);
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ message: 'Data has been added', data: result.rows });
+
+  } catch (error) {
+    console.error('Error executing query:', error);
+    res.status(500).json({ message: 'Error updating data', error: error.message });
+  }
+});
+
+app.post('/api/update-session3/', async (req, res) => {
+  const { exercise_id, reps, weight, session_id } = req.body;
+
+  console.log('Received data:', { exercise_id, reps, weight, session_id });
+
+  try {
+    const query = `INSERT INTO session_exercises (exercise_id, reps, weight, session_id) VALUES ($1, $2, $3, $4) RETURNING *`;
+    const values = [exercise_id, reps, weight, session_id];
 
     console.log('Executing query with values:', values);
     const result = await pool.query(query, values);
@@ -419,6 +436,27 @@ app.delete('/api/update-workout2/:id', async (req, res) => {
       res.status(200).json({ message: 'Exercise deleted successfully' });
     } else {
       res.status(404).json({ message: 'Exercise not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting data: ', error);
+    res.status(500).json({ message: 'Error deleting data' });
+  }
+});
+
+app.delete('/api/update-session2/:id', async (req, res) => {
+  const id = req.params.id;
+  console.log('DELETE request received for ID:', id);
+
+  try {
+    const query = 'DELETE FROM session_exercises WHERE session_id = $1';
+    const values = [id];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Session deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Session not found' });
     }
   } catch (error) {
     console.error('Error deleting data: ', error);

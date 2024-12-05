@@ -23,7 +23,9 @@
       <div *ngFor="let exercise of exercisesList">
         <calendar-item
           [exercise]="exercise"
-          (removeExerciseEvent)="removeExercise($event)">
+          (removeExerciseEvent)="removeExercise($event)"
+          (updateExercise)="updateExerciseTitle($event)">
+
         </calendar-item>
       </div>
 
