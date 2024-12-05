@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ExerciseService } from '../Exercises/exercises.service';
 import { MatIconModule } from '@angular/material/icon';
-import { ExerciseItemComponent } from './exercise-item.component';
+import { WorkoutsItemComponent } from './workouts-item.component';
 import { MatSelectModule } from '@angular/material/select';
 import { forkJoin } from 'rxjs';
 import { WorkoutsBackend } from './workouts-backend.component';
@@ -34,7 +34,7 @@ interface Exercise {
     MatDialogActions,
     CommonModule,
     MatIconModule,
-    ExerciseItemComponent,
+    WorkoutsItemComponent,
     MatSelectModule,
   ],
 })

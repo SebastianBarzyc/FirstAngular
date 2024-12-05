@@ -15,14 +15,14 @@
       </mat-form-field>
       <p *ngIf="exercises.length > 0" class="fw-bold">Exercises:</p>
       <div *ngIf="exercises.length === 0">No exercises found.</div>
-      <app-exercise-item
+      <app-workouts-item
       *ngFor="let exercise of exercises; let i = index"
         [exercisesdata]="[exercise]"
         [index]="i"
         [exercisesList]="exercises"
         [planID]="workout.id"
         (remove)="removeExercise($event)">
-      </app-exercise-item>
+      </app-workouts-item>
     </mat-dialog-content>
     <mat-dialog-actions>
       <div style="width:100%; margin-bottom: 2%">

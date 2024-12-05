@@ -16,8 +16,8 @@ import { ExerciseService } from '../Exercises/exercises.service';
 import { WorkoutService } from './workouts.service';
 
 @Component({
-  selector: 'app-exercise-item',
-  templateUrl: './exercise-item.component.html',
+  selector: 'app-workouts-item',
+  templateUrl: './workouts-item.component.html',
   standalone: true,
   imports: [
     MatIconModule,
@@ -30,7 +30,7 @@ import { WorkoutService } from './workouts.service';
     MatButtonModule,
   ],
 })
-export class ExerciseItemComponent implements OnInit {
+export class WorkoutsItemComponent implements OnInit {
   @Input() exercise: any;
   @Input() index: number = 0;
   @Output() remove = new EventEmitter<number>();
