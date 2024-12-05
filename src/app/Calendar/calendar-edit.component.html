@@ -1,5 +1,6 @@
-  <div *ngIf="isDateExist()">
-    <h2 mat-dialog-title class="fw-bold">Edit Plan for {{ getSessionOrEmpty().date}}</h2>
+<h2 mat-dialog-title class="fw-bold">
+      {{ isDateExist() ? 'Edit Plan for' : 'Create Plan for' }} {{ getSessionOrEmpty().date }}
+    </h2>
     <mat-dialog-content>
       <p class="fw-bold">Title:</p>
       <mat-form-field style="width: 70%;">
@@ -18,75 +19,31 @@
           [ngModelOptions]="{ standalone: true }">
         </textarea>
       </mat-form-field>
+      <mat-form-field>
+        <mat-label>Workouts</mat-label>
+        <mat-select [(ngModel)]="selectedWorkoutTitle" name="workouts">
+          <mat-option *ngFor="let workout of workouts" [value]="workout.title">
+            {{ workout.title }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
       <p *ngIf="exercisesList.length > 0" class="fw-bold">Exercises:</p>
       <div *ngIf="exercisesList.length === 0">No exercises found.</div>
       <div *ngFor="let exercise of exercisesList">
         <calendar-item
           [exercise]="exercise"
           (removeExerciseEvent)="removeExercise($event)"
-          (updateExercise)="updateExerciseTitle($event)">
-
+          (updateExercise)="updateExerciseTitle()">
         </calendar-item>
       </div>
 
     </mat-dialog-content>
     <mat-dialog-actions>
       <div style="width:100%; margin-bottom: 2%">
-        <button mat-button (click)="Delete(getSessionOrEmpty().session_id)" class="RaisedBtn DeleteBtn float-start">Delete plan</button>
+        <button *ngIf="isDateExist()" mat-button (click)="Delete(getSessionOrEmpty().session_id)" class="RaisedBtn DeleteBtn float-start">Delete plan</button>
         <button mat-fab style="margin-top: -2%;" (click)="addExercise()">
           <mat-icon>add</mat-icon>
         </button>
         <button mat-button (click)="Save(getSessionOrEmpty())" class="RaisedBtn float-end">Save plan</button>
       </div>
     </mat-dialog-actions>
-  </div>
-
-  <!-- Dla pustej sesji -->
-  <div *ngIf="!isDateExist()">
-    <h2 mat-dialog-title class="fw-bold">Create Plan for {{ getSessionOrEmpty().date}}</h2>
-    <mat-dialog-content>
-      <p class="fw-bold">Title:</p>
-      <mat-form-field style="width: 70%;">
-        <input 
-          matInput 
-          name="new-title" 
-          [(ngModel)]="newSession.title" 
-          [ngModelOptions]="{ standalone: true }" 
-          placeholder="Enter session title" 
-          style="text-align: center;">
-      </mat-form-field>
-      <br>
-      <p class="fw-bold">Description:</p>
-      <mat-form-field style="width: 90%;">
-        <textarea 
-          matInput 
-          name="new-description" 
-          [(ngModel)]="newSession.description" 
-          [ngModelOptions]="{ standalone: true }" 
-          placeholder="Enter session description"></textarea>
-      </mat-form-field>
-      <p class="fw-bold">Exercises</p>
-        <mat-form-field>
-          <mat-label>Workouts</mat-label>
-          <mat-select [(ngModel)]="selectedWorkoutTitle" name="workouts">
-            <mat-option *ngFor="let workout of workouts" [value]="workout.title">
-              {{ workout.title }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        <div *ngFor="let exercise of exercisesList">
-          <calendar-item 
-          [exercise]="exercise"
-          (removeExerciseEvent)="removeExercise($event)">
-        </calendar-item>
-        </div>
-    </mat-dialog-content>
-    <mat-dialog-actions>
-      <div style="width:100%; margin-bottom: 2%">
-        <button mat-fab style="margin-top: -2%;" (click)="addExercise()">
-          <mat-icon>add</mat-icon>
-        </button>
-        <button mat-button (click)="Save(newSession)" class="RaisedBtn float-end">Save new plan</button>
-      </div>
-    </mat-dialog-actions>
-  </div>  
