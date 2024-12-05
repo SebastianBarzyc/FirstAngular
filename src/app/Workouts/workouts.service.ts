@@ -104,29 +104,29 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     );
   }
 
-  editworkout3(planId: number, idExercise: number, sets: number, reps: number, exercise_title: string): Observable<any> {
-    console.log('editworkout3 called with:', { planId, idExercise, sets, reps, exercise_title }); // Logowanie
+  editworkout3(planId: number, idExercise: number, reps: number[], exercise_title: string): Observable<any> {
+    console.log('editworkout3 called with:', { planId, idExercise, reps, exercise_title });
     const url = this.apiUrlEdit3;
-    
-    const body = { 
-      planId: planId,
-      idExercise: idExercise,
-      sets: sets,
-      reps: reps,
-      exercise_title: exercise_title,
-    };
-  
+
+    // Przygotowanie ciała zapytania, gdzie każdy rep to osobny element
+    const body = reps.map(rep => ({
+        planId: planId,
+        idExercise: idExercise,
+        reps: rep,
+        exercise_title: exercise_title,
+    }));
+
     console.log('Sending data to server:', body);
-    
+
     return this.http.post<any>(url, body, {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json'
-      })
+        headers: new HttpHeaders({
+            'Content-Type': 'application/json'
+        })
     }).pipe(
-      catchError(this.handleError<any>('editworkout3'))
+        catchError(this.handleError<any>('editworkout3'))
     );
-  }
-  
+}
+
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
       console.error(`${operation} failed: ${error.message}`);

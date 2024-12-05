@@ -106,14 +106,43 @@ app.get('/api/exercises/:title', async (req, res) => {
 app.get('/api/workouts/:planID/exercises', async (req, res) => {
   const planID = req.params.planID;
   try {
-    const query = 'SELECT * FROM plan_exercises WHERE plan_id = $1';
+    const query = `
+      SELECT exercise_id, exercise_title, reps
+      FROM plan_exercises
+      WHERE plan_id = $1
+      ORDER BY exercise_title`;
     const result = await pool.query(query, [planID]);
-    res.status(200).json({ data: result.rows });
+
+    // Grupowanie ćwiczeń i liczenie liczby sets (serii)
+    const exercisesData = result.rows.reduce((acc, row) => {
+      const exerciseIndex = acc.findIndex(ex => ex.exercise_id === row.exercise_id);
+      if (exerciseIndex !== -1) {
+        // Jeśli ćwiczenie już istnieje, połącz jego reps w tablicę
+        acc[exerciseIndex].reps.push(row.reps);
+      } else {
+        // Jeśli ćwiczenie nie istnieje, dodaj nowe
+        acc.push({
+          exercise_id: row.exercise_id,
+          exercise_title: row.exercise_title,
+          sets: 1, // Początkowo liczymy jedno wystąpienie ćwiczenia
+          reps: [row.reps]  // Reps dodajemy do tablicy
+        });
+      }
+      return acc;
+    }, []);
+
+    // Aktualizowanie liczby sets na podstawie liczby wystąpień ćwiczenia
+    exercisesData.forEach(exercise => {
+      exercise.sets = exercise.reps.length; // Zliczamy ilość wystąpień (sets)
+    });
+
+    res.status(200).json({ data: exercisesData });
   } catch (error) {
     console.error('Error fetching exercises:', error);
     res.status(500).json({ message: 'Error fetching exercises' });
   }
 });
+
 
 app.get('/api/sessions', async (req, res) => { 
   try {
@@ -259,26 +288,44 @@ app.post('/api/exercises', async (req, res) => {
 });
 
 app.post('/api/update-workout3/', async (req, res) => {
-  const { planId, idExercise, sets, reps, exercise_title } = req.body;
+  const exercises = req.body;  // Tablica obiektów ćwiczeń
 
-  console.log('Received data:', { planId, idExercise, sets, reps, exercise_title});
+  console.log('Received data:', exercises);  // Sprawdzamy, co dokładnie otrzymaliśmy
 
-  if (planId === undefined || idExercise === undefined || sets === undefined || reps === undefined) {
-    return res.status(400).json({ message: 'Missing required fields' });
+  if (!exercises || exercises.length === 0) {
+      return res.status(400).json({ message: 'Missing required fields' });
   }
 
   try {
-    const query = `INSERT INTO plan_exercises (plan_id, exercise_id, sets, reps, exercise_title) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
-    const values = [planId, idExercise, sets, reps, exercise_title];
+      // Przygotowanie zapytania SQL do wstawiania wielu rekordów
+      const query = `
+          INSERT INTO plan_exercises (plan_id, exercise_id, reps, exercise_title)
+          VALUES 
+          ${exercises.map((exercise, index) => `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`).join(', ')}
+          RETURNING *`;
 
-    console.log('Executing query with values:', values);
-    const result = await pool.query(query, values);
+      // Przygotowanie wartości do wstawienia do zapytania
+      const values = exercises.flatMap(exercise => [
+          exercise.planId,
+          exercise.idExercise,
+          exercise.reps,
+          exercise.exercise_title
+      ]);
 
-    res.status(200).json({ message: 'Data has been added', data: result.rows });
+      console.log('Executing query with values:', values);  // Sprawdzamy, czy wartości są prawidłowe
+
+      // Wykonanie zapytania
+      const result = await pool.query(query, values);
+
+      // Zwracamy wynik do klienta
+      res.status(200).json({
+          message: 'Data has been added',
+          data: result.rows
+      });
 
   } catch (error) {
-    console.error('Error executing query:', error);
-    res.status(500).json({ message: 'Error updating data', error: error.message });
+      console.error('Error executing query:', error);
+      res.status(500).json({ message: 'Error updating data', error: error.message });
   }
 });
 

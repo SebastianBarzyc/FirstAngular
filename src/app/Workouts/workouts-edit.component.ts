@@ -126,6 +126,7 @@ export class WorkoutEditComponent implements OnInit {
   }
 
   Save(id: number, newTitle: string, newDescription: string): void {
+
     this.workoutService.editworkout(id, newTitle, newDescription).subscribe({
       next: response => {
         console.log('Response from server (editWorkout):', response);
@@ -135,7 +136,7 @@ export class WorkoutEditComponent implements OnInit {
         console.error('Error from server (editWorkout):', error);
       }
     });
-
+  
     this.workoutService.editworkout2(this.WorkoutID).subscribe({
       next: response => {
         console.log('Response from server (editWorkout):', response);
@@ -144,24 +145,24 @@ export class WorkoutEditComponent implements OnInit {
         console.error('Error from server (editWorkout):', error);
       }
     });
-
-    const saveObservables = this.exercises.map(exercise =>
+  
+    const saveObservables = this.exercises.map(exercise => 
       this.workoutService.editworkout3(
         this.WorkoutID,
         exercise.exercise_id,
-        exercise.sets,
         exercise.reps,
         exercise.exercise_title
       )
     );
-
+  
     forkJoin(saveObservables).subscribe({
       next: () => {
+        console.log('Wszystkie ćwiczenia zostały zapisane!');
         this.dialogRef.close();
         this.loadWorkouts();
       },
       error: error => {
-        console.error('Error occurred while saving exercises:', error);
+        console.error('Błąd podczas zapisywania ćwiczeń:', error);
       }
     });
   }
@@ -187,7 +188,9 @@ export class WorkoutEditComponent implements OnInit {
     console.log('Removing exercise ID:', ID);
     
     const currentExercises = this.exercises;
-    const updatedExercises = currentExercises.filter(ex => ex.id !== ID);
+    console.log(currentExercises);
+    const updatedExercises = currentExercises.filter(ex => ex.exercise_id !== ID);
+    console.log(updatedExercises);
     this.exercisesMap.set(this.WorkoutID, updatedExercises);
     this.exercises = updatedExercises;
     console.log("after remove exercises: ", this.exercises);
@@ -197,17 +200,28 @@ export class WorkoutEditComponent implements OnInit {
 
   addExercise(): void { 
     const maxId = this.exercises.length > 0 
-    ? Math.max(...this.exercises.map(exercise => exercise.id))
-    : 0;
+      ? Math.max(...this.exercises.map(exercise => exercise.id))
+      : 0;
+  
+      const newExercise: { 
+        id: number; 
+        plan_id: number; 
+        exercise_id: number; 
+        reps: number[];
+        sets: number; 
+        exercise_title: string 
+      } = {
+        id: maxId + 1,
+        plan_id: this.WorkoutID,
+        exercise_id: 0,
+        reps: [],
+        sets: 1,
+        exercise_title: ''
+      };
 
-    const newExercise = {
-      id: maxId + 1,
-      plan_id: this.WorkoutID,
-      exercise_id: 0, 
-      sets: 0, 
-      reps: 0, 
-      exercise_title: ''
-    };
+    newExercise.reps = Array(newExercise.sets).fill(0); 
+  
     this.exercises.push(newExercise);
   }
+  
 }

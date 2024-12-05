@@ -1,25 +1,48 @@
-<div *ngIf="exercisesdata">
-  <div *ngFor="let exercise of exercisesdata" class="exercise-grid2">
+<div *ngFor="let exercise of exercisesdata" class="exercise-grid2">
+  <!-- Wiersz z select, ilością serii i przyciskiem delete -->
+  <div class="exercise-row">
+    <!-- Pole do wyboru ćwiczenia -->
     <mat-form-field class="select-field">
       <mat-label>Exercise</mat-label>
       <mat-select [(ngModel)]="exercise.exercise_title" (selectionChange)="inputOnChange()">
-        <mat-option *ngFor="let ex2 of exercises" [value]="ex2.title">
+        <mat-option *ngFor="let ex2 of exercises" 
+          [value]="ex2.title" 
+          [disabled]="isExerciseSelected(ex2.title)">
           {{ ex2.title }}
         </mat-option>
       </mat-select>
+      
     </mat-form-field>
+
+    <!-- Pole do ustawienia liczby sets -->
     <mat-form-field class="input-number">
       <mat-label>Sets</mat-label>
-      <input matInput type="number" [(ngModel)]="exercise.sets" (ngModelChange)="inputOnChange()" min="1" required>
+      <input matInput 
+             type="number" 
+             [(ngModel)]="exercise.sets" 
+             (ngModelChange)="onSetsChange(exercise)" 
+             min="1" 
+             required>
     </mat-form-field>
 
-    <mat-form-field class="input-number">
-      <mat-label>Reps</mat-label>
-      <input matInput type="number" [(ngModel)]="exercise.reps" (ngModelChange)="inputOnChange()" min="1" required>
-    </mat-form-field>
-
-    <button mat-fab (click)="removeExercise(exercise.id)" style="margin-bottom: 30%;">
+    <!-- Przycisk do usunięcia ćwiczenia -->
+    <button mat-fab (click)="removeExercise(exercise.exercise_id)">
       <mat-icon>delete</mat-icon>
     </button>
+  </div>
+
+  <!-- Dynamicznie generowane pola reps -->
+  <div class="reps-container">
+    <div *ngFor="let rep of exercise.reps; let i = index" class="reps-field">
+      <mat-form-field class="input-number">
+        <mat-label>Reps {{ i + 1 }}</mat-label>
+        <input matInput 
+               type="number" 
+               [(ngModel)]="exercise.reps[i]" 
+               (ngModelChange)="inputOnChange()" 
+               min="1" 
+               required>
+      </mat-form-field>
+    </div>
   </div>
 </div>

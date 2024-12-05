@@ -93,26 +93,28 @@ textarea {
 
 //Workouts
 .exercise-grid2 {
-  display: grid;
-  grid-template-columns: 47% 14% 14% 5%; /* trzy kolumny o równej szerokości */
-  gap: 5%;
+  margin-bottom: 20px;
+}
+
+.exercise-row {
+  display: flex;
   align-items: center;
+  gap: 5%;
+}
+
+.reps-container{
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5%;
 }
 
 .exercise-grid {
   display: flex;
 }
 
-.select-field,
-.input-number { 
-  flex: 1;
-}
 
-.input-group {
-  gap: 10%;
-  flex: 1;
-}
-
+//Calendar
 .calendar h5 {
   margin: 0;
 }
@@ -141,37 +143,36 @@ textarea {
   background-color: #f8f9fa;
 }
 .exercisesSession {
-  display: flex; /* Układ w dwóch kolumnach */
+  display: flex;
   justify-content: space-between;
-  gap: 20px; /* Odstęp między kolumnami */
+  gap: 20px;
 }
 
 .column {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* Wysuwanie elementów na początek kolumny */
-  gap: 10px; /* Odstępy między elementami w kolumnie */
+  justify-content: flex-start;
+  gap: 10px;
 }
 
 .sets-column {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Wyrównanie do środka w pionie */
-  align-items: center; /* Wyrównanie w poziomie */
+  justify-content: center;
+  align-items: center;
   gap: 10px;
 }
 
 .set {
-  display: flex; /* Użycie flex do ustawienia powtórzeń i wagi obok siebie */
-  gap: 10px; /* Odstęp między polami dla reps i weight */
-  align-items: center; /* Wyrównanie w pionie */
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
-
 .add-button {
-  align-self: flex-start; /* Przycisk 'Add' będzie na samej górze kolumny */
+  align-self: flex-start;
 }
 
 .remove-button {
-  margin-top: auto; /* Umieszczenie przycisku 'Remove' na dole kolumny */
+  margin-top: auto;
 }

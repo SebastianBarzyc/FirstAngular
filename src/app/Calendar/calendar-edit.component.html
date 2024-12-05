@@ -19,16 +19,15 @@
           [ngModelOptions]="{ standalone: true }">
         </textarea>
       </mat-form-field>
-      <mat-form-field>
+      <p class="fw-bold">Exercises:</p>
+      <mat-form-field *ngIf="exercisesList.length === 0">
         <mat-label>Workouts</mat-label>
-        <mat-select [(ngModel)]="selectedWorkoutTitle" name="workouts">
+        <mat-select [(ngModel)]="selectedWorkoutTitle" name="workouts" (selectionChange)="this.workoutChange($event.value)">
           <mat-option *ngFor="let workout of workouts" [value]="workout.title">
             {{ workout.title }}
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <p *ngIf="exercisesList.length > 0" class="fw-bold">Exercises:</p>
-      <div *ngIf="exercisesList.length === 0">No exercises found.</div>
       <div *ngFor="let exercise of exercisesList">
         <calendar-item
           [exercise]="exercise"

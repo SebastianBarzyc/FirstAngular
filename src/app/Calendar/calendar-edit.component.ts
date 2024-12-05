@@ -1,3 +1,4 @@
+import { WorkoutService } from './../Workouts/workouts.service';
 import { Component, Inject, Input, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
@@ -20,6 +21,7 @@ interface Session {
 }
 
 interface Workout {
+  id: number
   title: string,
   descripe: string
 }
@@ -68,11 +70,13 @@ export class CalendarEditComponent implements OnInit {
     title: '',
     description: ''
   };
+  planExercises: [] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { date: Date },
     private calendarService: CalendarService,
-    public dialogRef: MatDialogRef<CalendarEditComponent>
+    public dialogRef: MatDialogRef<CalendarEditComponent>,
+    private workoutService: WorkoutService
   ) {
   }
 
@@ -271,6 +275,31 @@ export class CalendarEditComponent implements OnInit {
     });
   }
   
+  workoutChange(workoutTitle: string) {
+    const matchingWorkout = this.workouts.find(workout => workout.title === workoutTitle);
+  
+    if (matchingWorkout) {
+      this.loadExercisesForPlan(matchingWorkout.id);
+    } else {
+      console.error(`Workout with title "${workoutTitle}" not found.`);
+    }
+  }
+
+  loadExercisesForPlan(planID: number): Promise<any> {
+    return new Promise((resolve, reject) => {
+        this.workoutService.getExercisesForPlan(planID).subscribe({
+            next: (response) => {
+                console.log('Received exercises for planID:', planID, response.data);
+                this.exercisesList = response.data || [];
+                resolve(this.exercises);
+            },
+            error: (err) => {
+                console.error('Error fetching exercises:', err);
+                reject(err);
+            }
+        });
+    });
+}
   
 }
  
