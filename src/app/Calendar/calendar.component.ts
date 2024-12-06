@@ -71,6 +71,7 @@ export class CalendarComponent implements OnInit {
   
   openDayEditor(day: number): void {
     const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
+    console.log(selectedDate);
     const dialogRef = this.dialog.open(CalendarEditComponent, {
       data: { date: selectedDate},
       panelClass: 'editPanel'
@@ -95,6 +96,7 @@ export class CalendarComponent implements OnInit {
     this.calendarService.getSessions().subscribe(
       (data: Session[]) => {
         this.sessions = data;
+        console.log(this.sessions);
       }
     );
   }
@@ -105,4 +107,47 @@ export class CalendarComponent implements OnInit {
     const session = this.sessions.find(s => s.date === formattedDate);
     return session ? session.title : null;
   }
+
+  // Funkcja pomocnicza do parsowania dat
+  private parseDate(dateString: string): Date {
+    const [day, month, year] = dateString.split('.').map(Number);
+    return new Date(year, month - 1, day); // Miesiące w JavaScript są indeksowane od 0
+  }
+
+  // Funkcja zwracająca przyszłe sesje, posortowane po dacie
+  getUpcomingSessions() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Resetuje czas na północ
+
+    return this.sessions
+      .filter(session => {
+        const sessionDate = this.parseDate(session.date);
+        return sessionDate >= today;
+      })
+      .sort((a, b) => {
+        const dateA = this.parseDate(a.date);
+        const dateB = this.parseDate(b.date);
+        return dateA.getTime() - dateB.getTime(); // Sortowanie rosnące po dacie
+      });
+  }
+
+  openSessionEditor(session: Session): void {
+    if (session && session.date) {
+      // Parsowanie daty z formatu 'dd.MM.yyyy' na obiekt Date
+      const dateParts = session.date.split('.');
+      const sessionDate = new Date(
+        parseInt(dateParts[2]),  // Rok
+        parseInt(dateParts[1]) - 1,  // Miesiąc (indeksowany od 0)
+        parseInt(dateParts[0])   // Dzień
+      );
+  
+      const dialogRef = this.dialog.open(CalendarEditComponent, {
+        data: { session, date: sessionDate },
+        panelClass: 'editPanel'
+      });
+    } else {
+      console.error('Session data is missing or invalid', session);
+    }
+  }
+  
 }

@@ -111,6 +111,14 @@ textarea {
 
 
 //Calendar
+.mainContent-calendar{
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+  overflow-y: hidden;
+  height: 92vh;
+}
+
 .calendar h5 {
   margin: 0;
 }
@@ -175,4 +183,51 @@ textarea {
 
 .select-field{
   width: 90%;
+}
+
+.schedule{
+  margin-top: 2%;
+  width: 27.5%;
+}
+
+.schedule {
+  .schedule-btn {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      background-color: #f8f9fa;
+      border-color: #007bff;
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+    }
+
+    .text-center {
+      flex-grow: 1;
+    }
+
+    h5 {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #333;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+
+    small {
+      font-size: 0.875rem;
+      color: #007bff;
+    }
+  }
 }

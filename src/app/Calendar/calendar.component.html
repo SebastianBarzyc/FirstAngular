@@ -1,5 +1,10 @@
-<div class="claendar-main">
-  <div class="calendar border rounded p-3 mx-auto">
+<div class="mainContent-calendar">
+
+  <div class="schedule">
+    <h2>Schedule</h2>
+  </div>
+
+  <div class="calendar border rounded p-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <button class="btn btn-outline-primary btn-sm" (click)="changeMonth(-1)">
         <i class="bi bi-chevron-left"></i>
@@ -31,4 +36,21 @@
       </div>
     </div>
   </div>
-</div>
+  
+  <div class="schedule">
+    <h2 class="mb-3">Schedule</h2>
+    <button 
+      *ngFor="let session of getUpcomingSessions()" 
+      (click)="openSessionEditor(session)"
+      class="d-flex btn schedule-btn my-2 justify-content-between align-items-center"
+    >
+      <div class="d-flex justify-content-center w-100">
+        <div class="text-center flex-grow-1">
+          <h5 class="mb-1">{{ session.title || 'No title' }}</h5>
+          <p class="mb-1 text-muted">{{ session.description || 'No description' }}</p>
+        </div>
+      </div>
+      <small class="text-end">{{ session.date }}</small>
+    </button>
+  </div>  
+</div>  
