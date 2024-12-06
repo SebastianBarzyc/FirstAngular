@@ -6,7 +6,7 @@
       <p class="fw-bold">Title:</p>
       <mat-form-field style="width: 70%;">
         <input matInput name="title-{{workout.id}}" [(ngModel)]="workout.title" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
-        <input type="hidden" [value]="workout.id" #hiddenInput>
+        <input type="hidden" [value]="workout.id">
       </mat-form-field>
       <br>
       <p class="fw-bold">Description:</p>
@@ -18,9 +18,7 @@
       <app-workouts-item
       *ngFor="let exercise of exercises; let i = index"
         [exercisesdata]="[exercise]"
-        [index]="i"
         [exercisesList]="exercises"
-        [planID]="workout.id"
         (remove)="removeExercise($event)">
       </app-workouts-item>
     </mat-dialog-content>

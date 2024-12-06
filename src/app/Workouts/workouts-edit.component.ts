@@ -6,19 +6,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { ExerciseService } from '../Exercises/exercises.service';
 import { MatIconModule } from '@angular/material/icon';
 import { WorkoutsItemComponent } from './workouts-item.component';
 import { MatSelectModule } from '@angular/material/select';
 import { forkJoin } from 'rxjs';
-import { WorkoutsBackend } from './workouts-backend.component';
-
-interface Exercise {
-  idPlan: number;
-  idExercise: number;
-  sets: number;
-  reps: number;
-}
 
 @Component({
   selector: 'workout-edit',
@@ -40,7 +31,6 @@ interface Exercise {
 })
 export class WorkoutEditComponent implements OnInit {
   @Output() workoutChanged = new EventEmitter<void>();
-  @ViewChild('hiddenInput') hiddenInput?: ElementRef;
   @ViewChild('textarea') textarea!: ElementRef;
 
   readonly dialogRef = inject(MatDialogRef<WorkoutEditComponent>);
@@ -49,19 +39,10 @@ export class WorkoutEditComponent implements OnInit {
   exercisesMap: Map<number, any[]> = new Map();
   workouts: any[] = [];
   exercises: any[] = [];
-  exercises2: any[] = [];
-  exercises3: any[] = [];
-  exercisesList: any[] = [];
-  planID: number = 0;
-
   WorkoutID: number = 0;
-  WorkoutTitle: string;
-  WorkoutDesc: string;
 
-  constructor(private workoutService: WorkoutService, private WorkoutsBackend:WorkoutsBackend, private cdRef: ChangeDetectorRef,  private exerciseService: ExerciseService, @Inject(MAT_DIALOG_DATA) public data: { id: number, title: string, description: string }) {
+  constructor(private workoutService: WorkoutService, private cdRef: ChangeDetectorRef, @Inject(MAT_DIALOG_DATA) public data: { id: number, title: string, description: string }) {
     this.WorkoutID = data.id;
-    this.WorkoutTitle = data.title;
-    this.WorkoutDesc = data.description;
   }
 
   @ViewChild('parent', { read: ViewContainerRef })
@@ -90,16 +71,10 @@ export class WorkoutEditComponent implements OnInit {
     });
   }
 
-  async getExerciseTitleById(id: number): Promise<string> {
-    const exercise = this.exercises3.find(ex => ex.id === id);
-    return exercise ? exercise.title : '';
-  }
-
   loadExercisesForPlan(planID: number): Promise<any> {
     return new Promise((resolve, reject) => {
         this.workoutService.getExercisesForPlan(planID).subscribe({
             next: async (response) => {
-                console.log('Received exercises for planID:', planID, response.data);
                 this.exercisesMap.set(planID, response.data);
                 this.exercises = this.exercisesMap.get(planID) || [];
                 resolve(this.exercises || []);
@@ -110,16 +85,6 @@ export class WorkoutEditComponent implements OnInit {
         });
     });
 }
-
-  async loadExercises3(): Promise<void> {
-    try {
-      const data = await this.exerciseService.getData().toPromise();
-      console.log('Data from loadExercises3:', data);
-      this.exercises3 = data;
-    } catch (error) {
-      console.error('Error loading exercises3:', error);
-    }
-  }
 
   getId() {
     return this.data.id;
@@ -187,14 +152,9 @@ export class WorkoutEditComponent implements OnInit {
   removeExercise(ID: number): void {
     console.log('Removing exercise ID:', ID);
     
-    const currentExercises = this.exercises;
-    console.log(currentExercises);
-    const updatedExercises = currentExercises.filter(ex => ex.exercise_id !== ID);
-    console.log(updatedExercises);
+    const updatedExercises = this.exercises.filter(ex => ex.exercise_id !== ID);
     this.exercisesMap.set(this.WorkoutID, updatedExercises);
     this.exercises = updatedExercises;
-    console.log("after remove exercises: ", this.exercises);
-    console.log("after remove exercises map: ", this.exercisesMap);
     this.cdRef.detectChanges();
   }
 

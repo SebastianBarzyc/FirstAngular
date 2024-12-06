@@ -109,10 +109,6 @@ textarea {
   gap: 5%;
 }
 
-.exercise-grid {
-  display: flex;
-}
-
 
 //Calendar
 .calendar h5 {
@@ -175,4 +171,8 @@ textarea {
 
 .remove-button {
   margin-top: auto;
+}
+
+.select-field{
+  width: 90%;
 }

@@ -3,11 +3,9 @@ import { catchError, Observable, of, Subject, tap, throwError } from "rxjs";
 import { HttpClient, HttpHeaders} from '@angular/common/http';
 
   export interface WorkoutExercise {
-    [x: string]: any;
-    id: number;
+    exercise_id: number;
+    reps: number[];
     title: string;
-    sets: number;
-    reps: number;
   };
 
   @Injectable({
@@ -15,12 +13,8 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
   })
   export class WorkoutService {
     workoutChanged = new EventEmitter<void>();
-    public workoutExercises: WorkoutExercise = {
-      id: 0,
-      title: '',
-      sets: 0,
-      reps: 0
-    };
+    workoutExercises: WorkoutExercise[] = [];
+
     
     constructor(private http: HttpClient) {}
 
@@ -37,6 +31,8 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     public exerciseIdCounter = 0;
     public exerciseAllCounter = 0;
     exercisesList: any [] = [];
+    exercises: any[] = []
+    idFromTitle: number = 0;
 
     getData(): Observable<any> {
       return this.http.get<any>(this.apiUrl);
@@ -58,6 +54,7 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     );
     }
     addworkout2(workout: any): Observable<any> {
+      console.log("service: ", workout);
       return this.http.post<any>(this.apiUrl2, workout).pipe(
         tap(() => {
           this.refreshNeeded$.next();
@@ -68,7 +65,7 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     getExerciseByTitle(title: string): Observable<any> {
       return this.http.get<any>(`${this.apiUrlExercise}/${title}`).pipe(
         tap(response => {
-          const idFromTitle = response.exercise.id;
+          this.idFromTitle = response.exercise.id;
           this.refreshNeeded$.next();
         }),
         catchError(error => {
@@ -154,24 +151,30 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     return this.http.get<any>(`${this.apiUrl}/available-exercises`);
   }
 
-  getId() {
-    return this.exerciseIdCounter;
-  }
-  setId(value: any) {
-    this.exerciseIdCounter = value;
-  }
-  getCounter() {
-    return this.exerciseAllCounter;
-  }
-  setCounter(value: any) {
-    this.exerciseAllCounter = value;
-  }
+  async addExerciseToWorkout(exercise: { title: string, reps: number[] }) {
+    try {
+      await this.getExerciseByTitle(exercise.title).toPromise(); 
+      const exerciseId = this.idFromTitle;
+      const existingExerciseIndex = this.workoutExercises.findIndex(
+        (e) => e.exercise_id === exerciseId
+      );
+  
+      if (existingExerciseIndex !== -1) {
+        this.workoutExercises[existingExerciseIndex].reps = exercise.reps;
+      } else {
+        this.workoutExercises.push({
+          exercise_id: exerciseId,
+          reps: exercise.reps,
+          title: exercise.title,
+        });
+        console.log("Added new exercise:", this.workoutExercises);
+      }
+    } catch (error) {
+      console.error('Error adding exercise to workout:', error);
+    }
+  }  
 
-  getWorkoutExercises(){ 
+  getWorkoutExercises(){
     return this.workoutExercises;
-  }
-
-  setWorkoutExercises(value: any){
-    this.workoutExercises = value;
   }
 }

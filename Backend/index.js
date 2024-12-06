@@ -220,27 +220,23 @@ app.post('/api/workouts', async (req, res) => {
     res.status(500).json({ error: 'Failed to add workout' });
   }
 });
+
 app.post('/api/workouts2', async (req, res) => {
   let workouts = req.body;
 
-  if (!Array.isArray(workouts)) {
-    console.log('Received data is not an array, wrapping it in an array.');
-    workouts = [workouts];
-  }
-
-  if (!Array.isArray(workouts)) {
-    console.error('Invalid input: workouts should be an array:', workouts);
-    return res.status(400).json({ error: 'Invalid input: workouts should be an array' });
-  }
-
   try {
-    const queries = workouts.map(({exercise_id, exercise_title, plan_id, reps, sets}) => {
-      const setsNumber = parseInt(sets, 10);
-      const repsNumber = parseInt(reps, 10);
-      
-      const query = 'INSERT INTO plan_exercises (plan_id, exercise_id, sets, reps, exercise_title) VALUES ($1, $2, $3, $4, $5) RETURNING *';
-      const values = [plan_id, exercise_id, setsNumber, repsNumber, exercise_title];
-      return pool.query(query, values);
+    const planIdResult = await pool.query('SELECT id FROM training_plans ORDER BY id DESC LIMIT 1');
+    const plan_id = planIdResult.rows[0] ? planIdResult.rows[0].id : null;
+    if (!plan_id) {
+      return res.status(400).json({ error: 'No training plans found, cannot assign plan_id' });
+    }
+
+    const queries = workouts.flatMap(({ exercise_id, title, reps }) => {
+      return reps.map(rep => {
+        const query = 'INSERT INTO plan_exercises (plan_id, exercise_id, reps, exercise_title) VALUES ($1, $2, $3, $4) RETURNING *';
+        const values = [plan_id, exercise_id, rep, title];
+        return pool.query(query, values);
+      });
     });
 
     const results = await Promise.all(queries);
@@ -288,23 +284,21 @@ app.post('/api/exercises', async (req, res) => {
 });
 
 app.post('/api/update-workout3/', async (req, res) => {
-  const exercises = req.body;  // Tablica obiektów ćwiczeń
+  const exercises = req.body;
 
-  console.log('Received data:', exercises);  // Sprawdzamy, co dokładnie otrzymaliśmy
+  console.log('Received data:', exercises);
 
   if (!exercises || exercises.length === 0) {
       return res.status(400).json({ message: 'Missing required fields' });
   }
 
   try {
-      // Przygotowanie zapytania SQL do wstawiania wielu rekordów
       const query = `
           INSERT INTO plan_exercises (plan_id, exercise_id, reps, exercise_title)
           VALUES 
           ${exercises.map((exercise, index) => `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`).join(', ')}
           RETURNING *`;
 
-      // Przygotowanie wartości do wstawienia do zapytania
       const values = exercises.flatMap(exercise => [
           exercise.planId,
           exercise.idExercise,
@@ -312,12 +306,8 @@ app.post('/api/update-workout3/', async (req, res) => {
           exercise.exercise_title
       ]);
 
-      console.log('Executing query with values:', values);  // Sprawdzamy, czy wartości są prawidłowe
-
-      // Wykonanie zapytania
       const result = await pool.query(query, values);
 
-      // Zwracamy wynik do klienta
       res.status(200).json({
           message: 'Data has been added',
           data: result.rows
@@ -423,16 +413,28 @@ app.delete('/api/delete-exercise/:id', async (req, res) => {
 
 app.delete('/api/delete-workout/:id', async (req, res) => {
   const id = req.params.id;
-
   try {
-    const query = 'DELETE FROM plan_exercises WHERE plan_id = $1';
-    const query2 = 'DELETE FROM training_plans WHERE id = $1';
+    const query = 'DELETE FROM plan_exercises WHERE plan_id = $1';  // Usuwamy ćwiczenia z planu
+    const query2 = 'DELETE FROM training_plans WHERE id = $1';  // Usuwamy plan treningowy
     const values = [id];
-
+  
+    // Usuwamy ćwiczenia z planu
     const result = await pool.query(query, values);
-    const result2 = await pool.query(query2, values);
-
-    if (result.rowCount > 0 && result2.rowCount > 0) {
+  
+    // Sprawdzamy, czy plan istnieje w tabeli training_plans
+    const checkQuery = 'SELECT * FROM training_plans WHERE id = $1';
+    const checkResult = await pool.query(checkQuery, values);
+  
+    let result2;
+    if (checkResult.rowCount > 0) {
+      // Jeśli istnieje rekord w training_plans, usuwamy go
+      result2 = await pool.query(query2, values);
+    } else {
+      result2 = { rowCount: 0 };  // Ustalamy result2 na 0, jeśli plan nie istnieje
+    }
+  
+    // Sprawdzamy, czy przynajmniej jedno zapytanie usunęło dane
+    if (result.rowCount > 0 || result2.rowCount > 0) {
       res.status(200).json({ message: 'Workout deleted successfully' });
     } else {
       console.log("result.rowCount: " + result.rowCount);
@@ -443,6 +445,7 @@ app.delete('/api/delete-workout/:id', async (req, res) => {
     console.error('Error deleting data: ', error);
     res.status(500).json({ message: 'Error deleting data' });
   }
+  
 });
 
 app.delete('/api/delete-session/:id', async (req, res) => {

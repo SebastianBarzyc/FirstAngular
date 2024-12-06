@@ -13,7 +13,6 @@ import { MatInputModule } from '@angular/material/input';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { ExerciseService } from '../Exercises/exercises.service';
-import { WorkoutService } from './workouts.service';
 
 @Component({
   selector: 'app-workouts-item',
@@ -31,25 +30,18 @@ import { WorkoutService } from './workouts.service';
   ],
 })
 export class WorkoutsItemComponent implements OnInit {
-  @Input() exercise: any;
-  @Input() index: number = 0;
   @Output() remove = new EventEmitter<number>();
   @Input() exercisesList: any[] = [];
   @Input() exercisesdata: any[] = [];
-  @Input() planID: number = 1;
 
   exercises: any[] = [];
-  tempExercises: any[] = [];
 
   constructor(
-    private workoutService: WorkoutService,
     private exerciseService: ExerciseService,
   ) {}
 
   async ngOnInit(): Promise<void> {
     await this.loadExercises();
-    console.log('exercisesdata: ', this.exercisesdata);
-    console.log('exerciseslist: ', this.exercisesList);
   }
 
   removeExercise(id: number) {
@@ -57,13 +49,7 @@ export class WorkoutsItemComponent implements OnInit {
   }
 
   isExerciseSelected(exerciseTitle: string): boolean {
-    console.log(this.exercisesList);
     return this.exercisesList.some(ex => ex.exercise_title === exerciseTitle);
-  }
-
-  getExerciseTitleById(id: number): string {
-    const exercise = this.exercises.find((ex) => ex.id === id);
-    return exercise ? exercise.title : '';
   }
 
   loadExercises(): Promise<void> {

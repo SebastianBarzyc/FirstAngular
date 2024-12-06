@@ -1,8 +1,7 @@
-import { CalendarService } from './calendar.service';
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatButton, MatButtonModule } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
@@ -19,6 +18,7 @@ interface Exercise {
   exercise_id: number;
   exercise_title: string;
   title: string;
+  reps?: number[];
   sets: Set[];
 }
 
@@ -73,6 +73,12 @@ export class CalendarItemComponent {
 
   async ngOnInit(): Promise<void> {
     await this.loadExercises();
+    if (this.exercise.reps && Array.isArray(this.exercise.reps)) {
+      this.exercise.sets = this.exercise.reps.map(repsValue => ({
+        reps: repsValue,
+        weight: 0
+      }));
+    }
   }
 
   removeExercise(id: number): void {
