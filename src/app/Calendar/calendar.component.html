@@ -1,33 +1,34 @@
-<div class="calendar border rounded p-3 mx-auto">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <button class="btn btn-outline-primary btn-sm" (click)="changeMonth(-1)">
-      <i class="bi bi-chevron-left"></i>
-    </button>
-    <h5 class="mb-0">{{ currentDate | date: 'MMMM yyyy' }}</h5>
-    <button class="btn btn-outline-primary btn-sm" (click)="changeMonth(1)">
-      <i class="bi bi-chevron-right"></i>
-    </button>
-  </div>
-
-  <div class="row text-center fw-bold">
-    <div *ngFor="let day of ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']" class="col">
-      {{ day }}
+<div class="claendar-main">
+  <div class="calendar border rounded p-3 mx-auto">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <button class="btn btn-outline-primary btn-sm" (click)="changeMonth(-1)">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <h5 class="mb-0">{{ currentDate | date: 'MMMM yyyy' }}</h5>
+      <button class="btn btn-outline-primary btn-sm" (click)="changeMonth(1)">
+        <i class="bi bi-chevron-right"></i>
+      </button>
     </div>
-  </div>
 
-  <div class="row text-center">
-    <div *ngFor="let week of days" class="row g-1">
-      <div *ngFor="let day of week" class="col p-0">
-        <button 
-          class="btn btn-light day align-items-center" 
-          [class.btn-primary]="day !== 0 && isToday(day)" 
-          [disabled]="day === 0"
-          (click)="openDayEditor(day)">
-          {{ day !== 0 ? day : '' }}<br>
-          <small *ngIf="getPlanForDay(day)">{{ getPlanForDay(day) }}</small>
-        </button>
+    <div class="row text-center fw-bold">
+      <div *ngFor="let day of ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']" class="col">
+        {{ day }}
+      </div>
+    </div>
+
+    <div class="row text-center">
+      <div *ngFor="let week of days" class="row g-1">
+        <div *ngFor="let day of week" class="col p-0">
+          <button 
+            class="btn btn-light day align-items-center" 
+            [class.btn-primary]="day !== 0 && isToday(day)" 
+            [disabled]="day === 0"
+            (click)="openDayEditor(day)">
+            {{ day !== 0 ? day : '' }}<br>
+            <small *ngIf="getPlanForDay(day)">{{ getPlanForDay(day) }}</small>
+          </button>
+        </div>
       </div>
     </div>
   </div>
-  
 </div>
