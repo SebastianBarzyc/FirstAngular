@@ -456,10 +456,21 @@ app.delete('/api/delete-session/:id', async (req, res) => {
     const query2 = 'DELETE FROM session_exercises WHERE session_id = $1';
     const values = [id];
 
+    // Wykonaj zapytanie, aby usunąć sesję
     const result = await pool.query(query, values);
-    const result2 = await pool.query(query2, values);
 
-    if (result.rowCount > 0 && result2.rowCount > 0) {
+    const checkQuery = 'SELECT * FROM session_exercises WHERE session_id = $1';
+    const checkResult = await pool.query(checkQuery, values);
+
+    let result2;
+    if (checkResult.rowCount > 0) {
+      // Jeśli istnieje rekord w training_plans, usuwamy go
+      result2 = await pool.query(query2, values);
+    } else {
+      result2 = { rowCount: 0 };  // Ustalamy result2 na 0, jeśli plan nie istnieje
+    }
+
+    if (result.rowCount > 0 || result2.rowCount > 0) {
       res.status(200).json({ message: 'Session deleted successfully' });
     } else {
       console.log("result.rowCount: " + result.rowCount);

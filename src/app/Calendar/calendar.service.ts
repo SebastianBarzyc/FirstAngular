@@ -72,6 +72,9 @@ export class CalendarService {
   editSession2(id: number): Observable<any> {
     console.log("editSession2: " + id);
     return this.http.delete<any>(`${this.apiUrlEdit2}${id}`).pipe(
+      tap(() => {
+        this.refreshNeeded$.next();
+      }),
       catchError(error => {
         console.error('Error editing Session:', error);
         throw error;
@@ -79,26 +82,25 @@ export class CalendarService {
     );
   }
 
-  editSession3(exercise_id: number, exercise_title: string, title: string, reps: number, weight: number, session_id: number): Observable<any> {
-    console.log('editSessiont3 called with:', { exercise_id, exercise_title, title, reps, weight }); 
+  editSession3(exercise_id: number, exercise_title: string, reps: number, weight: number, session_id: number): Observable<any> {
     const url = this.apiUrlEdit3;
-    
+    console.log("edit3: ", exercise_id, exercise_title, reps, weight, session_id);
     const body = { 
       exercise_id: exercise_id,
       exercise_title: exercise_title,
-      title: title,
       reps: reps,
       weight: weight,
       session_id: session_id
     };
-  
-    console.log('Sending data to server:', body);
-    
+      
     return this.http.post<any>(url, body, {
       headers: new HttpHeaders({
         'Content-Type': 'application/json'
       })
     }).pipe(
+      tap(() => {
+        this.refreshNeeded$.next();
+      }),
       catchError(this.handleError<any>('editworkout3'))
     );
   }

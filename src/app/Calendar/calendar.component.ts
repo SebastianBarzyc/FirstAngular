@@ -27,17 +27,23 @@ export class CalendarComponent implements OnInit {
   days: number[][] = [];
   selectedDay: number = 0;
   sessions: Session[] = [];
-  refreshNeeded$ = new Subject<void>();
+  refreshNeeded$: Subject<void> = new Subject<void>();
+  date2: string = '';
 
   constructor(private datePipe: DatePipe, private dialog: MatDialog, private calendarService: CalendarService) {
     this.generateCalendar(this.currentDate);
+    this.subscribeToRefresh();
   }
+
   ngOnInit(): void {
     this.loadSessions();
   }
 
-  date2: string = '';
-
+  subscribeToRefresh(): void {
+    this.refreshNeeded$.subscribe(() => {
+      this.loadSessions();
+    });
+  }
   generateCalendar(date: Date): void {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -73,7 +79,7 @@ export class CalendarComponent implements OnInit {
     const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
     console.log(selectedDate);
     const dialogRef = this.dialog.open(CalendarEditComponent, {
-      data: { date: selectedDate},
+      data: { date: selectedDate, refreshNeeded$: this.refreshNeeded$},
       panelClass: 'editPanel'
     });
   }
@@ -96,14 +102,13 @@ export class CalendarComponent implements OnInit {
     this.calendarService.getSessions().subscribe(
       (data: Session[]) => {
         this.sessions = data;
-        console.log(this.sessions);
       }
     );
   }
 
   getPlanForDay(day: number): string | null {
     const date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-    const formattedDate = this.datePipe.transform(date, 'dd.MM.yyyy');
+    const formattedDate = this.datePipe.transform(date, 'd.MM.yyyy');
     const session = this.sessions.find(s => s.date === formattedDate);
     return session ? session.title : null;
   }
@@ -142,12 +147,14 @@ export class CalendarComponent implements OnInit {
       );
   
       const dialogRef = this.dialog.open(CalendarEditComponent, {
-        data: { session, date: sessionDate },
+        data: { session, date: sessionDate, refreshNeeded$: this.refreshNeeded$ },
         panelClass: 'editPanel'
       });
     } else {
       console.error('Session data is missing or invalid', session);
     }
   }
+
+  
   
 }

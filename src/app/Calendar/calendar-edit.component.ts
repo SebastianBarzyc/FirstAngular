@@ -1,3 +1,4 @@
+import { CalendarComponent } from './calendar.component';
 import { WorkoutService } from './../Workouts/workouts.service';
 import { Component, Inject, Input, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -39,6 +40,15 @@ interface Set {
   weight: number;
 }
 
+interface Exercise2 {
+  id: number;
+  exercise_id: number;
+  exercise_title: string;
+  title: string;
+  sets: Set[];
+  reps: []
+}
+
 @Component({
   selector: 'calendar-edit',
   templateUrl: './calendar-edit.component.html',
@@ -58,7 +68,7 @@ interface Set {
 })
 
 export class CalendarEditComponent implements OnInit {
-  @Input() refreshNeeded$!: Subject<void>;
+  refreshNeeded$!: Subject<void>;
 
   exercises: Exercise[] = [];
   exercisesList: Exercise[] = [];
@@ -73,17 +83,24 @@ export class CalendarEditComponent implements OnInit {
   planExercises: [] = [];
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { date: Date },
+    @Inject(MAT_DIALOG_DATA) public data: { date: Date, refreshNeeded$: Subject<void> },
     private calendarService: CalendarService,
     public dialogRef: MatDialogRef<CalendarEditComponent>,
-    private workoutService: WorkoutService
+    private workoutService: WorkoutService,
   ) {
+    this.refreshNeeded$ = data.refreshNeeded$
   }
 
   async ngOnInit(): Promise<void> {
     await this.loadSessions().toPromise();
     this.loadWorkouts();
     this.loadExercisesList();
+    const session = this.getSessionOrEmpty();
+  if (session) {
+    this.newSession.title = session.title;
+    this.newSession.description = session.description;
+    this.newSession.date = session.date;
+  }
   }
   
   loadSessions(): Observable<Session[]> {
@@ -115,9 +132,19 @@ export class CalendarEditComponent implements OnInit {
     }
   }
 
+  getMaxSessionId(): number {
+    if (this.sessions.length === 0) {
+      return 0;
+    }
+    return Math.max(...this.sessions.map(session => session.session_id));
+  }
+  
+
   Delete(id: number) {
+    console.log("deleteid: ",id);
     this.calendarService.deleteSession(id).subscribe({
       next: response => {
+        console.log("Session deleted: ", response);
         this.refreshNeeded$.next();
         this.dialogRef.close();
       },
@@ -128,35 +155,83 @@ export class CalendarEditComponent implements OnInit {
   }
 
   Save(session: any): void {
-    if (this.isDateExist()) {
-      this.updateSession(session);
-    } else {
-      this.createSession(session);
-    }
+    const newSessionId = this.getMaxSessionId() + 1;
   
+    const sessionToSave = {
+      ...session,
+      title: this.newSession.title || session.title,
+      description: this.newSession.description || session.description,
+      date: this.newSession.date || session.date,
+      session_id: this.getSessionOrEmpty().session_id || newSessionId
+    };
+  
+    if (sessionToSave.session_id == newSessionId) {
+      this.createSession(sessionToSave);  
+    } else {
+      this.updateSession(sessionToSave);
+    }
+    
     this.exercisesList.forEach(exercise => {
       exercise.sets.forEach(set => {
         this.calendarService.editSession3(
           exercise.exercise_id,
           exercise.exercise_title,
-          exercise.title,
           set.reps,
           set.weight,
-          session.session_id
+          sessionToSave.session_id
         ).subscribe({
           next: response => {
-            console.log('Ćwiczenie zapisane:', response);
-            console.log('list: ', this.exercisesList);
+            this.refreshNeeded$.next();
+            console.log('Session saved:', response);
           },
           error: error => {
-            console.error('Błąd przy zapisywaniu ćwiczenia:', error);
+            console.error('Error during saving session:', error);
           }
         });
       });
     });
-  
     this.refreshNeeded$.next();
     this.dialogRef.close();
+  }
+
+  createSession(session: any) {
+    console.log("create: ",session);
+    this.calendarService.addSession(session).pipe(
+      tap(response => {
+        this.refreshNeeded$.next();
+        console.log('Session added successfully:', response);
+      })
+    ).subscribe(
+      response => {
+        console.log('Session created:', 'Date: ', session.date, 'Title: ', session.title, 'Description: ', session.description);
+      },
+      error => {
+          console.error('Error adding session:', error);
+      }
+    );
+  }
+
+  updateSession(session: any) {
+    this.calendarService.editSession(session.session_id, session.title, session.description).subscribe({
+      next: response => {
+        this.refreshNeeded$.next();
+        console.log('Response from server (updateSession):', response);
+        this.dialogRef.close();
+      },
+      error: error => {
+        console.error('Error from server (updateSession):', error);
+      }
+    });
+
+    this.calendarService.editSession2(session.session_id).subscribe({
+      next: response => {
+        this.refreshNeeded$.next();
+        console.log('Response from server (editSession2):', response);
+      },
+      error: error => {
+        console.error('Error from server (editSession2):', error);
+      }
+    });
   }
 
   updateExerciseTitle(): void {
@@ -172,44 +247,6 @@ export class CalendarEditComponent implements OnInit {
     console.log("Updated exercises list:", this.exercisesList);
   }
   
-
-  createSession(session: any) {
-    console.log(session);
-    this.calendarService.addSession(session).pipe(
-      tap(response => {
-          console.log('Session added successfully:', response);
-      })
-    ).subscribe(
-      response => {
-        console.log('Session created:', 'Date: ', session.date, 'Title: ', session.title, 'Description: ', session.description);
-      },
-      error => {
-          console.error('Error adding session:', error);
-      }
-    );
-  }
-
-  updateSession(session: any) {
-    this.calendarService.editSession(session.session_id, session.title, session.description).subscribe({
-      next: response => {
-        console.log('Response from server (updateSession):', response);
-        this.dialogRef.close();
-      },
-      error: error => {
-        console.error('Error from server (updateSession):', error);
-      }
-    });
-
-    this.calendarService.editSession2(session.session_id).subscribe({
-      next: response => {
-        console.log('Response from server (editSession2):', response);
-      },
-      error: error => {
-        console.error('Error from server (editSession2):', error);
-      }
-    });
-  }
-
   autoResize(textarea: HTMLTextAreaElement) {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
@@ -266,7 +303,6 @@ export class CalendarEditComponent implements OnInit {
           ...exercise,
           id: maxId + index + 1
         }));
-        console.log('Updated exercises list with IDs:', this.exercisesList);
       },
       error: (error) => {
         console.error('Error during exercise fetch:', error);
@@ -285,21 +321,32 @@ export class CalendarEditComponent implements OnInit {
     }
   }
 
-  loadExercisesForPlan(planID: number): Promise<any> {
+  loadExercisesForPlan(planID: number): Promise<void> {
     return new Promise((resolve, reject) => {
-        this.workoutService.getExercisesForPlan(planID).subscribe({
-            next: (response) => {
-                console.log('Received exercises for planID:', planID, response.data);
-                this.exercisesList = response.data || [];
-                resolve(this.exercises);
-            },
-            error: (err) => {
-                console.error('Error fetching exercises:', err);
-                reject(err);
-            }
-        });
+      this.workoutService.getExercisesForPlan(planID).subscribe({
+        next: (response) => {
+          console.log('Received raw exercises for planID:', planID, response.data);
+  
+          // Przekształcamy dane do oczekiwanego formatu
+          this.exercisesList = response.data.map((exercise: Exercise2) => ({
+            exercise_id: exercise.exercise_id,
+            exercise_title: exercise.exercise_title,
+            sets: exercise.reps.map(rep => ({ reps: rep, weight: 0 })), // Tworzymy tablicę `sets` na podstawie `reps`
+            id: this.exercisesList.length > 0 
+              ? Math.max(...this.exercisesList.map(ex => ex.id)) + 1 
+              : 1 // Generujemy unikalne `id` dla każdego ćwiczenia
+          }));
+  
+          console.log('Transformed exercises list:', this.exercisesList);
+          resolve();
+        },
+        error: (err) => {
+          console.error('Error fetching or transforming exercises:', err);
+          reject(err);
+        }
+      });
     });
-}
+  }
   
 }
  

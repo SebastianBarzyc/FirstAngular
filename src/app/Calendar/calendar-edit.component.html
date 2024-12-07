@@ -6,16 +6,17 @@
       <mat-form-field style="width: 70%;">
         <input 
           matInput
-          [(ngModel)]="getSessionOrEmpty().title" 
+          [(ngModel)]="newSession.title" 
           [ngModelOptions]="{ standalone: true }" 
           style="text-align: center;">
       </mat-form-field>
       <br>
+      
       <p class="fw-bold">Description:</p>
       <mat-form-field style="width: 90%;">
         <textarea 
           matInput
-          [(ngModel)]="getSessionOrEmpty().description" 
+          [(ngModel)]="newSession.description" 
           [ngModelOptions]="{ standalone: true }">
         </textarea>
       </mat-form-field>
@@ -43,6 +44,6 @@
         <button mat-fab style="margin-top: -2%;" (click)="addExercise()">
           <mat-icon>add</mat-icon>
         </button>
-        <button mat-button (click)="Save(getSessionOrEmpty())" class="RaisedBtn float-end">Save plan</button>
+        <button mat-button (click)="Save(getSessionOrEmpty())" [disabled]="!newSession.title || !newSession.description" class="RaisedBtn btn float-end">Save plan</button>
       </div>
     </mat-dialog-actions>
