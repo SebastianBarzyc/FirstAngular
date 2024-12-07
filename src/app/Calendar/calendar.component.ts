@@ -108,21 +108,18 @@ export class CalendarComponent implements OnInit {
 
   getPlanForDay(day: number): string | null {
     const date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-    const formattedDate = this.datePipe.transform(date, 'd.MM.yyyy');
+    const formattedDate = this.datePipe.transform(date, 'd.M.yyyy');
     const session = this.sessions.find(s => s.date === formattedDate);
     return session ? session.title : null;
   }
-
-  // Funkcja pomocnicza do parsowania dat
   private parseDate(dateString: string): Date {
     const [day, month, year] = dateString.split('.').map(Number);
-    return new Date(year, month - 1, day); // Miesiące w JavaScript są indeksowane od 0
+    return new Date(year, month - 1, day);
   }
 
-  // Funkcja zwracająca przyszłe sesje, posortowane po dacie
   getUpcomingSessions() {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Resetuje czas na północ
+    today.setHours(0, 0, 0, 0);
 
     return this.sessions
       .filter(session => {
@@ -132,18 +129,17 @@ export class CalendarComponent implements OnInit {
       .sort((a, b) => {
         const dateA = this.parseDate(a.date);
         const dateB = this.parseDate(b.date);
-        return dateA.getTime() - dateB.getTime(); // Sortowanie rosnące po dacie
+        return dateA.getTime() - dateB.getTime();
       });
   }
 
   openSessionEditor(session: Session): void {
     if (session && session.date) {
-      // Parsowanie daty z formatu 'dd.MM.yyyy' na obiekt Date
       const dateParts = session.date.split('.');
       const sessionDate = new Date(
-        parseInt(dateParts[2]),  // Rok
-        parseInt(dateParts[1]) - 1,  // Miesiąc (indeksowany od 0)
-        parseInt(dateParts[0])   // Dzień
+        parseInt(dateParts[2]),
+        parseInt(dateParts[1]) - 1,
+        parseInt(dateParts[0])
       );
   
       const dialogRef = this.dialog.open(CalendarEditComponent, {
