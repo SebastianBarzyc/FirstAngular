@@ -17,7 +17,8 @@
         <textarea 
           matInput
           [(ngModel)]="newSession.description" 
-          [ngModelOptions]="{ standalone: true }">
+          [ngModelOptions]="{ standalone: true }"
+          (input)="autoResize(textarea)" #textarea>
         </textarea>
       </mat-form-field>
       <p class="fw-bold">Exercises:</p>

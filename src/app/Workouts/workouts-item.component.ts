@@ -42,6 +42,7 @@ export class WorkoutsItemComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadExercises();
+    console.log("loadexercises: ");
   }
 
   removeExercise(id: number) {
