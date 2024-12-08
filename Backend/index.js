@@ -207,29 +207,46 @@ GROUP BY
   }
 });
 
-app.post('/api/login', async (req, res) => {
-  const { username, password } = req.body;
-  
-  console.log('Login attempt:', username, password); // Logowanie danych wejściowych
+app.post('/api/register', async (req, res) => {
+  const { login, username, password } = req.body;
+  console.log("login: ", login, "username: ", username);
+  const existingUser = await pool.query('SELECT * FROM users WHERE login = $1', [login]);
+  if (existingUser.rows.length > 0) {
+      return res.status(400).json({ message: 'Login is already taken."' });
+  }
 
-  const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  await pool.query(
+      'INSERT INTO users (login, username, password) VALUES ($1, $2, $3)',
+      [login, username, hashedPassword]
+  );
+
+  res.status(201).json({ message: 'Registration completed successfully!'});
+});
+
+
+app.post('/api/login', async (req, res) => {
+  const { login, password } = req.body;
+  
+  console.log('Login attempt:', login, password);
+
+  const result = await pool.query('SELECT * FROM users WHERE login = $1', [login]);
 
   if (result.rows.length === 0) {
-    return res.status(400).json({ message: 'Błędna nazwa użytkownika lub hasło!' });
+    return res.status(400).json({ message: 'Wrong login or password!' });
   }
 
   const user = result.rows[0];
-  console.log('User from database:', user); // Logowanie użytkownika z bazy danych
 
-  const isMatch = await bcrypt.compare(password, user.password);  // Porównanie hasła
-  console.log("ismatch? ", isMatch, "password: ", password, "user.password: ", user.password);
+  const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    return res.status(400).json({ message: 'Błędna nazwa użytkownika lub hasło!' });
+    return res.status(400).json({ message: 'Wrong login or password!' });
   }
 
   const token = jwt.sign({ userId: user.id }, 'your_secret_key', { expiresIn: '1h' });
 
-  res.json({ message: 'Zalogowano pomyślnie!', token });
+  res.json({ message: 'User logged!', token });
 });
  
 app.post('/api/workouts', async (req, res) => {

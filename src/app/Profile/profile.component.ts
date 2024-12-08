@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { LoginComponent } from './login.component';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -15,7 +14,7 @@ import { CommonModule } from '@angular/common';
 export class ProfileComponent implements OnInit {
   isLoggedIn: boolean = false;
 
-  constructor(private router: Router) {}
+  constructor() {}
 
   ngOnInit() {
     const token = localStorage.getItem('token');
@@ -29,6 +28,5 @@ export class ProfileComponent implements OnInit {
   logout() {
     localStorage.removeItem('token');
     this.isLoggedIn = false;
-    this.router.navigate(['/login']);
   }
 }
