@@ -92,23 +92,32 @@ textarea {
 }
 
 //Workouts
-.exercise-grid2 {
-  margin-bottom: 20px;
+.exercise-grid {
+  display: flex;
+  flex-direction: column;
 }
 
 .exercise-row {
   display: flex;
   align-items: center;
-  gap: 5%;
+  gap: 15px;
 }
 
-.reps-container{
-  margin-top: 10px;
+.reps-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 5%;
+  gap: 6px;
+  margin-bottom: 20px;
+  width: 86%;
 }
 
+.input-number {
+  width: 80px;
+}
+
+.select-field {
+  flex-grow: 1;
+}
 
 //Calendar
 .mainContent-calendar{
@@ -164,13 +173,17 @@ textarea {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  margin-right: -3%;
 }
 
 .set {
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.input-number2{
+  width: 40%;
 }
 
 .add-button {
