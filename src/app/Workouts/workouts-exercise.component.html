@@ -1,5 +1,4 @@
 <div class="exercise-grid">
-  <!-- Wiersz z polem Exercise -->
   <div class="exercise-row">
     <mat-form-field class="select-field">
       <mat-label>Choose Exercise</mat-label>
@@ -10,7 +9,6 @@
       </mat-select>
     </mat-form-field>
 
-    <!-- Pole Sets -->
     <div *ngIf="selectedExercise" class="input-group">
       <input type="hidden" [value]="selectedExercise">
 
@@ -21,13 +19,13 @@
           type="number"
           [(ngModel)]="sets"
           (ngModelChange)="onSetsChange()"
+          min="1"
           required
         >
       </mat-form-field>
     </div>
   </div>
 
-  <!-- Sekcja reps - dynamiczne pola poniżej -->
   <div *ngIf="selectedExercise" class="reps-container">
     <div *ngFor="let rep of repsArray; let i = index" class="reps-field">
       <mat-form-field class="input-number">
@@ -35,7 +33,8 @@
         <input matInput 
                type="number" 
                [(ngModel)]="repsArray[i]" 
-               (ngModelChange)="onChange()" 
+               (ngModelChange)="onChange()"
+               min="1" 
                required>
       </mat-form-field>
     </div>

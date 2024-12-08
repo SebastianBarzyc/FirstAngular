@@ -25,9 +25,9 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 app.use(cors({
-  origin: 'http://localhost:4200',  // Akceptuj zapytania z tej domeny
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Akceptuj te metody
-  allowedHeaders: ['Content-Type', 'Authorization']  // Zezwól na nagłówki Content-Type i Authorization
+  origin: 'http://localhost:4200',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.post('/api/register', async (req, res) => {
@@ -66,14 +66,14 @@ app.post('/api/login', async (req, res) => {
     return res.status(400).json({ message: 'Wrong login or password!' });
   }
 
-  const token = jwt.sign({ userId: user.id }, 'your_secret_key', { expiresIn: '1h' });
+  const token = jwt.sign({ userId: user.id }, 'your_secret_key');
 
   res.json({ message: 'User logged!', token });
 });
 
 const authenticateToken = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1];  // Token w nagłówku "Authorization"
-  console.log('Token received:', token);  // Sprawdzenie, co dokładnie otrzymujesz w tokenie
+  const token = req.headers['authorization']?.split(' ')[1];
+  console.log('Token received:', token);
   
   if (!token) {
     return res.status(403).json({ message: 'Access denied, no token provided.' });
@@ -81,12 +81,12 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, 'your_secret_key', (err, decoded) => {
     if (err) {
-      console.log('JWT verification failed:', err);  // Sprawdzenie, dlaczego weryfikacja nie udała się
+      console.log('JWT verification failed:', err);
       return res.status(401).json({ message: 'Invalid token.' });
     }
-    req.user = decoded;  // Zapisujemy `userId` w req.user
-    console.log('Decoded user:', req.user);  // Sprawdzenie, co jest w decoded
-    next();  // Kontynuuj do następnego middleware
+    req.user = decoded;
+    console.log('Decoded user:', req.user);
+    next();
   });
 };
 
@@ -245,18 +245,17 @@ GROUP BY
       })),
     })));
   } catch (err) {
-    console.error('Błąd podczas pobierania ćwiczeń:', err);
+    console.error('Error while fetching exercises:', err);
     res.status(500).json({ error: 'Error while fetching exercises' });
   }
 });
 
 app.get('/api/profile/:id', async (req, res) => {
   const id = req.params.id;
-  const userId = req.user.userId;
 
   try {
-    const query = 'SELECT * FROM users WHERE id = $1 AND user_id = $2';
-    const values = [id, userId];
+    const query = 'SELECT * FROM users WHERE id = $1';
+    const values = [id];
 
     const result = await pool.query(query, values);
 

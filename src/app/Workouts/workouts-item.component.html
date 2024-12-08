@@ -1,7 +1,5 @@
 <div *ngFor="let exercise of exercisesdata" class="exercise-grid">
-  <!-- Sekcja Exercise i Sets w jednym rzędzie -->
   <div class="exercise-row">
-    <!-- Pole do wyboru ćwiczenia -->
     <mat-form-field class="select-field">
       <mat-label>Exercise</mat-label>
       <mat-select [(ngModel)]="exercise.exercise_title" (selectionChange)="inputOnChange()">
@@ -13,7 +11,6 @@
       </mat-select>
     </mat-form-field>
 
-    <!-- Pole do ustawienia liczby sets -->
     <mat-form-field class="input-number">
       <mat-label>Sets</mat-label>
       <input matInput 
@@ -24,13 +21,11 @@
              required>
     </mat-form-field>
 
-    <!-- Przycisk do usunięcia ćwiczenia -->
     <button mat-fab style="margin-top: -20px" (click)="removeExercise(exercise.exercise_id)">
       <mat-icon>delete</mat-icon>
     </button>
   </div>
 
-  <!-- Sekcja reps - osobny blok pod Sets -->
   <div class="reps-container">
     <div *ngFor="let rep of exercise.reps; let i = index" class="reps-field">
       <mat-form-field class="input-number">
