@@ -313,30 +313,3 @@ textarea {
   justify-content: space-between;
   margin-top: 20px;
 }
-
-//Login
-/* login.component.css */
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh; /* Wyśrodkowanie formularza na stronie */
-}
-
-.card {
-  max-width: 400px;
-  width: 100%;
-  border-radius: 10px;
-}
-
-.mat-form-field {
-  width: 100%;
-}
-
-button {
-  border-radius: 5px;
-}
-
-p {
-  font-size: 14px;
-}

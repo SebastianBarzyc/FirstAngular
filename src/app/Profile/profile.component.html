@@ -1,5 +1,5 @@
 <div class="mainContent text-center">
-    <div class="profile-page">
+    <div class="profile-page" *ngIf="isLoggedIn; else loginTemplate">
         <!-- Nagłówek profilu -->
         <div class="profile-header">
             <h1>(Name) (Flag)</h1>
@@ -80,10 +80,12 @@
         <!-- Ustawienia -->
         <div class="settings">
           <button>Edit Profile</button>
-          <button>Log Out</button>
+          <button (click)="logout()">Log Out</button>
         </div>
       </div>
 
-      <app-login></app-login>
-      
+      <ng-template #loginTemplate>
+        <app-login></app-login>
+      </ng-template>
+
 </div>

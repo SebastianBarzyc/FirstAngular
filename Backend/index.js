@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { Pool } = require('pg');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 3000;
@@ -203,6 +205,31 @@ GROUP BY
     console.error('Błąd podczas pobierania ćwiczeń:', err);
     res.status(500).json({ error: 'Error while fetching exercises' });
   }
+});
+
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  console.log('Login attempt:', username, password); // Logowanie danych wejściowych
+
+  const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+
+  if (result.rows.length === 0) {
+    return res.status(400).json({ message: 'Błędna nazwa użytkownika lub hasło!' });
+  }
+
+  const user = result.rows[0];
+  console.log('User from database:', user); // Logowanie użytkownika z bazy danych
+
+  const isMatch = await bcrypt.compare(password, user.password);  // Porównanie hasła
+  console.log("ismatch? ", isMatch, "password: ", password, "user.password: ", user.password);
+  if (!isMatch) {
+    return res.status(400).json({ message: 'Błędna nazwa użytkownika lub hasło!' });
+  }
+
+  const token = jwt.sign({ userId: user.id }, 'your_secret_key', { expiresIn: '1h' });
+
+  res.json({ message: 'Zalogowano pomyślnie!', token });
 });
  
 app.post('/api/workouts', async (req, res) => {

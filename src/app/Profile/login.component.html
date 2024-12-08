@@ -1,26 +1,22 @@
-<div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
+<div class="d-flex justify-content-center align-items-center">
     <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
       <h3 class="card-title text-center mb-4">Logowanie</h3>
       <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-        <!-- Nazwa użytkownika -->
         <div class="mb-3">
           <label for="username" class="form-label">Nazwa użytkownika</label>
           <input type="text" id="username" class="form-control" placeholder="Wprowadź nazwę użytkownika" required [(ngModel)]="username" name="username" #usernameInput="ngModel">
           <div *ngIf="usernameInput.invalid && usernameInput.touched" class="text-danger">Nazwa użytkownika jest wymagana.</div>
         </div>
   
-        <!-- Hasło -->
         <div class="mb-3">
           <label for="password" class="form-label">Hasło</label>
           <input type="password" id="password" class="form-control" placeholder="Wprowadź hasło" required [(ngModel)]="password" name="password" #passwordInput="ngModel">
           <div *ngIf="passwordInput.invalid && passwordInput.touched" class="text-danger">Hasło jest wymagane.</div>
         </div>
   
-        <!-- Przycisk logowania -->
         <button type="submit" class="btn btn-primary w-100" [disabled]="loginForm.invalid">Zaloguj się</button>
       </form>
   
-      <!-- Link do rejestracji -->
       <p class="mt-3 text-center">Nie masz konta? <a href="#">Zarejestruj się</a></p>
     </div>
   </div>
