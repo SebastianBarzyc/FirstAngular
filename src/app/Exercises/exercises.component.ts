@@ -1,12 +1,11 @@
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ExercisesBackend } from './exercises-backend.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { ExerciseService } from './exercises.service';
 
 @Component({
   selector: 'app-exercises',
@@ -18,7 +17,7 @@ import { ExerciseService } from './exercises.service';
 export class ExercisesComponent {
   @ViewChild(ExercisesBackend) exercisesBackend!: ExercisesBackend;
 
-  constructor(private exerciseService: ExerciseService) {}
+  constructor() {}
 
   exercises: any[] = [];
   searchQuery: string = '';
@@ -30,10 +29,7 @@ export class ExercisesComponent {
   }
 
   Search() {
-    this.exerciseService.searchExercise(this.searchQuery).subscribe(data => {
-      this.exercises = data;
-    });
+
   }
-  
   
 }

@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, Injectable } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { ProfileComponent } from './profile.component';
 
 @Component({
@@ -31,7 +30,6 @@ export class LoginComponent {
       password: this.password,
       username: this.username
     };
-    console.log(loginData);
     if(this.showRegister){
         this.http.post<{ message: string }>('http://localhost:3000/api/register', loginData)
       .subscribe(
@@ -42,6 +40,7 @@ export class LoginComponent {
         }
       );
     }else{
+        
         this.http.post<{ message: string, token: string }>('http://localhost:3000/api/login', loginData)
         .subscribe(
             response => {

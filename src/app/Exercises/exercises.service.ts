@@ -1,6 +1,6 @@
 // exercise.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 
@@ -11,7 +11,6 @@ export class ExerciseService {
   private apiUrl = 'http://localhost:3000/api/exercises';
   private apiUrlEdit = 'http://localhost:3000/api/update-exercise/';
   private apiUrlDelete = 'http://localhost:3000/api/delete-exercise/';
-  private apiUrlSearch = 'http://localhost:3000/api/search-exercises/';
   private refreshNeeded$ = new Subject<void>();
   private searchResultsSubject = new BehaviorSubject<any[]>([]);
   searchResults$ = this.searchResultsSubject.asObservable();
@@ -19,23 +18,35 @@ export class ExerciseService {
   constructor(private http: HttpClient) {}
 
   getData(): Observable<any> {
-    return this.http.get<any>(this.apiUrl);
+    const token = localStorage.getItem('token');
+    console.log('Token:', token);
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    return this.http.get<any>(this.apiUrl, { headers });
   }
-
+  
   addExercise(exercise: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, exercise).pipe(
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.post<any>(this.apiUrl, exercise, {headers}).pipe(
       tap(() => {
-        this.refreshNeeded$.next();  // Trigger refresh after adding exercise
+        this.refreshNeeded$.next();
       })
     );
   }
 
   editExercise(id: number, newTitle: string, newDescription: string): Observable<any> {
     const body = { id, newTitle, newDescription };
-
-    return this.http.put<any>(this.apiUrlEdit, body).pipe(
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.put<any>(this.apiUrlEdit, body, {headers}).pipe(
       tap(() => {
-        this.refreshNeeded$.next();  // Trigger refresh after editing exercise
+        this.refreshNeeded$.next();
       }),
       catchError(error => {
         console.error('Error editing exercise:', error);
@@ -45,19 +56,13 @@ export class ExerciseService {
   }
 
   deleteExercise(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrlDelete}${id}`).pipe(
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    return this.http.delete<any>(`${this.apiUrlDelete}${id}`, {headers}).pipe(
       tap(() => {
-        this.refreshNeeded$.next();  // Trigger refresh after deleting exercise
-      })
-    );
-  }
-
-  searchExercise(query: string): Observable<any[]> {
-    const params = new HttpParams().set('query', query);
-    return this.http.get<any[]>(this.apiUrlSearch, { params }).pipe(
-      tap(data => {
-        console.log('Search results:', data);
-        this.searchResultsSubject.next(data);  // Update search results
+        this.refreshNeeded$.next();
       })
     );
   }

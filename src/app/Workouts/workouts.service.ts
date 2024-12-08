@@ -35,11 +35,11 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     idFromTitle: number = 0;
 
     getData(): Observable<any> {
-      return this.http.get<any>(this.apiUrl);
-    }
-    getExercises(id: number): Observable<any> {
-      const url = `${this.apiUrlExercise2}/${id}`;
-      return this.http.get<any>(url);
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+      return this.http.get<any>(this.apiUrl, {headers});
     }
 
     onRefreshNeeded(): Observable<void> {
@@ -47,15 +47,22 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     }
 
     addworkout(workout: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, workout).pipe(
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.post<any>(this.apiUrl, workout, {headers}).pipe(
       tap(() => {
         this.refreshNeeded$.next();
       })
     );
     }
     addworkout2(workout: any): Observable<any> {
-      console.log("service: ", workout);
-      return this.http.post<any>(this.apiUrl2, workout).pipe(
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+      return this.http.post<any>(this.apiUrl2, workout, {headers}).pipe(
         tap(() => {
           this.refreshNeeded$.next();
         })
@@ -63,7 +70,11 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
       }
 
     getExerciseByTitle(title: string): Observable<any> {
-      return this.http.get<any>(`${this.apiUrlExercise}/${title}`).pipe(
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+      return this.http.get<any>(`${this.apiUrlExercise}/${title}`, {headers}).pipe(
         tap(response => {
           this.idFromTitle = response.exercise.id;
           this.refreshNeeded$.next();
@@ -78,9 +89,12 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
 
     editworkout(id: number, newTitle: string, newDescription: string): Observable<any> {
       const body = { id, newTitle, newDescription };
-      console.log(body);
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
     
-      return this.http.put<any>(this.apiUrlEdit, body).pipe(
+      return this.http.put<any>(this.apiUrlEdit, body, {headers}).pipe(
         tap(() => {
           this.refreshNeeded$.next();
         }),
@@ -92,8 +106,11 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     }
 
   editworkout2(id: number): Observable<any> {
-    console.log("editworkout2: " + id);
-    return this.http.delete<any>(`${this.apiUrlEdit2}${id}`).pipe(
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.delete<any>(`${this.apiUrlEdit2}${id}`, {headers}).pipe(
       catchError(error => {
         console.error('Error editing workout:', error);
         throw error;
@@ -102,10 +119,12 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
   }
 
   editworkout3(planId: number, idExercise: number, reps: number[], exercise_title: string): Observable<any> {
-    console.log('editworkout3 called with:', { planId, idExercise, reps, exercise_title });
     const url = this.apiUrlEdit3;
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
 
-    // Przygotowanie ciała zapytania, gdzie każdy rep to osobny element
     const body = reps.map(rep => ({
         planId: planId,
         idExercise: idExercise,
@@ -113,15 +132,9 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
         exercise_title: exercise_title,
     }));
 
-    console.log('Sending data to server:', body);
-
-    return this.http.post<any>(url, body, {
-        headers: new HttpHeaders({
-            'Content-Type': 'application/json'
-        })
-    }).pipe(
-        catchError(this.handleError<any>('editworkout3'))
-    );
+    return this.http.post<any>(url, body, { headers }).pipe(
+      catchError(this.handleError<any>('editworkout3'))
+    );    
 }
 
   private handleError<T>(operation = 'operation', result?: T) {
@@ -132,7 +145,11 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
   }
 
   deleteworkout(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrlDelete}${id}`).pipe(
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.delete<any>(`${this.apiUrlDelete}${id}`, {headers}).pipe(
       tap(() => {
         this.refreshNeeded$.next();
       }),
@@ -144,11 +161,19 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
   }
 
   getExercisesForPlan(planId: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${planId}/exercises`);
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.get<any>(`${this.apiUrl}/${planId}/exercises`, {headers});
   }
    
   getAvailableExercises(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/available-exercises`);
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.get<any>(`${this.apiUrl}/available-exercises`, {headers});
   }
 
   async addExerciseToWorkout(exercise: { title: string, reps: number[] }) {

@@ -40,15 +40,27 @@ export class CalendarService {
   constructor(private http: HttpClient) {}
 
   getSessions(): Observable<Session[]> {
-    return this.http.get<Session[]>(this.apiUrl);
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.get<Session[]>(this.apiUrl, {headers});
   }
 
   getWorkouts(): Observable<any> {
-    return this.http.get<any>(this.apiUrlWorkouts);
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.get<any>(this.apiUrlWorkouts, {headers});
   }
 
   addSession(session: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, session).pipe(
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.post<any>(this.apiUrl, session, {headers}).pipe(
       tap(() => {
         this.refreshNeeded$.next();
       })
@@ -57,8 +69,11 @@ export class CalendarService {
 
   editSession(id: number, newTitle: string, newDescription: string): Observable<any> {
     const body = { id, newTitle, newDescription };
-  
-    return this.http.put<any>(this.apiUrlEdit, body).pipe(
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    return this.http.put<any>(this.apiUrlEdit, body, {headers}).pipe(
       tap(() => {
         this.refreshNeeded$.next();
       }),
@@ -70,8 +85,11 @@ export class CalendarService {
   }
 
   editSession2(id: number): Observable<any> {
-    console.log("editSession2: " + id);
-    return this.http.delete<any>(`${this.apiUrlEdit2}${id}`).pipe(
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.delete<any>(`${this.apiUrlEdit2}${id}`, {headers}).pipe(
       tap(() => {
         this.refreshNeeded$.next();
       }),
@@ -84,7 +102,6 @@ export class CalendarService {
 
   editSession3(exercise_id: number, exercise_title: string, reps: number, weight: number, session_id: number): Observable<any> {
     const url = this.apiUrlEdit3;
-    console.log("edit3: ", exercise_id, exercise_title, reps, weight, session_id);
     const body = { 
       exercise_id: exercise_id,
       exercise_title: exercise_title,
@@ -92,12 +109,12 @@ export class CalendarService {
       weight: weight,
       session_id: session_id
     };
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
       
-    return this.http.post<any>(url, body, {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json'
-      })
-    }).pipe(
+    return this.http.post<any>(url, body, {headers}).pipe(
       tap(() => {
         this.refreshNeeded$.next();
       }),
@@ -106,7 +123,11 @@ export class CalendarService {
   }
 
   deleteSession(id: number): Observable<any> {
-      return this.http.delete<any>(`${this.apiUrlDelete}${id}`).pipe(
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+      return this.http.delete<any>(`${this.apiUrlDelete}${id}`, {headers}).pipe(
         tap(() => {
           this.refreshNeeded$.next();
         }),
@@ -118,11 +139,19 @@ export class CalendarService {
     }
 
   getExercises(): Observable<any> {
-    return this.http.get<any>(this.apiUrlExercises);
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.get<any>(this.apiUrlExercises, {headers});
   }
 
   getExercisesList(id: number): Observable<Exercise[]> {
-    return this.http.get<Exercise[]>(`http://localhost:3000/api/session/${id}/exercises`);
+    const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+    return this.http.get<Exercise[]>(`http://localhost:3000/api/session/${id}/exercises`, {headers});
   }
 
   private handleError<T>(operation = 'operation', result?: T) {

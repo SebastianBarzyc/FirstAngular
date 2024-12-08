@@ -23,189 +23,12 @@ app.use((req, res, next) => {
   next();
 });
 
-
 app.use(bodyParser.json());
 app.use(cors({
-  origin: 'http://localhost:4200'
+  origin: 'http://localhost:4200',  // Akceptuj zapytania z tej domeny
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Akceptuj te metody
+  allowedHeaders: ['Content-Type', 'Authorization']  // Zezwól na nagłówki Content-Type i Authorization
 }));
-
-app.get('/api/exercises', (req, res) => {
-  pool.query('SELECT * FROM exercises ORDER BY ID ASC;', (error, results) => {
-    if (error) {
-      throw error;
-    }
-    res.json(results.rows);
-  });
-});
-
-app.get('/api/exercises2/:id', async (req, res) => {
-  const id = req.params.id;
-  try {
-    const query ='SELECT * FROM plan_exercises WHERE plan_id = $1;';
-    const values = [id];
-
-    const result = await pool.query(query, values);
-
-    console.log('Query result:', result.rows);
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error searching exercises:', error);
-    res.status(500).json({ message: 'Error searching exercises' });
-  }
-});
-
-
-app.get('/api/search-exercises', async (req, res) => {
-  const query = req.query.query || '';
-
-  try {
-    const result = await pool.query(
-      'SELECT * FROM exercises WHERE title ILIKE $1',
-      [`%${query}%`]
-    );
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error searching exercises:', error);
-    res.status(500).json({ message: 'Error searching exercises' });
-  }
-});
-
-app.get('/api/workouts', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM training_plans ORDER BY ID ASC;');
-    const data = result.rows;
-
-    res.json({
-      data: data
-    });
-  } catch (error) {
-    console.error('Error querying database:', error);
-    res.status(500).json({ message: 'Error retrieving data' });
-  }
-});
-
-
-app.get('/api/exercises/:title', async (req, res) => {
-  const title = req.params.title;
-  try {
-    const query = 'SELECT * FROM exercises WHERE title = $1';
-    const values = [title];
-
-    const result = await pool.query(query, values);
-
-    if (result.rowCount > 0) {
-      res.status(200).json({ message: 'Exercise found:', exercise: result.rows[0] });
-    } else {
-      res.status(404).json({ message: 'Exercise not found' });
-    }
-  } catch (error) {
-    console.error('Error finding data:', error);
-    res.status(500).json({ message: 'Error finding data' });
-  }
-});
-
-app.get('/api/workouts/:planID/exercises', async (req, res) => {
-  const planID = req.params.planID;
-  try {
-    const query = `
-      SELECT exercise_id, exercise_title, reps
-      FROM plan_exercises
-      WHERE plan_id = $1
-      ORDER BY exercise_title`;
-    const result = await pool.query(query, [planID]);
-
-    // Grupowanie ćwiczeń i liczenie liczby sets (serii)
-    const exercisesData = result.rows.reduce((acc, row) => {
-      const exerciseIndex = acc.findIndex(ex => ex.exercise_id === row.exercise_id);
-      if (exerciseIndex !== -1) {
-        // Jeśli ćwiczenie już istnieje, połącz jego reps w tablicę
-        acc[exerciseIndex].reps.push(row.reps);
-      } else {
-        // Jeśli ćwiczenie nie istnieje, dodaj nowe
-        acc.push({
-          exercise_id: row.exercise_id,
-          exercise_title: row.exercise_title,
-          sets: 1, // Początkowo liczymy jedno wystąpienie ćwiczenia
-          reps: [row.reps]  // Reps dodajemy do tablicy
-        });
-      }
-      return acc;
-    }, []);
-
-    // Aktualizowanie liczby sets na podstawie liczby wystąpień ćwiczenia
-    exercisesData.forEach(exercise => {
-      exercise.sets = exercise.reps.length; // Zliczamy ilość wystąpień (sets)
-    });
-
-    res.status(200).json({ data: exercisesData });
-  } catch (error) {
-    console.error('Error fetching exercises:', error);
-    res.status(500).json({ message: 'Error fetching exercises' });
-  }
-});
-
-
-app.get('/api/sessions', async (req, res) => { 
-  try {
-    const result = await pool.query('SELECT * FROM sessions ORDER BY session_id ASC;');
-    const data = result.rows;
-
-    res.json(data); 
-  } catch (error) {
-    console.error('Error querying database:', error);
-    res.status(500).json({ message: 'Error retrieving data' });
-  }
-});
-
-app.get('/api/session/:id/exercises', async (req, res) => {
-  const sessionId = req.params.id;
-
-  try {
-    const query = `
-    SELECT 
-    se.exercise_id AS id,
-    se.session_id,
-    s.title AS session_title,  
-    e.title AS exercise_title, 
-    json_agg(
-        json_build_object(
-            'reps', se.reps,
-            'weight', se.weight
-        )
-    ) AS sets
-FROM 
-    session_exercises se
-JOIN 
-    sessions s ON se.session_id = s.session_id
-JOIN 
-    exercises e ON se.exercise_id = e.id
-WHERE 
-    se.session_id = $1
-GROUP BY 
-    se.exercise_id, se.session_id, s.title, e.title;
-
-`;
-    const result = await pool.query(query, [sessionId]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'No exercises found' });
-    }
-
-    res.json(result.rows.map(row => ({
-      exercise_id: row.id,
-      exercise_title: row.exercise_title,
-      title: row.session_title,
-      sets: row.sets.map(set => ({
-        reps: set.reps,
-        weight: set.weight,
-      })),
-    })));
-  } catch (err) {
-    console.error('Błąd podczas pobierania ćwiczeń:', err);
-    res.status(500).json({ error: 'Error while fetching exercises' });
-  }
-});
 
 app.post('/api/register', async (req, res) => {
   const { login, username, password } = req.body;
@@ -224,7 +47,6 @@ app.post('/api/register', async (req, res) => {
 
   res.status(201).json({ message: 'Registration completed successfully!'});
 });
-
 
 app.post('/api/login', async (req, res) => {
   const { login, password } = req.body;
@@ -248,28 +70,213 @@ app.post('/api/login', async (req, res) => {
 
   res.json({ message: 'User logged!', token });
 });
- 
-app.post('/api/workouts', async (req, res) => {
-  const { title, description } = req.body;
+
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1];  // Token w nagłówku "Authorization"
+  console.log('Token received:', token);  // Sprawdzenie, co dokładnie otrzymujesz w tokenie
+  
+  if (!token) {
+    return res.status(403).json({ message: 'Access denied, no token provided.' });
+  }
+
+  jwt.verify(token, 'your_secret_key', (err, decoded) => {
+    if (err) {
+      console.log('JWT verification failed:', err);  // Sprawdzenie, dlaczego weryfikacja nie udała się
+      return res.status(401).json({ message: 'Invalid token.' });
+    }
+    req.user = decoded;  // Zapisujemy `userId` w req.user
+    console.log('Decoded user:', req.user);  // Sprawdzenie, co jest w decoded
+    next();  // Kontynuuj do następnego middleware
+  });
+};
+
+app.use(authenticateToken);
+
+app.get('/api/exercises', (req, res) => {
+  const userId = req.user.userId;
+  console.log(userId);
+  pool.query('SELECT * FROM exercises WHERE user_id = $1 ORDER BY ID ASC;', [userId], (error, results) => {
+
+    if (error) {
+      throw error;
+    }
+    res.json(results.rows);
+  });
+});
+
+app.get('/api/workouts', async (req, res) => {
+  const userId = req.user.userId;
 
   try {
-    const query = 'INSERT INTO training_plans (title, description) VALUES ($1, $2) RETURNING *';
-    const values = [title, description];
+    const result = await pool.query('SELECT * FROM training_plans WHERE user_id = $1 ORDER BY ID ASC;', [userId]);
+    const data = result.rows;
+
+    res.json({
+      data: data
+    });
+  } catch (error) {
+    console.error('Error querying database:', error);
+    res.status(500).json({ message: 'Error retrieving data' });
+  }
+});
+
+
+app.get('/api/exercises/:title', async (req, res) => {
+  const title = req.params.title;
+  const userId = req.user.userId;
+
+  try {
+    const query = 'SELECT * FROM exercises WHERE title = $1 AND user_id = $2';
+    const values = [title, userId];
 
     const result = await pool.query(query, values);
 
-    res.status(201).json({ message: 'Workout added successfully', workout: result.rows[0] });
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Exercise found:', exercise: result.rows[0] });
+    } else {
+      res.status(404).json({ message: 'Exercise not found' });
+    }
   } catch (error) {
-    console.error('Error adding workout:', error);
-    res.status(500).json({ error: 'Failed to add workout' });
+    console.error('Error finding data:', error);
+    res.status(500).json({ message: 'Error finding data' });
+  }
+});
+
+app.get('/api/workouts/:planID/exercises', async (req, res) => {
+  const planID = req.params.planID;
+  const userId = req.user.userId;
+
+  try {
+    const query = `
+      SELECT exercise_id, exercise_title, reps
+      FROM plan_exercises
+      WHERE plan_id = $1 AND user_id = $2
+      ORDER BY exercise_title`;
+    
+    const result = await pool.query(query, [planID, userId]);
+
+    if (!result.rows || result.rows.length === 0) {
+      return res.status(404).json({ message: 'No exercises found for this plan.' });
+    }
+
+    const exercisesData = result.rows.reduce((acc, row) => {
+      const exerciseIndex = acc.findIndex(ex => ex.exercise_id === row.exercise_id);
+      if (exerciseIndex !== -1) {
+        acc[exerciseIndex].reps.push(row.reps);
+      } else {
+        acc.push({
+          exercise_id: row.exercise_id,
+          exercise_title: row.exercise_title,
+          sets: 1,
+          reps: [row.reps]
+        });
+      }
+      return acc;
+    }, []);
+
+    exercisesData.forEach(exercise => {
+      exercise.sets = exercise.reps.length;
+    });
+
+    res.status(200).json({ data: exercisesData });
+  } catch (error) {
+    console.error('Error fetching exercises:', error);
+    res.status(500).json({ message: 'Error fetching exercises' });
+  }
+});
+
+
+app.get('/api/sessions', async (req, res) => { 
+  const userId = req.user.userId;
+
+  try {
+    const result = await pool.query('SELECT * FROM sessions  WHERE user_id = $1 ORDER BY session_id ASC;', [userId]);
+    const data = result.rows;
+
+    res.json(data); 
+  } catch (error) {
+    console.error('Error querying database:', error);
+    res.status(500).json({ message: 'Error retrieving data' });
+  }
+});
+
+app.get('/api/session/:id/exercises', async (req, res) => {
+  const sessionId = req.params.id;
+  const userId = req.user.userId;
+
+  try {
+    const query = `
+    SELECT 
+    se.exercise_id AS id,
+    se.session_id,
+    s.title AS session_title,  
+    e.title AS exercise_title, 
+    json_agg(
+        json_build_object(
+            'reps', se.reps,
+            'weight', se.weight
+        )
+    ) AS sets
+FROM 
+    session_exercises se
+JOIN 
+    sessions s ON se.session_id = s.session_id
+JOIN 
+    exercises e ON se.exercise_id = e.id
+WHERE 
+    se.session_id = $1 AND se.user_id = $2
+GROUP BY 
+    se.exercise_id, se.session_id, s.title, e.title;
+`;
+
+    const result = await pool.query(query, [sessionId, userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No exercises found' });
+    }
+
+    res.json(result.rows.map(row => ({
+      exercise_id: row.id,
+      exercise_title: row.exercise_title,
+      title: row.session_title,
+      sets: row.sets.map(set => ({
+        reps: set.reps,
+        weight: set.weight,
+      })),
+    })));
+  } catch (err) {
+    console.error('Błąd podczas pobierania ćwiczeń:', err);
+    res.status(500).json({ error: 'Error while fetching exercises' });
+  }
+});
+
+app.get('/api/profile/:id', async (req, res) => {
+  const id = req.params.id;
+  const userId = req.user.userId;
+
+  try {
+    const query = 'SELECT * FROM users WHERE id = $1 AND user_id = $2';
+    const values = [id, userId];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'User found:', user: result.rows[0] });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error finding data:', error);
+    res.status(500).json({ message: 'Error finding data' });
   }
 });
 
 app.post('/api/workouts2', async (req, res) => {
   let workouts = req.body;
+  const userId = req.user.userId;
 
   try {
-    const planIdResult = await pool.query('SELECT id FROM training_plans ORDER BY id DESC LIMIT 1');
+    const planIdResult = await pool.query('SELECT id FROM training_plans WHERE user_id = $1 ORDER BY id DESC LIMIT 1', [userId]);
     const plan_id = planIdResult.rows[0] ? planIdResult.rows[0].id : null;
     if (!plan_id) {
       return res.status(400).json({ error: 'No training plans found, cannot assign plan_id' });
@@ -277,8 +284,8 @@ app.post('/api/workouts2', async (req, res) => {
 
     const queries = workouts.flatMap(({ exercise_id, title, reps }) => {
       return reps.map(rep => {
-        const query = 'INSERT INTO plan_exercises (plan_id, exercise_id, reps, exercise_title) VALUES ($1, $2, $3, $4) RETURNING *';
-        const values = [plan_id, exercise_id, rep, title];
+        const query = 'INSERT INTO plan_exercises (plan_id, exercise_id, reps, exercise_title, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+        const values = [plan_id, exercise_id, rep, title, userId];
         return pool.query(query, values);
       });
     });
@@ -295,12 +302,30 @@ app.post('/api/workouts2', async (req, res) => {
   }
 });
 
-app.post('/api/sessions', async (req, res) => {
-  const { date, title, description } = req.body;
+app.post('/api/workouts', async (req, res) => {
+  const { title, description } = req.body;
+  const userId = req.user.userId;
 
   try {
-    const query = 'INSERT INTO sessions (date, title, description) VALUES ($1, $2, $3) RETURNING *';
-    const values = [date, title, description];
+    const query = 'INSERT INTO training_plans (title, description, user_id) VALUES ($1, $2, $3) RETURNING *';
+    const values = [title, description, userId];
+
+    const result = await pool.query(query, values);
+
+    res.status(201).json({ message: 'Workout added successfully', workout: result.rows[0] });
+  } catch (error) {
+    console.error('Error adding workout:', error);
+    res.status(500).json({ error: 'Failed to add workout' });
+  }
+});
+
+app.post('/api/sessions', async (req, res) => {
+  const { date, title, description } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const query = 'INSERT INTO sessions (date, title, description, user_id) VALUES ($1, $2, $3, $4) RETURNING *';
+    const values = [date, title, description, userId];
 
     const result = await pool.query(query, values);
 
@@ -313,10 +338,11 @@ app.post('/api/sessions', async (req, res) => {
 
 app.post('/api/exercises', async (req, res) => {
   const { title, description } = req.body;
+  const userId = req.user.userId;
 
   try {
-    const query = 'INSERT INTO exercises (title, description) VALUES ($1, $2) RETURNING *';
-    const values = [title, description];
+    const query = 'INSERT INTO exercises (title, description, user_id) VALUES ($1, $2, $3) RETURNING *';
+    const values = [title, description, userId];
 
     const result = await pool.query(query, values);
 
@@ -329,6 +355,7 @@ app.post('/api/exercises', async (req, res) => {
 
 app.post('/api/update-workout3/', async (req, res) => {
   const exercises = req.body;
+  const userId = req.user.userId;
 
   console.log('Received data:', exercises);
 
@@ -338,16 +365,17 @@ app.post('/api/update-workout3/', async (req, res) => {
 
   try {
       const query = `
-          INSERT INTO plan_exercises (plan_id, exercise_id, reps, exercise_title)
+          INSERT INTO plan_exercises (plan_id, exercise_id, reps, exercise_title, user_id)
           VALUES 
-          ${exercises.map((exercise, index) => `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`).join(', ')}
+          ${exercises.map((exercise, index) => `($${index * 5 + 1}, $${index * 5 + 2}, $${index * 5 + 3}, $${index * 5 + 4}, $${index * 5 + 5})`).join(', ')}
           RETURNING *`;
 
       const values = exercises.flatMap(exercise => [
           exercise.planId,
           exercise.idExercise,
           exercise.reps,
-          exercise.exercise_title
+          exercise.exercise_title,
+          userId
       ]);
 
       const result = await pool.query(query, values);
@@ -365,12 +393,11 @@ app.post('/api/update-workout3/', async (req, res) => {
 
 app.post('/api/update-session3/', async (req, res) => {
   const { exercise_id, reps, weight, session_id } = req.body;
-
-  console.log('Received data:', { exercise_id, reps, weight, session_id });
+  const userId = req.user.userId;
 
   try {
-    const query = `INSERT INTO session_exercises (exercise_id, reps, weight, session_id) VALUES ($1, $2, $3, $4) RETURNING *`;
-    const values = [exercise_id, reps, weight, session_id];
+    const query = `INSERT INTO session_exercises (exercise_id, reps, weight, session_id, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
+    const values = [exercise_id, reps, weight, session_id, userId];
 
     console.log('Executing query with values:', values);
     const result = await pool.query(query, values);
@@ -458,26 +485,22 @@ app.delete('/api/delete-exercise/:id', async (req, res) => {
 app.delete('/api/delete-workout/:id', async (req, res) => {
   const id = req.params.id;
   try {
-    const query = 'DELETE FROM plan_exercises WHERE plan_id = $1';  // Usuwamy ćwiczenia z planu
-    const query2 = 'DELETE FROM training_plans WHERE id = $1';  // Usuwamy plan treningowy
+    const query = 'DELETE FROM plan_exercises WHERE plan_id = $1';
+    const query2 = 'DELETE FROM training_plans WHERE id = $1';
     const values = [id];
   
-    // Usuwamy ćwiczenia z planu
     const result = await pool.query(query, values);
   
-    // Sprawdzamy, czy plan istnieje w tabeli training_plans
     const checkQuery = 'SELECT * FROM training_plans WHERE id = $1';
     const checkResult = await pool.query(checkQuery, values);
   
     let result2;
     if (checkResult.rowCount > 0) {
-      // Jeśli istnieje rekord w training_plans, usuwamy go
       result2 = await pool.query(query2, values);
     } else {
-      result2 = { rowCount: 0 };  // Ustalamy result2 na 0, jeśli plan nie istnieje
+      result2 = { rowCount: 0 };
     }
   
-    // Sprawdzamy, czy przynajmniej jedno zapytanie usunęło dane
     if (result.rowCount > 0 || result2.rowCount > 0) {
       res.status(200).json({ message: 'Workout deleted successfully' });
     } else {
@@ -500,7 +523,6 @@ app.delete('/api/delete-session/:id', async (req, res) => {
     const query2 = 'DELETE FROM session_exercises WHERE session_id = $1';
     const values = [id];
 
-    // Wykonaj zapytanie, aby usunąć sesję
     const result = await pool.query(query, values);
 
     const checkQuery = 'SELECT * FROM session_exercises WHERE session_id = $1';
@@ -508,10 +530,9 @@ app.delete('/api/delete-session/:id', async (req, res) => {
 
     let result2;
     if (checkResult.rowCount > 0) {
-      // Jeśli istnieje rekord w training_plans, usuwamy go
       result2 = await pool.query(query2, values);
     } else {
-      result2 = { rowCount: 0 };  // Ustalamy result2 na 0, jeśli plan nie istnieje
+      result2 = { rowCount: 0 };
     }
 
     if (result.rowCount > 0 || result2.rowCount > 0) {
