@@ -21,7 +21,6 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     private apiUrl = 'http://localhost:3000/api/workouts';
     private apiUrl2 = 'http://localhost:3000/api/workouts2/';
     private apiUrlExercise = 'http://localhost:3000/api/exercises';
-    private apiUrlExercise2 = 'http://localhost:3000/api/exercises2';
     private apiUrlEdit = 'http://localhost:3000/api/update-workout/';
     private apiUrlEdit2 = 'http://localhost:3000/api/update-workout2/';
     private apiUrlEdit3 = 'http://localhost:3000/api/update-workout3/';

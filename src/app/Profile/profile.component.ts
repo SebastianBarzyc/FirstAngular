@@ -26,20 +26,28 @@ import { firstValueFrom } from 'rxjs';
 })
 export class ProfileComponent implements OnInit {
   isLoggedIn: boolean = false;
-  userProfile: any = null;  // Upewnij się, że userProfile jest inicjowane jako null
+  userProfile: any = null;
   token: string | null = null;
+  totalSessions: number | null = null;
+  totalWeights: number | null = null;
+  consecutiveSessions: number | null = null;
 
-  constructor(private http: HttpClient, private jwtHelper: JwtHelperService) {}
+  private apiUrl = 'http://localhost:3000/api/profile';
+
+  constructor(private http: HttpClient) {}
 
   async ngOnInit() {
     this.token = localStorage.getItem('token');
     const userId = this.getUserIdFromToken();
 
     if (userId !== null) {
-      this.getProfile(userId);
+      await this.getProfile(userId);
+      console.log(this.userProfile);
     }
-
     this.isLoggedIn = !!this.token;
+    this.getTotalSessions();
+    this.getTotalWeights();
+    this.getConsecutiveSessions();
   }
 
   logout() {
@@ -47,22 +55,70 @@ export class ProfileComponent implements OnInit {
     this.isLoggedIn = false;
   }
 
-  getProfileData(id: number) {
+  getTotalSessions() {
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${this.token}`
     });
-  return this.http.get<any>(`http://localhost:3000/api/profile/${id}`, { headers });
+  
+    this.http.get<any>(`${this.apiUrl}/totalSessions/`, { headers })
+      .subscribe(
+        response => {
+          this.totalSessions = response.totalSessions.count;
+        },
+        error => {
+          console.error('Error fetching total sessions:', error);
+        }
+      );
+  }
+  
+  getTotalWeights() {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.token}`
+    });
+  
+    this.http.get<any>(`${this.apiUrl}/totalWeights/`, { headers })
+      .subscribe(
+        response => {
+          this.totalWeights = response.totalWeights.sum;
+        },
+        error => {
+          console.error('Error fetching total weights:', error);
+        }
+      );
   }
 
-  getProfile(id: number) {
+  getConsecutiveSessions(){
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.token}`
+    });
+  
+    this.http.get<any>(`${this.apiUrl}/consecutiveSessions/`, { headers })
+      .subscribe(
+        response => {
+          this.consecutiveSessions = response.consecutiveSessions.consecutive_days;
+        },
+        error => {
+          console.error('Error fetching total weights:', error);
+        }
+      );
+  }
+
+  async getProfile(id: number) {
     try {
-      const data = firstValueFrom(this.getProfileData(id));
-      console.log('User profile data:', data);
-      this.userProfile = data;
+      const data = await firstValueFrom(this.getProfileData(id));
+      this.userProfile = data.user;
+      console.log(this.userProfile);
     } catch (error) {
       console.error('Error fetching profile data:', error);
     }
   }
+
+getProfileData(id: number) {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.token}`
+    });
+    return this.http.get<any>(`${this.apiUrl}/${id}`, { headers });
+}
 
   getUserIdFromToken(): number | null {
     if (!this.token) {

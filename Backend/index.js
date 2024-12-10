@@ -250,15 +250,92 @@ GROUP BY
   }
 });
 
+app.get('/api/profile/totalSessions/', async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const query = 'SELECT COUNT(DISTINCT date) FROM sessions WHERE user_id = $1;';
+    const values = [userId];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Sessions found:', totalSessions: result.rows[0] });
+    } else {
+      res.status(404).json({ message: 'Sessions not found' });
+    }
+  } catch (error) {
+    console.error('Error finding data:', error);
+    res.status(500).json({ message: 'Error finding data' });
+  }
+});
+
+app.get('/api/profile/totalWeights/', async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const query = 'SELECT SUM(weight) FROM session_exercises WHERE user_id = $1;';
+    const values = [userId];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Sessions found:', totalWeights: result.rows[0] });
+    } else {
+      res.status(404).json({ message: 'Sessions not found' });
+    }
+  } catch (error) {
+    console.error('Error finding data:', error);
+    res.status(500).json({ message: 'Error finding data' });
+  }
+});
+
+app.get('/api/profile/consecutiveSessions/', async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const query = `WITH consecutive_sessions AS (
+  SELECT
+    session_id,
+    TO_DATE(date, 'DD.MM.YYYY') AS formatted_date,
+    user_id,
+    TO_DATE(date, 'DD.MM.YYYY') - INTERVAL '1 day' * ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY TO_DATE(date, 'DD.MM.YYYY')) AS streak_group
+  FROM sessions
+  WHERE TO_DATE(date, 'DD.MM.YYYY') <= CURRENT_DATE
+)
+SELECT
+  user_id,
+  COUNT(*) AS consecutive_days
+FROM consecutive_sessions
+WHERE formatted_date >= CURRENT_DATE - INTERVAL '7 days'
+  AND formatted_date <= CURRENT_DATE
+  AND streak_group = (SELECT streak_group FROM consecutive_sessions WHERE formatted_date = CURRENT_DATE LIMIT 1)
+  AND user_id = $1
+GROUP BY user_id, streak_group
+ORDER BY consecutive_days DESC
+LIMIT 1;`
+    const values = [userId];
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: 'Sessions found:', consecutiveSessions: result.rows[0] });
+    } else {
+      res.status(404).json({ message: 'Sessions not found' });
+    }
+  } catch (error) {
+    console.error('Error finding data:', error);
+    res.status(500).json({ message: 'Error finding data' });
+  }
+});
+
 app.get('/api/profile/:id', async (req, res) => {
   const id = req.params.id;
-
   try {
     const query = 'SELECT * FROM users WHERE id = $1';
     const values = [id];
 
     const result = await pool.query(query, values);
-
     if (result.rowCount > 0) {
       res.status(200).json({ message: 'User found:', user: result.rows[0] });
     } else {

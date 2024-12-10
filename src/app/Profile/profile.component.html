@@ -2,23 +2,23 @@
     <div class="profile-page" *ngIf="isLoggedIn; else loginTemplate">
       <!-- Nagłówek profilu -->
       <div class="profile-header" *ngIf="userProfile">
-        <h1>{{ userProfile?.username }} (Flag)</h1>
-        <p>(Goal)</p>
+        <h1>{{ userProfile.username }} (Flag)</h1>
+        <p>{{ userProfile.goal }}</p>
       </div>
     
       <!-- Statystyki -->
       <div class="stats">
         <div class="stat-card">
           <h2>Workouts</h2>
-          <p>(Workouts total)</p>
+          <p>{{ totalSessions !== null ? totalSessions : '0' }}</p>
         </div>
         <div class="stat-card">
           <h2>Weights</h2>
-          <p>(Weights total)</p>
+          <p>{{ totalWeights !== null ? totalWeights : '0' }}</p>
         </div>
         <div class="stat-card">
           <h2>Active Days</h2>
-          <p>(Workouts in row)</p>
+          <p>{{ consecutiveSessions !== null ? consecutiveSessions : '0' }}</p>
         </div>
       </div>
     
