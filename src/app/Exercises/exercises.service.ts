@@ -1,72 +1,118 @@
-// exercise.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { supabase, getUser } from '../supabase-client';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExerciseService {
-  private apiUrl = 'http://localhost:3000/api/exercises';
-  private apiUrlEdit = 'http://localhost:3000/api/update-exercise/';
-  private apiUrlDelete = 'http://localhost:3000/api/delete-exercise/';
   private refreshNeeded$ = new Subject<void>();
-  private searchResultsSubject = new BehaviorSubject<any[]>([]);
-  searchResults$ = this.searchResultsSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor() {}
 
-  getData(): Observable<any> {
-    const token = localStorage.getItem('token');
-    console.log('Token:', token);
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
+  getData(): Observable<any[]> {
+    return new Observable(observer => {
+      const userId = getUser();
+
+      if (!userId) {
+        observer.error('Nie znaleziono identyfikatora użytkownika.');
+        return;
+      }
+
+      supabase
+        .from('exercises')
+        .select('*')
+        .eq('user_id', userId)
+        .order('id', { ascending: true })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Błąd pobierania ćwiczeń:', error);
+            observer.error('Wystąpił błąd podczas pobierania ćwiczeń.');
+          } else {
+            observer.next(data || []);
+          }
+          observer.complete();
+        })
     });
-    return this.http.get<any>(this.apiUrl, { headers });
   }
   
   addExercise(exercise: any): Observable<any> {
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.post<any>(this.apiUrl, exercise, {headers}).pipe(
-      tap(() => {
-        this.refreshNeeded$.next();
-      })
-    );
-  }
+    return new Observable(observer => {
+      const userId = getUser();
+      if (!userId) {
+        observer.error('Nie znaleziono identyfikatora użytkownika.');
+        return;
+      }
+  
+      supabase
+        .from('exercises')
+        .insert([{ ...exercise, user_id: userId }])
+        .then(({ data, error }: { data: any | null; error: any }) => {
+          if (error) {
+            observer.error('Błąd dodawania ćwiczenia: ' + error.message);
+            return;
+          }
+          this.refreshNeeded$.next();
+
+          if (data && data.length > 0) {
+            observer.next({ message: 'Ćwiczenie dodane pomyślnie', data: data[0] });
+          } else {
+            observer.error('Brak zwróconych danych po dodaniu ćwiczenia.');
+          }
+  
+          observer.complete();
+        })
+    });
+  }  
 
   editExercise(id: number, newTitle: string, newDescription: string): Observable<any> {
-    const body = { id, newTitle, newDescription };
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.put<any>(this.apiUrlEdit, body, {headers}).pipe(
-      tap(() => {
-        this.refreshNeeded$.next();
-      }),
-      catchError(error => {
-        console.error('Error editing exercise:', error);
-        throw error;
-      })
-    );
+    return new Observable(observer => {
+      supabase
+        .from('exercises')
+        .update({
+          title: newTitle,
+          description: newDescription
+        })
+        .eq('id', id)
+        .then(({ data, error }) => {
+          if (error) {
+            observer.error('Error editing exercise: ' + error.message);
+            return;
+          }
+          this.refreshNeeded$.next();
+
+          if (data) {
+            observer.next({ message: 'Exercise updated successfully', updatedExercise: data[0] });
+          } else {
+            observer.error('Exercise not found');
+          }
+        })
+    });
   }
 
   deleteExercise(id: number): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-    return this.http.delete<any>(`${this.apiUrlDelete}${id}`, {headers}).pipe(
-      tap(() => {
-        this.refreshNeeded$.next();
-      })
-    );
-  }
+    this.refreshNeeded$.next();
+    return new Observable(observer => {
+      supabase
+        .from('exercises')
+        .delete()
+        .eq('id', id)
+        .then(({ data, error }) => {
+          if (error) {
+            observer.error('Error deleting exercise: ' + error.message);
+            return;
+          }
+          this.refreshNeeded$.next();
 
+          if (data) {
+            observer.next({ message: 'Exercise deleted successfully' });
+          } else {
+            observer.error('Exercise not found');
+          }
+        })
+    });
+  }
+  
   onRefreshNeeded(): Observable<void> {
     return this.refreshNeeded$.asObservable();
   }

@@ -40,7 +40,6 @@ export class ExerciseEditComponent {
   @ViewChild('textarea') textarea!: ElementRef;
 
   ngOnInit(): void {
-    // Możemy załadować ćwiczenia, jeśli to konieczne
     this.loadExercises();
   }
 
@@ -54,12 +53,11 @@ export class ExerciseEditComponent {
     }
   }
 
-  // exercise-edit.component.ts
 loadExercises(): void {
   this.exerciseService.getData()
     .subscribe(data => {
       if (Array.isArray(data)) {
-        this.exercises = data;  // Upewniamy się, że 'data' to tablica
+        this.exercises = data;
       } else {
         console.error('Expected an array but got:', data);
       }

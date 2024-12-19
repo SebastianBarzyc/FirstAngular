@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { LoginComponent } from './login.component';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient} from '@angular/common/http';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
-import { firstValueFrom } from 'rxjs';
+import { supabase, getUser } from '../supabase-client';
 
 @Component({
   selector: 'app-profile',
@@ -31,24 +31,21 @@ export class ProfileComponent implements OnInit {
   totalSessions: number | null = null;
   totalWeights: number | null = null;
   consecutiveSessions: number | null = null;
-
-  private apiUrl = 'http://localhost:3000/api/profile';
+  userId: any;
 
   constructor(private http: HttpClient) {}
 
   async ngOnInit() {
     this.token = localStorage.getItem('token');
-    const userId = this.getUserIdFromToken();
+    this.userId = getUser();
+    console.log("token: ", this.token);
+    console.log("userId: ", this.userId);
 
-    if (userId !== null) {
-      await this.getProfile(userId);
-      console.log(this.userProfile);
-    }
     this.isLoggedIn = !!this.token;
     this.getTotalSessions();
     this.getTotalWeights();
     this.getConsecutiveSessions();
-  }
+  } 
 
   logout() {
     localStorage.removeItem('token');
@@ -56,80 +53,111 @@ export class ProfileComponent implements OnInit {
   }
 
   getTotalSessions() {
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.token}`
-    });
+    if (!this.token) {
+      console.error('Brak tokena uwierzytelniającego');
+      return;
+    }
   
-    this.http.get<any>(`${this.apiUrl}/totalSessions/`, { headers })
-      .subscribe(
-        response => {
-          this.totalSessions = response.totalSessions.count;
-        },
-        error => {
-          console.error('Error fetching total sessions:', error);
+    if (!this.userId) {
+      console.error('Nie udało się pobrać userId z tokena');
+      return;
+    }
+  
+    supabase
+      .from('sessions')
+      .select('date', { count: 'exact', head: true })
+      .eq('user_id', this.userId)
+      .then(({ count, error }) => {
+        if (error) {
+          console.error('Błąd pobierania sesji:', error.message);
+          return;
         }
-      );
+        this.totalSessions = count || 0;
+        console.log(`Liczba sesji użytkownika: ${this.totalSessions}`);
+      });
   }
   
   getTotalWeights() {
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.token}`
-    });
-  
-    this.http.get<any>(`${this.apiUrl}/totalWeights/`, { headers })
-      .subscribe(
-        response => {
-          this.totalWeights = response.totalWeights.sum;
-        },
-        error => {
-          console.error('Error fetching total weights:', error);
-        }
-      );
-  }
-
-  getConsecutiveSessions(){
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.token}`
-    });
-  
-    this.http.get<any>(`${this.apiUrl}/consecutiveSessions/`, { headers })
-      .subscribe(
-        response => {
-          this.consecutiveSessions = response.consecutiveSessions.consecutive_days;
-        },
-        error => {
-          console.error('Error fetching total weights:', error);
-        }
-      );
-  }
-
-  async getProfile(id: number) {
-    try {
-      const data = await firstValueFrom(this.getProfileData(id));
-      this.userProfile = data.user;
-      console.log(this.userProfile);
-    } catch (error) {
-      console.error('Error fetching profile data:', error);
-    }
-  }
-
-getProfileData(id: number) {
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.token}`
-    });
-    return this.http.get<any>(`${this.apiUrl}/${id}`, { headers });
-}
-
-  getUserIdFromToken(): number | null {
     if (!this.token) {
-      return null;
+      console.error('Brak tokena uwierzytelniającego');
+      return;
     }
-    const decodedToken = this.decodeToken(this.token);
-    return decodedToken?.userId ?? null;
+  
+    if (!this.userId) {
+      console.error('Nie udało się pobrać userId z tokena');
+      return;
+    }
+  
+    supabase
+      .from('session_exercises')
+      .select('weight')
+      .eq('user_id', this.userId)
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Błąd pobierania danych o ciężarach:', error.message);
+          return;
+        }
+  
+        if (!data || data.length === 0) {
+          console.error('Brak danych o sesjach dla tego użytkownika');
+          return;
+        }
+  
+        const totalWeights = data.reduce((sum, row) => sum + (row.weight || 0), 0);
+        this.totalWeights = totalWeights;
+        console.log(`Suma ciężarów: ${this.totalWeights}`);
+      });
   }
 
-  decodeToken(token: string): any {
-    const jwtHelper = new JwtHelperService();
-    return jwtHelper.decodeToken(token);
+  getConsecutiveSessions() {
+    if (!this.token) {
+      console.error('Brak tokena uwierzytelniającego');
+      return;
+    }
+  
+    if (!this.userId) {
+      console.error('Nie udało się pobrać userId z tokena');
+      return;
+    }
+  
+    supabase
+      .from('sessions')
+      .select('session_id, date')
+      .eq('user_id', this.userId)
+      .lte('date', new Date().toISOString().split('T')[0])
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Błąd pobierania sesji:', error.message);
+          return;
+        }
+  
+        if (!data || data.length === 0) {
+          console.error('Brak sesji dla tego użytkownika');
+          return;
+        }
+  
+        const formattedDates = data
+          .map(session => new Date(session.date))
+          .sort((a, b) => a.getTime() - b.getTime());
+  
+        let maxStreak = 0;
+        let currentStreak = 1;
+  
+        for (let i = 1; i < formattedDates.length; i++) {
+          const prevDate = formattedDates[i - 1];
+          const currDate = formattedDates[i];
+  
+          if ((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24) === 1) {
+            currentStreak++;
+          } else {
+            maxStreak = Math.max(maxStreak, currentStreak);
+            currentStreak = 1;
+          }
+        }
+  
+        maxStreak = Math.max(maxStreak, currentStreak);
+        this.consecutiveSessions = maxStreak;
+        console.log(`Liczba kolejnych sesji: ${this.consecutiveSessions}`);
+      });
   }
 }

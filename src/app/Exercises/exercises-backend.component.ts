@@ -26,13 +26,11 @@ export class ExercisesBackend implements OnInit {
   private refreshSubscription: Subscription = new Subscription();
 
   ngOnInit(): void {
-    // Subskrybuj zdarzenie odświeżenia danych
     this.refreshSubscription = this.exerciseService.onRefreshNeeded().subscribe(() => {
       console.log('Refresh needed triggered');
       this.loadExercises();
     });
 
-    // Ładuj ćwiczenia na początku
     this.loadExercises();
   }
 

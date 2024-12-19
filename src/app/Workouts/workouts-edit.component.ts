@@ -48,10 +48,11 @@ export class WorkoutEditComponent implements OnInit {
   @ViewChild('parent', { read: ViewContainerRef })
   target: ViewContainerRef | undefined;
   componentRef: ComponentRef<any> | undefined;
-
+  @Output() workoutDeleted = new EventEmitter<void>();
+  
   async ngOnInit(): Promise<void> {
-    await this.loadWorkouts();
-    await this.loadExercisesForPlan(this.WorkoutID);
+    this.loadWorkouts();
+    this.loadExercisesForPlan(this.WorkoutID);
   }
 
   ngAfterViewInit(): void {
@@ -60,24 +61,20 @@ export class WorkoutEditComponent implements OnInit {
     }
   }
 
-  loadWorkouts(): Promise<void> {
-    return this.workoutService.getData().toPromise().then(response => {
-      this.workouts = response.data;
-      setTimeout(() => {
-        if (this.textarea) {
-          this.autoResize(this.textarea.nativeElement);
-        }
-      }, 0);
-    });
+  loadWorkouts(): void {
+    this.workoutService.getData().subscribe(response => {
+      this.workouts = response;
+  });
   }
-
+  
   loadExercisesForPlan(planID: number): Promise<any> {
     return new Promise((resolve, reject) => {
         this.workoutService.getExercisesForPlan(planID).subscribe({
             next: async (response) => {
-                this.exercisesMap.set(planID, response.data);
+                this.exercisesMap.set(planID, response);
                 this.exercises = this.exercisesMap.get(planID) || [];
                 resolve(this.exercises || []);
+                console.log("plans: ", response);
             },
             error: (err) => {
                 reject(err);
@@ -92,7 +89,7 @@ export class WorkoutEditComponent implements OnInit {
 
   Save(id: number, newTitle: string, newDescription: string): void {
 
-    this.workoutService.editworkout(id, newTitle, newDescription).subscribe({
+    this.workoutService.editWorkout(id, newTitle, newDescription).subscribe({
       next: response => {
         console.log('Response from server (editWorkout):', response);
         this.dialogRef.close();
@@ -112,7 +109,7 @@ export class WorkoutEditComponent implements OnInit {
     });
   
     const saveObservables = this.exercises.map(exercise => 
-      this.workoutService.editworkout3(
+      this.workoutService.editWorkout3(
         this.WorkoutID,
         exercise.exercise_id,
         exercise.reps,
@@ -138,7 +135,7 @@ export class WorkoutEditComponent implements OnInit {
   }
 
   Delete(id: number) {
-    this.workoutService.deleteworkout(id).subscribe({
+    this.workoutService.deleteWorkout(id).subscribe({
       next: response => {
         this.dialogRef.close();
       },

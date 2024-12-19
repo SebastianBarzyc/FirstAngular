@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { WorkoutsExerciseComponent } from './workouts-exercise.component';
 import { WorkoutEditComponent } from './workouts-edit.component';
-import { tap } from 'rxjs';
+import { Subscription, tap } from 'rxjs';
 
 @Component({
   selector: 'workouts-backend',
@@ -29,7 +29,7 @@ export class WorkoutsBackend implements OnInit {
   @ViewChild('parent', { read: ViewContainerRef })
   target: ViewContainerRef | undefined;
   isPanelExpanded = false;
-
+  private refreshSubscription: Subscription | undefined;  
   workoutExercises: WorkoutExercise[] = [];
 
   constructor(
@@ -38,16 +38,23 @@ export class WorkoutsBackend implements OnInit {
     public dialog: MatDialog,
   ) {}
   ngOnInit(): void {
-    this.workoutService.onRefreshNeeded().subscribe(() => {
+    this.refreshSubscription = this.workoutService.onRefreshNeeded().subscribe(() => {
+      console.log("dd");
       this.loadWorkouts();
     });
-  
     this.loadWorkouts();
   }
 
+  ngOnDestroy(): void {
+    if (this.refreshSubscription) {
+      this.refreshSubscription.unsubscribe();
+    }
+  }
+  
+
   loadWorkouts(): void {
     this.workoutService.getData().subscribe(response => {
-      this.workouts = response.data;
+      this.workouts = response;
   });
   }
 
@@ -68,8 +75,8 @@ export class WorkoutsBackend implements OnInit {
     }
   }
   
-  async onSubmit() {    
-    this.workoutService.addworkout(this.workout).pipe(
+  async onSubmit() {
+    this.workoutService.addWorkout(this.workout).pipe(
         tap(response => {
             console.log('Workout added successfully:', response);
         })
@@ -84,8 +91,7 @@ export class WorkoutsBackend implements OnInit {
     );
 
     this.workoutExercises = this.workoutService.getWorkoutExercises();
-
-    this.workoutService.addworkout2(this.workoutExercises).pipe(
+    this.workoutService.addWorkout2(this.workoutExercises).pipe(
       tap(response => {
         console.log('Workout added successfully:', response);
       })

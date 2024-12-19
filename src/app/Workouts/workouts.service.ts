@@ -1,6 +1,28 @@
 import { EventEmitter, Injectable } from "@angular/core";
-import { catchError, Observable, of, Subject, tap, throwError } from "rxjs";
-import { HttpClient, HttpHeaders} from '@angular/common/http';
+import { catchError, from, Observable, of, Subject, tap, throwError } from "rxjs";
+import { HttpClient } from '@angular/common/http';
+import { supabase, getUser } from '../supabase-client';
+
+
+interface Workout {
+  exercise_id: number;
+  title: string;
+  reps: number[];
+}
+
+interface InsertData {
+  plan_id: number;
+  exercise_id: number;
+  reps: number;
+  exercise_title: string;
+  user_id: string;
+}
+
+interface PlanExercise {
+  exercise_id: number;
+  exercise_title: string;
+  reps: number;
+}
 
   export interface WorkoutExercise {
     exercise_id: number;
@@ -15,16 +37,7 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     workoutChanged = new EventEmitter<void>();
     workoutExercises: WorkoutExercise[] = [];
 
-    
     constructor(private http: HttpClient) {}
-
-    private apiUrl = 'http://localhost:3000/api/workouts';
-    private apiUrl2 = 'http://localhost:3000/api/workouts2/';
-    private apiUrlExercise = 'http://localhost:3000/api/exercises';
-    private apiUrlEdit = 'http://localhost:3000/api/update-workout/';
-    private apiUrlEdit2 = 'http://localhost:3000/api/update-workout2/';
-    private apiUrlEdit3 = 'http://localhost:3000/api/update-workout3/';
-    private apiUrlDelete = 'http://localhost:3000/api/delete-workout/';
     refreshNeeded$ = new Subject<void>();
 
     public exerciseIdCounter = 0;
@@ -34,108 +47,283 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     idFromTitle: number = 0;
 
     getData(): Observable<any> {
-      const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-      return this.http.get<any>(this.apiUrl, {headers});
-    }
+      const userId = getUser();
+      if (!userId) {
+        return throwError(() => new Error("Użytkownik nie jest zalogowany"));
+      }
 
+      return new Observable(observer => {
+        const userId = getUser();
+      
+        if (!userId) {
+          observer.error('Nie znaleziono identyfikatora użytkownika.');
+          return;
+        }
+    
+        const query = supabase
+          .from('training_plans')
+          .select('*')
+          .eq('user_id', userId)
+          .order('id', { ascending: true });
+      
+        query
+          .then(({ data, error }) => {
+            if (error) {
+              observer.error('Błąd podczas pobierania danych: ' + error.message);
+            } else {
+              observer.next(data);
+            }
+          })
+      });
+    }
+    
     onRefreshNeeded(): Observable<void> {
       return this.refreshNeeded$.asObservable();
     }
 
-    addworkout(workout: any): Observable<any> {
-      const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.post<any>(this.apiUrl, workout, {headers}).pipe(
-      tap(() => {
-        this.refreshNeeded$.next();
-      })
-    );
+    addWorkout(workout: any): Observable<any> {
+      return from(this.addWorkoutPromise(workout));
     }
-    addworkout2(workout: any): Observable<any> {
-      const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-      return this.http.post<any>(this.apiUrl2, workout, {headers}).pipe(
-        tap(() => {
-          this.refreshNeeded$.next();
-        })
-      );
+    
+    private async addWorkoutPromise(workout: any): Promise<any> {
+      const userId = await getUser();
+      if (!userId) {
+        console.error('Brak zalogowanego użytkownika');
+        throw new Error('Brak zalogowanego użytkownika');
       }
+    
+      const { data, error } = await supabase
+        .from('training_plans')
+        .insert([
+          {
+            title: workout.title,
+            description: workout.description,
+            user_id: userId,
+          },
+        ])
+        .select('*');
+    
+      if (error) {
+        console.error('Błąd podczas dodawania workout:', error);
+        throw new Error('Failed to add workout');
+      }
+    
+      console.log('Dodano nowy workout:', data);
+      this.refreshNeeded$.next();
+      return data;
+    }
 
-    getExerciseByTitle(title: string): Observable<any> {
-      const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
+    addWorkout2(workouts: Workout[]): Observable<any> {
+      console.log("addworkout2: ", workouts);
+      return from(this.addWorkout2Promise(workouts));
+    }
+    
+    private async addWorkout2Promise(workouts: Workout[]): Promise<any> {
+      console.log("workouts1: ", workouts);
+      const userId = await getUser();
+      if (!userId) {
+        console.error('Brak zalogowanego użytkownika');
+        throw new Error('Brak zalogowanego użytkownika');
+      }
+    
+      const { data: lastPlan, error: lastPlanError } = await supabase
+        .from('training_plans')
+        .select('id')
+        .eq('user_id', userId)
+        .order('id', { ascending: false })
+        .limit(1)
+        .single();
+    
+      if (lastPlanError) {
+        console.error('Błąd Supabase (training_plans):', lastPlanError);
+        throw new Error('Failed to fetch the last training plan');
+      }
+    
+      if (!lastPlan) {
+        throw new Error('No training plans found, cannot assign plan_id');
+      }
+      const plan_id = lastPlan.id;
+    
+      const validWorkouts = workouts.filter(workout => workout.exercise_id !== 0);
+      console.log("workouts2: ", validWorkouts);
+
+      if (validWorkouts.length === 0) {
+        console.error('Brak prawidłowych ćwiczeń do zapisania.');
+        throw new Error('Brak prawidłowych ćwiczeń do zapisania.');
+      }
+      
+      const insertData: InsertData[] = validWorkouts.flatMap(({ exercise_id, title, reps }) => {
+        return reps.map((rep: number) => ({
+          plan_id,
+          exercise_id,
+          reps: rep,
+          exercise_title: title,
+          user_id: userId,
+        }));
       });
-      return this.http.get<any>(`${this.apiUrlExercise}/${title}`, {headers}).pipe(
+      console.log("workouts3: ", insertData);
+
+      const { data, error } = await supabase
+        .from('plan_exercises')
+        .insert(insertData)
+        .select('*');
+      
+      if (error) {
+        console.error('Błąd Supabase (plan_exercises):', error);
+        throw new Error('Failed to add workouts');
+      }
+      
+      console.log('Workout successfully added:', data);
+    }    
+
+    async getExerciseByTitle(title: string): Promise<Observable<any>> {
+      const userId = await getUser();
+
+      return new Observable(observer => {
+        supabase
+          .from('exercises')
+          .select('*')
+          .eq('title', title)
+          .eq('user_id', userId)
+          .single()
+          .then(({ data, error }) => {
+            if (error) {
+              observer.error('Błąd przy wyszukiwaniu ćwiczenia: ' + error.message);
+            } else if (data) {
+              observer.next(data);
+            } else {
+              observer.error('Ćwiczenie nie znalezione');
+            }
+          })
+          catchError(error => {
+            console.error('Błąd w usłudze:', error);
+            return throwError(error);
+          })
+      }).pipe(
         tap(response => {
-          this.idFromTitle = response.exercise.id;
-          this.refreshNeeded$.next();
+          console.log('Znaleziono ćwiczenie:', response);
         }),
         catchError(error => {
-          console.error('Error in service:', error);
+          console.error('Błąd w usłudze:', error);
           return throwError(error);
         })
       );
     }
-    
 
-    editworkout(id: number, newTitle: string, newDescription: string): Observable<any> {
-      const body = { id, newTitle, newDescription };
+    editWorkout(id: number, newTitle: string, newDescription: string): Observable<any> {
       const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    
-      return this.http.put<any>(this.apiUrlEdit, body, {headers}).pipe(
-        tap(() => {
-          this.refreshNeeded$.next();
+      if (!token) {
+        console.error('Brak tokenu');
+        return of({ message: 'Brak tokenu' });
+      }
+  
+      return new Observable(observer => {
+        supabase
+          .from('training_plans')
+          .update({ title: newTitle, description: newDescription })
+          .eq('id', id)
+          .select('*')
+          .then(({ data, error }) => {
+            if (error) {
+              observer.error('Error updating workout: ' + error.message);
+              return;
+            }
+  
+            if (data && data.length > 0) {
+              observer.next({ message: 'Data has been updated', updatedWorkout: data[0] });
+            } else {
+              observer.error('Workout not found');
+            }
+
+            this.refreshNeeded$.next();
+          })
+      }).pipe(
+        tap(response => {
+          console.log('Workout updated:', response);
         }),
         catchError(error => {
-          console.error('Error editing workout:', error);
-          throw error;
+          console.error('Error in edit workout service:', error);
+          return of(error);
         })
       );
     }
 
   editworkout2(id: number): Observable<any> {
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.delete<any>(`${this.apiUrlEdit2}${id}`, {headers}).pipe(
-      catchError(error => {
-        console.error('Error editing workout:', error);
-        throw error;
-      })
+    return new Observable(observer => {
+      supabase
+        .from('plan_exercises')
+        .delete()
+        .eq('plan_id', id)
+        .then(({ data, error }) => {
+          if (error) {
+            observer.error('Error deleting exercise: ' + error.message);
+            return;
+          }
+
+          if (data) {
+            supabase
+              .from('training_plans')
+              .delete()
+              .eq('id', id)
+              .then(({ data: planData, error: planError }) => {
+                if (planError) {
+                  observer.error('Error deleting from training_plans: ' + planError.message);
+                  return;
+                }
+
+                if (planData) {
+                  observer.next({ message: 'Workout deleted successfully' });
+                } else {
+                  observer.error('Workout not found');
+                }
+              })
+          } else {
+            observer.error('Exercise not found');
+          }
+        })
+    }).pipe(
+      catchError(this.handleError<any>('deleteWorkout'))
     );
   }
 
-  editworkout3(planId: number, idExercise: number, reps: number[], exercise_title: string): Observable<any> {
-    const url = this.apiUrlEdit3;
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    const body = reps.map(rep => ({
-        planId: planId,
-        idExercise: idExercise,
-        reps: rep,
-        exercise_title: exercise_title,
-    }));
-
-    return this.http.post<any>(url, body, { headers }).pipe(
-      catchError(this.handleError<any>('editworkout3'))
-    );    
-}
-
+  editWorkout3(planId: number, idExercise: number, reps: number[], exercise_title: string): Observable<any> {
+    return new Observable(observer => {
+      Promise.resolve(getUser())
+        .then(userId => {
+          if (!userId) {
+            observer.error('User is not logged in');
+            observer.complete();
+            return;
+          }
+  
+          const exercises = reps.map(rep => ({
+            plan_id: planId,
+            exercise_id: idExercise,
+            reps: rep,
+            exercise_title,
+            user_id: userId
+          }));
+  
+          supabase
+            .from('plan_exercises')
+            .upsert(exercises)
+            .then(({ data, error }) => {
+              if (error) {
+                observer.error('Error updating workout: ' + error.message);
+              } else {
+                observer.next({ message: 'Workout updated successfully', data });
+                observer.complete();
+              }
+            })
+        })
+        .catch(err => {
+          observer.error('Error retrieving user: ' + err.message);
+        });
+    }).pipe(
+      catchError(this.handleError<any>('editWorkout3'))
+    );
+  }
+  
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
       console.error(`${operation} failed: ${error.message}`);
@@ -143,48 +331,140 @@ import { HttpClient, HttpHeaders} from '@angular/common/http';
     };
   }
 
-  deleteworkout(id: number): Observable<any> {
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.delete<any>(`${this.apiUrlDelete}${id}`, {headers}).pipe(
-      tap(() => {
-        this.refreshNeeded$.next();
+  deleteWorkout(id: number): Observable<any> {
+    return new Observable(observer => {
+      (async () => {
+        try {
+          const userId = await getUser();
+          if (!userId) {
+            observer.error('Brak zalogowanego użytkownika');
+            observer.complete();
+            return;
+          }
+  
+          const { data: planExercisesData, error: planExercisesError } = await supabase
+            .from('plan_exercises')
+            .delete()
+            .eq('plan_id', id);
+  
+          if (planExercisesError) {
+            observer.error('Error deleting from plan_exercises: ' + planExercisesError.message);
+            observer.complete();
+            return;
+          }
+  
+          const { data: trainingPlanData, error: trainingPlanError } = await supabase
+            .from('training_plans')
+            .delete()
+            .eq('id', id);
+  
+          if (trainingPlanError) {
+            observer.error('Error deleting workout: ' + trainingPlanError.message);
+            observer.complete();
+            return;
+          }
+  
+          if (trainingPlanData) {
+            this.refreshNeeded$.next();
+            observer.next({ message: 'Workout deleted successfully' });
+            observer.complete();
+          } else {
+            this.refreshNeeded$.next();
+            observer.error('Workout not found1');
+            observer.complete();
+          }
+  
+        } catch (err) {
+          observer.error('Unexpected error: ' + err);
+          observer.complete();
+        }
+      })();
+    }).pipe(
+      tap(response => {
+        console.log('Workout deleted:', response);
       }),
       catchError(error => {
-        console.error('Error deleting workout:', error);
-        throw error;
+        console.error('Error in delete workout service:', error);
+        return of({ error: 'Failed to delete workout', details: error });
       })
     );
   }
-
+  
+  
   getExercisesForPlan(planId: number): Observable<any> {
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.get<any>(`${this.apiUrl}/${planId}/exercises`, {headers});
-  }
-   
-  getAvailableExercises(): Observable<any> {
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.get<any>(`${this.apiUrl}/available-exercises`, {headers});
-  }
+    return new Observable(observer => {
+      const userId = getUser();
+      if (!userId) {
+        observer.error('Brak zalogowanego użytkownika');
+        return;
+      }
+  
+      supabase
+        .from('plan_exercises')
+        .select('exercise_id, exercise_title, reps')
+        .eq('plan_id', planId)
+        .eq('user_id', userId)
+        .order('exercise_title', { ascending: true })
+        .then(({ data, error }: { data: PlanExercise[] | null; error: any }) => {
+          if (error) {
+            observer.error('Supabase error: ' + error.message);
+          } else if (data) {
+            const exercisesData = data.reduce((acc, row) => {
+              const exerciseIndex = acc.findIndex(ex => ex.exercise_id === row.exercise_id);
+              if (exerciseIndex !== -1) {
+                acc[exerciseIndex].reps.push(row.reps);
+              } else {
+                acc.push({
+                  exercise_id: row.exercise_id,
+                  exercise_title: row.exercise_title,
+                  sets: 1,
+                  reps: [row.reps]
+                });
+              }
+              return acc;
+            }, [] as { exercise_id: number; exercise_title: string; sets: number; reps: number[] }[]);
+  
+            exercisesData.forEach(exercise => {
+              exercise.sets = exercise.reps.length;
+            });
+  
+            observer.next(exercisesData);
+            observer.complete();
+          } else {
+            observer.error('No exercises found for this plan');
+          }
+        });
+    }).pipe(
+      tap(response => {
+        console.log('Exercises for plan:', response);
+      }),
+      catchError(error => {
+        console.error('Error in service:', error);
+        return throwError(error);
+      })
+    );
+  }  
 
   async addExerciseToWorkout(exercise: { title: string, reps: number[] }) {
     try {
-      await this.getExerciseByTitle(exercise.title).toPromise(); 
+      (await this.getExerciseByTitle(exercise.title)).subscribe(
+        (data) => {
+          this.idFromTitle = data.id;
+          console.log("Znaleziono ćwiczenie: ", data);
+        },
+        (error) => {
+          console.error("Błąd podczas wyszukiwania ćwiczenia:", error);
+        }
+      );
+
       const exerciseId = this.idFromTitle;
       const existingExerciseIndex = this.workoutExercises.findIndex(
         (e) => e.exercise_id === exerciseId
       );
-  
+      console.log("exerciseid: ", exerciseId);
       if (existingExerciseIndex !== -1) {
         this.workoutExercises[existingExerciseIndex].reps = exercise.reps;
+        
       } else {
         this.workoutExercises.push({
           exercise_id: exerciseId,

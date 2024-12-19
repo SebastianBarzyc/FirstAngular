@@ -112,10 +112,21 @@ export class CalendarEditComponent implements OnInit {
   } 
 
   loadWorkouts(): Promise<void> {
-    return this.calendarService.getWorkouts().toPromise().then(response => {
-      this.workouts = response.data;
-    });
+    return this.calendarService.getWorkouts().toPromise()
+      .then((response) => {
+        if (response && response) {
+          this.workouts = response;
+        } else {
+          console.error('No data received from getWorkouts.');
+          this.workouts = [];
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching workouts:', error);
+        this.workouts = [];
+      });
   }
+  
   
   getSessionOrEmpty(): any {
     const date = this.getDate();
@@ -155,6 +166,7 @@ export class CalendarEditComponent implements OnInit {
   }
 
   Save(session: any): void {
+
     const newSessionId = this.getMaxSessionId() + 1;
   
     const sessionToSave = {
@@ -175,10 +187,10 @@ export class CalendarEditComponent implements OnInit {
       exercise.sets.forEach(set => {
         this.calendarService.editSession3(
           exercise.exercise_id,
-          exercise.exercise_title,
           set.reps,
           set.weight,
-          sessionToSave.session_id
+          sessionToSave.session_id,
+          exercise.exercise_title
         ).subscribe({
           next: response => {
             this.refreshNeeded$.next();
@@ -212,6 +224,7 @@ export class CalendarEditComponent implements OnInit {
   }
 
   updateSession(session: any) {
+    
     this.calendarService.editSession(session.session_id, session.title, session.description).subscribe({
       next: response => {
         this.refreshNeeded$.next();
@@ -223,15 +236,6 @@ export class CalendarEditComponent implements OnInit {
       }
     });
 
-    this.calendarService.editSession2(session.session_id).subscribe({
-      next: response => {
-        this.refreshNeeded$.next();
-        console.log('Response from server (editSession2):', response);
-      },
-      error: error => {
-        console.error('Error from server (editSession2):', error);
-      }
-    });
   }
 
   updateExerciseTitle(): void {
@@ -293,22 +297,24 @@ export class CalendarEditComponent implements OnInit {
 
   loadExercisesList(): void {
     const session = this.getSessionOrEmpty();
-    this.calendarService.getExercisesList(session.session_id).subscribe({
-      next: (response) => {
-        const maxId = this.exercisesList.length > 0 
-          ? Math.max(...this.exercisesList.map(exercise => exercise.id))
-          : 0;
-  
-        this.exercisesList = response.map((exercise, index) => ({
-          ...exercise,
-          id: maxId + index + 1
-        }));
-      },
-      error: (error) => {
-        console.error('Error during exercise fetch:', error);
-        this.exercisesList = [];
-      }
-    });
+    if(session){
+      this.calendarService.getExercisesList(session.session_id).subscribe({
+        next: (response) => {
+          const maxId = this.exercisesList.length > 0 
+            ? Math.max(...this.exercisesList.map(exercise => exercise.id))
+            : 0;
+    
+          this.exercisesList = response.map((exercise, index) => ({
+            ...exercise,
+            id: maxId + index + 1
+          }));
+        },
+        error: (error) => {
+          console.error('Error during exercise fetch:', error);
+          this.exercisesList = [];
+        }
+      });
+    }
   }
   
   workoutChange(workoutTitle: string) {
@@ -325,16 +331,15 @@ export class CalendarEditComponent implements OnInit {
     return new Promise((resolve, reject) => {
       this.workoutService.getExercisesForPlan(planID).subscribe({
         next: (response) => {
-          console.log('Received raw exercises for planID:', planID, response.data);
+          console.log('Received raw exercises for planID:', planID, response);
   
-          // Przekształcamy dane do oczekiwanego formatu
-          this.exercisesList = response.data.map((exercise: Exercise2) => ({
+          this.exercisesList = response.map((exercise: Exercise2) => ({
             exercise_id: exercise.exercise_id,
             exercise_title: exercise.exercise_title,
-            sets: exercise.reps.map(rep => ({ reps: rep, weight: 0 })), // Tworzymy tablicę `sets` na podstawie `reps`
+            sets: exercise.reps.map(rep => ({ reps: rep, weight: 0 })),
             id: this.exercisesList.length > 0 
               ? Math.max(...this.exercisesList.map(ex => ex.id)) + 1 
-              : 1 // Generujemy unikalne `id` dla każdego ćwiczenia
+              : 1
           }));
   
           console.log('Transformed exercises list:', this.exercisesList);

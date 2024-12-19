@@ -99,7 +99,7 @@ export class CalendarComponent implements OnInit {
   }
 
   loadSessions(): void {
-    this.calendarService.getSessions().subscribe(
+    this.calendarService.getSessions().subscribe( 
       (data: Session[]) => {
         this.sessions = data;
       }

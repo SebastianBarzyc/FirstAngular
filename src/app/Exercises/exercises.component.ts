@@ -20,16 +20,10 @@ export class ExercisesComponent {
   constructor() {}
 
   exercises: any[] = [];
-  searchQuery: string = '';
 
   togglePanel() {
     if (this.exercisesBackend) {
       this.exercisesBackend.togglePanel();
     }
   }
-
-  Search() {
-
-  }
-  
 }

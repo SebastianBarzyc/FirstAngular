@@ -1,13 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, Observable, of, Subject, tap } from 'rxjs';
+import { HttpClient, } from '@angular/common/http';
+import { Observable, Subject} from 'rxjs';
+import { supabase, getUser } from '../supabase-client';
 
-interface Session {
-  session_id: number,
-  date: string,
-  title: string,
-  description: string,
-}
 
 interface Exercise {
   id: number;
@@ -26,138 +21,308 @@ interface Set {
   providedIn: 'root'
 })
 export class CalendarService {
-
-  private apiUrl = 'http://localhost:3000/api/sessions';
-  private apiUrlEdit = 'http://localhost:3000/api/update-session/';
-  private apiUrlEdit2 = 'http://localhost:3000/api/update-session2/';
-  private apiUrlEdit3 = 'http://localhost:3000/api/update-session3/';
-  private apiUrlDelete = 'http://localhost:3000/api/delete-session/';
-  private apiUrlWorkouts = 'http://localhost:3000/api/workouts/';
-  private apiUrlExercises = 'http://localhost:3000/api/exercises';
-
   refreshNeeded$ = new Subject<void>();
 
   constructor(private http: HttpClient) {}
 
-  getSessions(): Observable<Session[]> {
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.get<Session[]>(this.apiUrl, {headers});
+  getSessions(): Observable<any[]> {
+    return new Observable(observer => {
+      const id = getUser();
+      if (!id) {
+        observer.error('Użytkownik nie jest zalogowany.');
+        return;
+      }
+
+      supabase
+        .from('sessions')
+        .select('*')
+        .eq('user_id', id)
+        .order('session_id', { ascending: true })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Błąd podczas pobierania sesji:', error);
+            observer.error('Wystąpił błąd podczas pobierania sesji.');
+          } else {
+            observer.next(data || []);
+          }
+          observer.complete();
+        })
+    });
   }
 
-  getWorkouts(): Observable<any> {
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.get<any>(this.apiUrlWorkouts, {headers});
-  }
+  getWorkouts(): Observable<any[]> {
+    return new Observable((observer) => {
+      const id = getUser();
+  
+      if (!id) {
+        observer.error('Użytkownik nie jest zalogowany.');
+        return;
+      }
+  
+      supabase
+        .from('training_plans')
+        .select('*')
+        .eq('user_id', id)
+        .order('id', { ascending: true })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Błąd Supabase:', error);
+            observer.error('Wystąpił błąd podczas pobierania planów treningowych.');
+          } else {
+            observer.next(data || []);
+          }
+          observer.complete();
+        })
+    });
+  }  
 
-  addSession(session: any): Observable<any> {
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.post<any>(this.apiUrl, session, {headers}).pipe(
-      tap(() => {
-        this.refreshNeeded$.next();
-      })
-    );
+  addSession(session: { date: string; title: string; description: string }): Observable<any> {
+    return new Observable((observer) => {
+      const id = getUser();
+
+      if (!id) {
+        observer.error('Użytkownik nie jest zalogowany.');
+        return;
+      }
+
+      supabase
+        .from('sessions')
+        .insert({
+          date: session.date,
+          title: session.title,
+          description: session.description,
+          user_id: id,
+        })
+        .select('*')
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Błąd Supabase:', error);
+            observer.error('Wystąpił błąd podczas dodawania sesji.');
+          } else {
+            observer.next({ message: 'Sesja dodana pomyślnie', session: data[0] });
+          }
+          observer.complete();
+        })
+    });
   }
 
   editSession(id: number, newTitle: string, newDescription: string): Observable<any> {
-    const body = { id, newTitle, newDescription };
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
+    return new Observable(observer => {
+      supabase
+        .from('sessions')
+        .update({ title: newTitle, description: newDescription })
+        .eq('session_id', id)
+        .select('*')
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Błąd edytowania sesji:', error);
+            observer.error('Błąd edytowania sesji: ' + error.message);
+          } else {
+            if (data) {
+              observer.next(data);
+              observer.complete();
+            } else {
+              observer.error('No data returned after update');
+            }
+          }
+        })
     });
-    return this.http.put<any>(this.apiUrlEdit, body, {headers}).pipe(
-      tap(() => {
-        this.refreshNeeded$.next();
-      }),
-      catchError(error => {
-        console.error('Error editing workout:', error);
-        throw error;
-      })
-    );
   }
-
+/*
   editSession2(id: number): Observable<any> {
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.delete<any>(`${this.apiUrlEdit2}${id}`, {headers}).pipe(
-      tap(() => {
-        this.refreshNeeded$.next();
-      }),
-      catchError(error => {
-        console.error('Error editing Session:', error);
-        throw error;
-      })
-    );
-  }
+    return new Observable(observer => {
+      supabase
+        .from('sessions')
+        .delete()
+        .eq('session_id', id)
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Błąd usuwania sesji:', error);
+            observer.error('Błąd usuwania sesji: ' + error.message);
+          } else {
+            if (!data) {
+              console.error('Nie znaleziono sesji do usunięcia');
+              observer.error('Nie znaleziono sesji do usunięcia');
+            } else {
+              observer.next(data);
+              observer.complete();
+            }
+          }
+        })
+    });
+  }*/
 
-  editSession3(exercise_id: number, exercise_title: string, reps: number, weight: number, session_id: number): Observable<any> {
-    const url = this.apiUrlEdit3;
-    const body = { 
-      exercise_id: exercise_id,
-      exercise_title: exercise_title,
-      reps: reps,
-      weight: weight,
-      session_id: session_id
-    };
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
+  editSession3(exercise_id: number, reps: number, weight: number, session_id: number, exercise_title: string): Observable<any> {
+    const userId = getUser();
+  
+    if (!userId) {
+      console.error('User ID is missing');
+      return new Observable(observer => {
+        observer.error('User ID is missing');
       });
-      
-    return this.http.post<any>(url, body, {headers}).pipe(
-      tap(() => {
-        this.refreshNeeded$.next();
-      }),
-      catchError(this.handleError<any>('editworkout3'))
-    );
-  }
+    }
+  
+    return new Observable(observer => {
+      supabase
+        .from('session_exercises')
+        .insert([{
+          exercise_id: exercise_id || null,
+          reps: reps || 0,
+          weight: weight || 0,
+          session_id: session_id || 0,
+          user_id: userId,
+          exercise_title: exercise_title
+        }])
+        .select('*')
+        .then(({ data, error }) => {
+          console.log('Insert result:', { data, error });
+  
+          if (error) {
+            console.error('Błąd edytowania sesji:', error);
+            observer.error('Błąd edytowania sesji: ' + error.message);
+          } else {
+            if (data) {
+              observer.next(data);
+              observer.complete();
+            } else {
+              observer.error('No data returned after insertion');
+            }
+          }
+        })
+    });
+  }  
 
   deleteSession(id: number): Observable<any> {
-    const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
+    const userId = getUser();
+  
+    if (!userId) {
+      return new Observable(observer => {
+        observer.error('User ID is missing');
       });
-      return this.http.delete<any>(`${this.apiUrlDelete}${id}`, {headers}).pipe(
-        tap(() => {
-          this.refreshNeeded$.next();
-        }),
-        catchError(error => {
-          console.error('Error deleting session:', error);
-          throw error;
-        })
-      );
     }
-
+  
+    return new Observable(observer => {
+      supabase
+        .from('session_exercises')
+        .delete()
+        .eq('session_id', id)
+        .then(({ data: sessionExercisesData, error: sessionExercisesError }) => {
+          if (sessionExercisesError) {
+            console.error('Error deleting from session_exercises:', sessionExercisesError);
+            observer.error(sessionExercisesError.message);
+            return;
+          }
+  
+          supabase
+            .from('sessions')
+            .delete()
+            .eq('session_id', id)
+            .then(({ data: sessionData, error: sessionError }) => {
+              if (sessionError) {
+                console.error('Error deleting from sessions:', sessionError);
+                observer.error(sessionError.message);
+                return;
+              }
+  
+              if (sessionData || sessionExercisesData) {
+                console.log('Session deleted successfully');
+                observer.next({ message: 'Session deleted successfully' });
+                observer.complete();
+              } else {
+                console.log('Session not found');
+                observer.next({ message: 'Session not found' });
+                observer.complete();
+              }
+            })
+        })
+    });
+  }
+  
   getExercises(): Observable<any> {
     const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.get<any>(this.apiUrlExercises, {headers});
+    if (!token) {
+      throw new Error("Token is missing");
+    }
+  
+    const userId = getUser();
+  
+    return new Observable(observer => {
+      supabase
+        .from('exercises')
+        .select('*')
+        .eq('user_id', userId)
+        .order('id', { ascending: true })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Supabase error:', error);
+            observer.error('Error fetching exercises from Supabase');
+          } else {
+            observer.next(data);
+            observer.complete();
+          }
+        })
+    });
   }
 
-  getExercisesList(id: number): Observable<Exercise[]> {
+  getExercisesList(sessionId: number): Observable<Exercise[]> {
     const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      });
-    return this.http.get<Exercise[]>(`http://localhost:3000/api/session/${id}/exercises`, {headers});
-  }
-
-  private handleError<T>(operation = 'operation', result?: T) {
-    return (error: any): Observable<T> => {
-      console.error(`${operation} failed: ${error.message}`);
-      return of(result as T);
-    };
-  }
+    if (!token) {
+      throw new Error("Token is missing");
+    }
+  
+    if (!sessionId || typeof sessionId !== 'number') {
+      throw new Error(`Invalid sessionId: ${sessionId}`);
+    }
+  
+    return new Observable(observer => {
+      supabase
+        .from('session_exercises')
+        .select('exercise_id, exercise_title, reps, weight')
+        .eq('session_id', sessionId)
+        .order('exercise_id', { ascending: true })
+        .then(({ data, error }) => {
+          console.log('Zapytanie wyniki:', { data, error });
+  
+          if (error) {
+            console.error('Supabase error:', error, "sessionId: ", sessionId);
+            observer.error('Error fetching exercises for session');
+            return;
+          }
+  
+          if (!data || data.length === 0) {
+            console.warn('Brak ćwiczeń dla sesji:', sessionId);
+            observer.next([]);
+            observer.complete();
+            return;
+          }
+  
+          const exercisesMap: { [key: number]: Exercise } = {};
+  
+          data.forEach(item => {
+            if (!item.exercise_id || !item.exercise_title) {
+              console.warn('Niepoprawny rekord ćwiczenia:', item);
+              return;
+            }
+  
+            if (!exercisesMap[item.exercise_id]) {
+              exercisesMap[item.exercise_id] = {
+                id: item.exercise_id,
+                exercise_id: item.exercise_id,
+                exercise_title: item.exercise_title,
+                title: item.exercise_title,
+                sets: []
+              };
+            }
+  
+            exercisesMap[item.exercise_id].sets.push({
+              reps: item.reps || 0,
+              weight: item.weight || 0
+            });
+          });
+  
+          observer.next(Object.values(exercisesMap));
+          observer.complete();
+        });
+    });
+  }  
 }

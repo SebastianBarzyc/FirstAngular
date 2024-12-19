@@ -47,5 +47,5 @@ export class WorkoutsExerciseComponent implements OnInit {
         title: this.selectedExercise,
         reps: [...this.repsArray]
       });
-    }    
+    }
 }

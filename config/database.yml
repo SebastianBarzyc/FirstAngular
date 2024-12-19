@@ -1,0 +1,18 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  host: dpg-ctcacgdds78s739b9iq0-a
+  port: 5432  # Standardowy port PostgreSQL
+  username: fibuddy_user  # Twoja nazwa użytkownika
+  password: zkcWGl5GlL0TWsFVmMYtugEfYFdG7hVJ  # Twoje hasło
+  database: fibuddy  # Twoja baza danych
+  pool: 5
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default

@@ -1,0 +1,90 @@
+[debug] [2024-12-10T20:19:14.586Z] ----------------------------------------------------------------------
+[debug] [2024-12-10T20:19:14.588Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\sebas\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2024-12-10T20:19:14.588Z] CLI Version:   13.28.0
+[debug] [2024-12-10T20:19:14.588Z] Platform:      win32
+[debug] [2024-12-10T20:19:14.588Z] Node Version:  v20.15.0
+[debug] [2024-12-10T20:19:14.588Z] Time:          Tue Dec 10 2024 21:19:14 GMT+0100 (czas środkowoeuropejski standardowy)
+[debug] [2024-12-10T20:19:14.588Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-12-10T20:19:14.592Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-12-10T20:19:14.592Z] > authorizing via signed-in user (coolminseba@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\sebas\Desktop\Angular\FirstProject
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2024-12-10T20:19:21.648Z] Checked if tokens are valid: true, expires at: 1733863615052
+[debug] [2024-12-10T20:19:21.648Z] Checked if tokens are valid: true, expires at: 1733863615052
+[debug] [2024-12-10T20:19:21.650Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/availableProjects pageSize=100
+[debug] [2024-12-10T20:19:22.026Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/availableProjects 200
+[debug] [2024-12-10T20:19:22.026Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/availableProjects [omitted]
+[debug] [2024-12-10T20:19:23.528Z] Checked if tokens are valid: true, expires at: 1733863615052
+[debug] [2024-12-10T20:19:23.529Z] Checked if tokens are valid: true, expires at: 1733863615052
+[debug] [2024-12-10T20:19:23.529Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1beta1/projects/fitbuddy-db:addFirebase [none]
+[debug] [2024-12-10T20:19:23.870Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1beta1/projects/fitbuddy-db:addFirebase 403
+[debug] [2024-12-10T20:19:23.870Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1beta1/projects/fitbuddy-db:addFirebase {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2024-12-10T20:19:23.870Z] Request to https://firebase.googleapis.com/v1beta1/projects/fitbuddy-db:addFirebase had HTTP Error: 403, The caller does not have permission
+[debug] [2024-12-10T20:19:23.955Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/fitbuddy-db:addFirebase had HTTP Error: 403, The caller does not have permission
+    at responseToError (C:\Users\sebas\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:52:12)
+    at RetryOperation._fn (C:\Users\sebas\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:312:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[error] 
+[error] Error: Failed to add Firebase to Google Cloud Platform project. See firebase-debug.log for more info.
+[debug] [2024-12-10T20:24:11.497Z] ----------------------------------------------------------------------
+[debug] [2024-12-10T20:24:11.499Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\sebas\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2024-12-10T20:24:11.499Z] CLI Version:   13.28.0
+[debug] [2024-12-10T20:24:11.500Z] Platform:      win32
+[debug] [2024-12-10T20:24:11.500Z] Node Version:  v20.15.0
+[debug] [2024-12-10T20:24:11.500Z] Time:          Tue Dec 10 2024 21:24:11 GMT+0100 (czas środkowoeuropejski standardowy)
+[debug] [2024-12-10T20:24:11.500Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-12-10T20:24:11.504Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-12-10T20:24:11.504Z] > authorizing via signed-in user (coolminseba@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\sebas\Desktop\Angular\FirstProject
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2024-12-10T20:24:23.056Z] Checked if tokens are valid: true, expires at: 1733863615052
+[debug] [2024-12-10T20:24:23.056Z] Checked if tokens are valid: true, expires at: 1733863615052
+[debug] [2024-12-10T20:24:23.057Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/availableProjects pageSize=100
+[debug] [2024-12-10T20:24:23.539Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/availableProjects 200
+[debug] [2024-12-10T20:24:23.539Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/availableProjects [omitted]
+[debug] [2024-12-10T20:24:25.056Z] Checked if tokens are valid: true, expires at: 1733863615052
+[debug] [2024-12-10T20:24:25.056Z] Checked if tokens are valid: true, expires at: 1733863615052
+[debug] [2024-12-10T20:24:25.056Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1beta1/projects/fitbuddy-db:addFirebase [none]
+[debug] [2024-12-10T20:24:25.388Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1beta1/projects/fitbuddy-db:addFirebase 403
+[debug] [2024-12-10T20:24:25.388Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1beta1/projects/fitbuddy-db:addFirebase {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2024-12-10T20:24:25.389Z] Request to https://firebase.googleapis.com/v1beta1/projects/fitbuddy-db:addFirebase had HTTP Error: 403, The caller does not have permission
+[debug] [2024-12-10T20:24:25.488Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/fitbuddy-db:addFirebase had HTTP Error: 403, The caller does not have permission
+    at responseToError (C:\Users\sebas\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:52:12)
+    at RetryOperation._fn (C:\Users\sebas\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:312:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[error] 
+[error] Error: Failed to add Firebase to Google Cloud Platform project. See firebase-debug.log for more info.
