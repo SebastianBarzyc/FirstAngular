@@ -21,5 +21,5 @@ export function getUser() {
 
   const payload = JSON.parse(jsonPayload);
 
-  return payload.sub;
+  return payload.sub; 
 }

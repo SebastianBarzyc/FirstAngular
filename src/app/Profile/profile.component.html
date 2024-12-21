@@ -1,8 +1,8 @@
 <div class="mainContent text-center">
     <div class="profile-page" *ngIf="isLoggedIn; else loginTemplate">
       <!-- Nagłówek profilu -->
-      <div class="profile-header" *ngIf="userProfile">
-        <h1>{{ userProfile.username }} (Flag)</h1>
+      <div class="profile-header" *ngIf="displayName">
+        <h1>Welcome, {{ displayName }} ! (Flag)</h1>
         <p>{{ userProfile.goal }}</p>
       </div>
     

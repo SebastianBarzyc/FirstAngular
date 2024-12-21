@@ -32,15 +32,40 @@ export class ProfileComponent implements OnInit {
   totalWeights: number | null = null;
   consecutiveSessions: number | null = null;
   userId: any;
+  displayName: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log(`Event: ${event}`);
+      if (session) {
+        console.log('Zalogowano, aktywna sesja:', session);
+      } else {
+        console.log('Wylogowano lub brak aktywnej sesji.');
+      }
+    });
+  }
 
   async ngOnInit() {
     this.token = localStorage.getItem('token');
     this.userId = getUser();
-    console.log("token: ", this.token);
-    console.log("userId: ", this.userId);
 
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      const user = data?.user;
+      console.log("user: ", data);
+
+      const sessionResponse = await supabase.auth.getSession();
+    console.log("Session data: ", sessionResponse);
+
+      if (user) {
+        this.displayName = user.user_metadata?.['display_name'];
+      } else {
+        this.displayName = null;
+      }
+    } catch (error) {
+      console.error('Błąd podczas inicjalizacji komponentu:', error);
+    }
+    console.log("displayName: ", this.displayName);
     this.isLoggedIn = !!this.token;
     this.getTotalSessions();
     this.getTotalWeights();

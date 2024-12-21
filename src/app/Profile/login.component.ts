@@ -40,53 +40,33 @@ export class LoginComponent {
     };
 
     if (this.showRegister) {
-      this.registerAndLogin(loginData.email, loginData.password);
+      this.register(loginData.email, loginData.password, loginData.username);
     } else {
       this.login(loginData.email, loginData.password);
     }
   }
 
-  async register(email: string, password: string, username: string) {
-    const { data, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+  async register(email: string, password: string, displayName: string): Promise<void> {
+    try {
+      // Rejestracja użytkownika
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            display_name: displayName,
+          },
+        },
+      });
   
-    if (authError) {
-      console.error('Rejestracja nieudana:', authError.message);
-      return { error: authError.message };
+      if (error) {
+        console.error('Błąd rejestracji:', error.message);
+        return;
+      }
+  
+    } catch (error) {
+      console.error('Błąd podczas rejestracji:', error);
     }
-  
-    const user = data?.user;
-  
-    if (!user) {
-      console.error('Brak danych użytkownika');
-      return { error: 'Brak danych użytkownika po rejestracji' };
-    }
-  
-    console.log('Rejestracja udana:', data);
-    return { user };
-  }
-
-  async registerAndLogin(email: string, password: string) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-  
-    if (error) {
-      console.error('Błąd rejestracji:', error.message);
-      return { error: error.message };
-    }
-  
-    const user = data?.user;
-    
-    if (user) {
-      console.log('Rejestracja udana. Link weryfikacyjny wysłany na e-mail.');
-      return { user };
-    }
-  
-    return { error: 'Błąd podczas rejestracji.' };
   }
   
   async login(email: string, password: string) {
@@ -99,7 +79,10 @@ export class LoginComponent {
     if (data?.session?.access_token) {
       localStorage.setItem('token', data.session.access_token);
     }
+    console.log("user: ", data);
 
+    const sessionResponse = await supabase.auth.getSession();
+  console.log("Session data: ", sessionResponse);
     return { user: data?.user };
   }
   
