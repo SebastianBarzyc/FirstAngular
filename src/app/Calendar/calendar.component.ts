@@ -107,11 +107,15 @@ export class CalendarComponent implements OnInit {
   }
 
   getPlanForDay(day: number): string | null {
+    if (day === 0) {
+      return null;
+    }
     const date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
     const formattedDate = this.datePipe.transform(date, 'd.M.yyyy');
     const session = this.sessions.find(s => s.date === formattedDate);
     return session ? session.title : null;
   }
+  
   private parseDate(dateString: string): Date {
     const [day, month, year] = dateString.split('.').map(Number);
     return new Date(year, month - 1, day);
