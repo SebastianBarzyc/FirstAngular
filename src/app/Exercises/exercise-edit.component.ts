@@ -64,22 +64,37 @@ loadExercises(): void {
     });
 }
 
-
-  Save(id: number, newTitle: string, newDescription: string): void {
-      this.exerciseService.editExercise(id, newTitle, newDescription).subscribe(response => {
-        console.log('Exercise updated:', response);
-        this.loadExercises();
-        this.dialogRef.close(true);
-      });
-  }
+Save(id: number, newTitle: string, newDescription: string): void {
+  this.exerciseService.editExercise(id, newTitle, newDescription).subscribe({
+      next: response => {
+          console.log('Exercise updated:', response);
+          this.loadExercises();
+          this.dialogRef.close(true);
+      },
+      error: err => {
+          console.error('Error editing exercise:', err);
+      },
+      complete: () => {
+          console.log('Edit exercise observable completed');
+      }
+  });
+}
 
   Delete(id: number): void {
-      this.exerciseService.deleteExercise(id).subscribe(response => {
-        console.log('Exercise deleted:', response);
-        this.loadExercises();
-        this.dialogRef.close(true);
-      });
-  }
+    this.exerciseService.deleteExercise(id).subscribe({
+        next: response => {
+            console.log('Exercise deleted:', response);
+            this.loadExercises();
+            this.dialogRef.close(true);
+        },
+        error: err => {
+            console.error('Error deleting exercise:', err);
+        },
+        complete: () => {
+            console.log('Delete exercise observable completed');
+        }
+    });
+}
 
   autoResize(textarea: HTMLTextAreaElement) {
     textarea.style.height = 'auto';
