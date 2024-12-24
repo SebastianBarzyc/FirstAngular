@@ -313,3 +313,77 @@ textarea {
   justify-content: space-between;
   margin-top: 20px;
 }
+
+@media (max-width: 768px) {
+  nav {
+    padding: 0.5rem;
+    text-align: center;
+  }
+
+  .mainContent {
+    margin: 2% 5%;
+    width: 90%;
+  }
+
+  .RaisedBtn {
+    float: none;
+    display: block;
+    margin: 1rem auto;
+  }
+
+  .WhatsNext, .Achievements {
+    width: 100%;
+  }
+
+  .ExercisesContainer {
+    column-count: 1;
+  }
+
+  .editPanel {
+    width: 100%;
+  }
+
+  .exercise-grid {
+    flex-direction: column;
+  }
+
+  .reps-container {
+    width: 100%;
+  }
+
+  .mainContent-calendar {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .calendar {
+    width: 100%;
+    margin: 2% 0;
+  }
+
+  .schedule {
+    width: 100%;
+  }
+
+  .profile-page {
+    padding: 10px;
+  }
+
+  .stats {
+    flex-direction: column;
+  }
+
+  .stat-card, .badges-card {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .activity-history li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings {
+    flex-direction: column;
+  }
+}
