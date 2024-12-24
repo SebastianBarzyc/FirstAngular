@@ -3,13 +3,13 @@ import {
   browser_default,
   browser_exports,
   init_browser
-} from "./chunk-5JB4KNXG.js";
+} from "./chunk-DY3IB5W3.js";
 import {
   __async,
   __commonJS,
   __toCommonJS,
   __toESM
-} from "./chunk-S35DAJRX.js";
+} from "./chunk-SOUAK7E5.js";
 
 // node_modules/@supabase/postgrest-js/dist/cjs/PostgrestError.js
 var require_PostgrestError = __commonJS({
@@ -1290,7 +1290,7 @@ var resolveFetch = (customFetch) => {
   if (customFetch) {
     _fetch = customFetch;
   } else if (typeof fetch === "undefined") {
-    _fetch = (...args) => import("./browser-U366SZMB.js").then(({
+    _fetch = (...args) => import("./browser-A7CIZ7R5.js").then(({
       default: fetch2
     }) => fetch2(...args));
   } else {
@@ -2641,7 +2641,7 @@ var RealtimeClient = class {
       if (customFetch) {
         _fetch = customFetch;
       } else if (typeof fetch === "undefined") {
-        _fetch = (...args) => import("./browser-U366SZMB.js").then(({
+        _fetch = (...args) => import("./browser-A7CIZ7R5.js").then(({
           default: fetch2
         }) => fetch2(...args));
       } else {
@@ -2710,7 +2710,7 @@ var RealtimeClient = class {
         this.conn = null;
       }
     });
-    import("./browser-LV3Q5H36.js").then(({
+    import("./browser-CZCEORZM.js").then(({
       default: WS
     }) => {
       this.conn = new WS(this.endpointURL(), void 0, {
@@ -3139,7 +3139,7 @@ var resolveFetch2 = (customFetch) => {
   if (customFetch) {
     _fetch = customFetch;
   } else if (typeof fetch === "undefined") {
-    _fetch = (...args) => import("./browser-U366SZMB.js").then(({
+    _fetch = (...args) => import("./browser-A7CIZ7R5.js").then(({
       default: fetch2
     }) => fetch2(...args));
   } else {
@@ -3149,7 +3149,7 @@ var resolveFetch2 = (customFetch) => {
 };
 var resolveResponse = () => __awaiter2(void 0, void 0, void 0, function* () {
   if (typeof Response === "undefined") {
-    return (yield import("./browser-U366SZMB.js")).Response;
+    return (yield import("./browser-A7CIZ7R5.js")).Response;
   }
   return Response;
 });
@@ -4410,7 +4410,7 @@ var resolveFetch4 = (customFetch) => {
   if (customFetch) {
     _fetch = customFetch;
   } else if (typeof fetch === "undefined") {
-    _fetch = (...args) => import("./browser-U366SZMB.js").then(({
+    _fetch = (...args) => import("./browser-A7CIZ7R5.js").then(({
       default: fetch2
     }) => fetch2(...args));
   } else {

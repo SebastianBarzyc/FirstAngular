@@ -1,6 +1,6 @@
 import {
   __commonJS
-} from "./chunk-S35DAJRX.js";
+} from "./chunk-SOUAK7E5.js";
 
 // node_modules/@supabase/realtime-js/node_modules/ws/browser.js
 var require_browser = __commonJS({
@@ -11,4 +11,4 @@ var require_browser = __commonJS({
   }
 });
 export default require_browser();
-//# sourceMappingURL=browser-LV3Q5H36.js.map
+//# sourceMappingURL=browser-CZCEORZM.js.map
