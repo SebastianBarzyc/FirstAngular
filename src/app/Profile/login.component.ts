@@ -48,7 +48,6 @@ export class LoginComponent {
 
   async register(email: string, password: string, displayName: string): Promise<void> {
     try {
-      // Rejestracja użytkownika
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
