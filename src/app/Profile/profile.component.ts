@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient} from '@angular/common/http';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { supabase, getUser } from '../supabase-client';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -33,19 +34,32 @@ export class ProfileComponent implements OnInit {
   consecutiveSessions: number | null = null;
   userId: any;
   displayName: string | null = null;
+  private isLoggedInSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  public isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
   constructor(private http: HttpClient) {
     supabase.auth.onAuthStateChange((event, session) => {
       console.log(`Event: ${event}`);
       if (session) {
         console.log('Zalogowano, aktywna sesja:', session);
+        this.refreshProfile(); // Refresh profile on login
+        this.isLoggedInSubject.next(true); // Update isLoggedInSubject
+        console.log('isLoggedIn after login2:', this.isLoggedIn);
       } else {
         console.log('Wylogowano lub brak aktywnej sesji.');
+        this.isLoggedInSubject.next(false); // Update isLoggedInSubject
       }
     });
   }
 
   async ngOnInit() {
+    this.isLoggedIn$.subscribe(isLoggedIn => {
+      this.isLoggedIn = isLoggedIn;
+      if (isLoggedIn) {
+        this.loadUserProfile();
+      }
+    });
+
     this.token = localStorage.getItem('token');
     this.userId = getUser();
 
@@ -67,14 +81,27 @@ export class ProfileComponent implements OnInit {
     }
     console.log("displayName: ", this.displayName);
     this.isLoggedIn = !!this.token;
+  } 
+
+  loadUserProfile() {
     this.getTotalSessions();
     this.getTotalWeights();
     this.getConsecutiveSessions();
-  } 
+  }
 
   logout() {
     localStorage.removeItem('token');
-    this.isLoggedIn = false;
+    this.isLoggedInSubject.next(false);
+  }
+
+  refreshProfile() {
+    this.token = localStorage.getItem('token');
+    this.userId = getUser();
+    this.isLoggedIn = !!this.token;
+    console.log('isLoggedIn in refreshProfile:', this.isLoggedIn);
+    if (this.isLoggedIn) {
+      this.loadUserProfile();
+    }
   }
 
   getTotalSessions() {

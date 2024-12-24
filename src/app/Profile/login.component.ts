@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, Injectable } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { supabase } from '../supabase-client';
+import { BehaviorSubject } from 'rxjs';
 import { AuthResponse } from '@supabase/supabase-js';
 
 @Component({
@@ -24,6 +25,10 @@ export class LoginComponent {
   showRegister: boolean = false;
   supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1bnZzd3F1c3ZidGNjYWRvY2RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQwMzgyOTYsImV4cCI6MjA0OTYxNDI5Nn0.zGoZJifm-QCa83fDOLG5U5MM9QsyQSeDZBaYtnkXLzw';
   token: string | null = null;
+
+  private isLoggedInSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  public isLoggedIn$ = this.isLoggedInSubject.asObservable();
+
 
   headers = new HttpHeaders({
     apikey: this.supabaseKey,
@@ -77,11 +82,13 @@ export class LoginComponent {
     }
     if (data?.session?.access_token) {
       localStorage.setItem('token', data.session.access_token);
+      this.isLoggedInSubject.next(true);
+      console.log('isLoggedIn after login:', true);
     }
     console.log("user: ", data);
 
     const sessionResponse = await supabase.auth.getSession();
-  console.log("Session data: ", sessionResponse);
+    console.log("Session data: ", sessionResponse);
     return { user: data?.user };
   }
   
