@@ -26,15 +26,9 @@
       <div class="activity-history">
         <h2>Recent Workouts</h2>
         <ul>
-          <li>
-            <span>Upper Body Workout</span>
-            <span>1 hr</span>
-            <span>12/07/2024</span>
-          </li>
-          <li>
-            <span>Cardio</span>
-            <span>30 min</span>
-            <span>12/06/2024</span>
+          <li *ngFor="let workout of recentWorkouts">
+            <span>{{ workout.title }}</span>
+            <span>{{ workout.date | date: 'shortDate' }}</span>
           </li>
         </ul>
       </div>
@@ -88,4 +82,3 @@
       <app-login></app-login>
     </ng-template>
   </div>
-  

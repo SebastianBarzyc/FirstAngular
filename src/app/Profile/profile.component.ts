@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { LoginComponent } from './login.component';
 import { CommonModule } from '@angular/common';
 import { HttpClient} from '@angular/common/http';
-import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { supabase, getUser } from '../supabase-client';
 import { BehaviorSubject } from 'rxjs';
 
@@ -14,104 +13,111 @@ import { BehaviorSubject } from 'rxjs';
     CommonModule,
   ],
   providers: [
-    JwtHelperService,
-    {
-      provide: JWT_OPTIONS,
-      useValue: {
-        tokenGetter: () => localStorage.getItem('token'),
-        allowedDomains: ['localhost:3000, localhost:4200'],
-      }
-    }
   ],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {
   isLoggedIn: boolean = false;
   userProfile: any = null;
-  token: string | null = null;
+  session: any = null;
   totalSessions: number | null = null;
   totalWeights: number | null = null;
   consecutiveSessions: number | null = null;
   userId: any;
   displayName: string | null = null;
+  recentWorkouts: any[] = [];
   private isLoggedInSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
     supabase.auth.onAuthStateChange((event, session) => {
       console.log(`Event: ${event}`);
       if (session) {
-        console.log('Zalogowano, aktywna sesja:', session);
-        this.refreshProfile(); // Refresh profile on login
-        this.isLoggedInSubject.next(true); // Update isLoggedInSubject
-        console.log('isLoggedIn after login2:', this.isLoggedIn);
+        console.log('Logged in, active session:', session);
+        this.session = session;
+        localStorage.setItem('session', JSON.stringify(session));
+        this.refreshProfile();
+        this.isLoggedInSubject.next(true);
       } else {
-        console.log('Wylogowano lub brak aktywnej sesji.');
-        this.isLoggedInSubject.next(false); // Update isLoggedInSubject
+        console.log('Logged out or no active session.');
+        this.session = null;
+        localStorage.removeItem('session');
+        this.isLoggedInSubject.next(false);
       }
     });
   }
 
   async ngOnInit() {
     this.isLoggedIn$.subscribe(isLoggedIn => {
+      console.log('isLoggedIn subscription:', isLoggedIn);
       this.isLoggedIn = isLoggedIn;
       if (isLoggedIn) {
         this.loadUserProfile();
+        this.getRecentWorkouts();
       }
     });
 
-    this.token = localStorage.getItem('token');
-    this.userId = getUser();
+    const storedSession = localStorage.getItem('session');
+    if (storedSession) {
+      this.session = JSON.parse(storedSession);
+      this.userId = this.session.user.id;
+      this.displayName = this.session.user.user_metadata?.['display_name'];
+      this.isLoggedInSubject.next(true);
+    } else {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
 
-    try {
-      const { data, error } = await supabase.auth.getUser();
-      const user = data?.user;
-      console.log("user: ", data);
-
-      const sessionResponse = await supabase.auth.getSession();
-    console.log("Session data: ", sessionResponse);
-
-      if (user) {
-        this.displayName = user.user_metadata?.['display_name'];
-      } else {
-        this.displayName = null;
+        this.session = data.session;
+        if (this.session) {
+          this.userId = this.session.user.id;
+          this.displayName = this.session.user.user_metadata?.['display_name'];
+          localStorage.setItem('session', JSON.stringify(this.session));
+          this.isLoggedInSubject.next(true);
+        } else {
+          this.isLoggedInSubject.next(false);
+        }
+      } catch (error) {
+        console.error('Error during component initialization:', error);
       }
-    } catch (error) {
-      console.error('Błąd podczas inicjalizacji komponentu:', error);
     }
-    console.log("displayName: ", this.displayName);
-    this.isLoggedIn = !!this.token;
-  } 
+  }
 
   loadUserProfile() {
     this.getTotalSessions();
     this.getTotalWeights();
     this.getConsecutiveSessions();
+    this.getRecentWorkouts();
+    this.cdr.detectChanges();
   }
 
   logout() {
-    localStorage.removeItem('token');
-    this.isLoggedInSubject.next(false);
+    supabase.auth.signOut().then(() => {
+      this.session = null;
+      localStorage.removeItem('session');
+      this.isLoggedInSubject.next(false);
+    });
   }
 
   refreshProfile() {
-    this.token = localStorage.getItem('token');
-    this.userId = getUser();
-    this.isLoggedIn = !!this.token;
-    console.log('isLoggedIn in refreshProfile:', this.isLoggedIn);
-    if (this.isLoggedIn) {
+    if (this.session) {
+      this.userId = this.session.user.id;
+      this.isLoggedIn = true;
+      console.log('isLoggedIn in refreshProfile:', this.isLoggedIn);
       this.loadUserProfile();
+    } else {
+      this.isLoggedIn = false;
     }
   }
 
   getTotalSessions() {
-    if (!this.token) {
-      console.error('Brak tokena uwierzytelniającego');
+    if (!this.session) {
+      console.error('No active session');
       return;
     }
   
     if (!this.userId) {
-      console.error('Nie udało się pobrać userId z tokena');
+      console.error('Failed to get userId from session');
       return;
     }
   
@@ -121,22 +127,22 @@ export class ProfileComponent implements OnInit {
       .eq('user_id', this.userId)
       .then(({ count, error }) => {
         if (error) {
-          console.error('Błąd pobierania sesji:', error.message);
+          console.error('Error fetching sessions:', error.message);
           return;
         }
         this.totalSessions = count || 0;
-        console.log(`Liczba sesji użytkownika: ${this.totalSessions}`);
+        this.cdr.detectChanges();
       });
   }
   
   getTotalWeights() {
-    if (!this.token) {
-      console.error('Brak tokena uwierzytelniającego');
+    if (!this.session) {
+      console.error('No active session');
       return;
     }
   
     if (!this.userId) {
-      console.error('Nie udało się pobrać userId z tokena');
+      console.error('Failed to get userId from session');
       return;
     }
   
@@ -146,29 +152,28 @@ export class ProfileComponent implements OnInit {
       .eq('user_id', this.userId)
       .then(({ data, error }) => {
         if (error) {
-          console.error('Błąd pobierania danych o ciężarach:', error.message);
+          console.error('Error fetching weight data:', error.message);
           return;
         }
   
         if (!data || data.length === 0) {
-          console.error('Brak danych o sesjach dla tego użytkownika');
+          console.error('No session data for this user');
           return;
         }
   
         const totalWeights = data.reduce((sum, row) => sum + (row.weight || 0), 0);
         this.totalWeights = totalWeights;
-        console.log(`Suma ciężarów: ${this.totalWeights}`);
       });
   }
 
   getConsecutiveSessions() {
-    if (!this.token) {
-      console.error('Brak tokena uwierzytelniającego');
+    if (!this.session) {
+      console.error('No active session');
       return;
     }
   
     if (!this.userId) {
-      console.error('Nie udało się pobrać userId z tokena');
+      console.error('Failed to get userId from session');
       return;
     }
   
@@ -179,12 +184,12 @@ export class ProfileComponent implements OnInit {
       .lte('date', new Date().toISOString().split('T')[0])
       .then(({ data, error }) => {
         if (error) {
-          console.error('Błąd pobierania sesji:', error.message);
+          console.error('Error fetching sessions:', error.message);
           return;
         }
   
         if (!data || data.length === 0) {
-          console.error('Brak sesji dla tego użytkownika');
+          console.error('No sessions for this user');
           return;
         }
   
@@ -209,7 +214,51 @@ export class ProfileComponent implements OnInit {
   
         maxStreak = Math.max(maxStreak, currentStreak);
         this.consecutiveSessions = maxStreak;
-        console.log(`Liczba kolejnych sesji: ${this.consecutiveSessions}`);
+      });
+  }
+
+  getRecentWorkouts() {    
+    if (!this.session) {
+      console.error('No active session');
+      return;
+    }
+
+    if (!this.userId) {
+      console.error('Failed to get userId from session');
+      return;
+    }
+
+    supabase
+      .from('sessions')
+      .select('title, date')
+      .eq('user_id', this.userId)
+      .order('date', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error fetching sessions:', error.message);
+          return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        this.recentWorkouts = data
+          .filter(workout => {
+            const [day, month, year] = workout.date.split('.');
+            const workoutDate = new Date(`${year}-${month}-${day}`);
+            return workoutDate <= today;
+          })
+          .map(workout => {
+            const [day, month, year] = workout.date.split('.');
+            const formattedDate = new Date(`${year}-${month}-${day}`);
+            return {
+              ...workout,
+              date: formattedDate
+            };
+          })
+          .slice(0, 5) || [];
+        console.log('Recent Workouts:', this.recentWorkouts);
+        this.cdr.detectChanges(); // Trigger change detection
       });
   }
 }

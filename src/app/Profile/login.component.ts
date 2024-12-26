@@ -4,7 +4,6 @@ import { Component, Injectable } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { supabase } from '../supabase-client';
 import { BehaviorSubject } from 'rxjs';
-import { AuthResponse } from '@supabase/supabase-js';
 
 @Component({
     selector: 'app-login',
@@ -80,8 +79,9 @@ export class LoginComponent {
       console.error('Logowanie nieudane:', error.message);
       return { error: error.message };
     }
-    if (data?.session?.access_token) {
-      localStorage.setItem('token', data.session.access_token);
+    if (data?.session) {
+      localStorage.setItem('session', JSON.stringify(data.session));
+      console.log("session: ", data.session);
       this.isLoggedInSubject.next(true);
       console.log('isLoggedIn after login:', true);
     }

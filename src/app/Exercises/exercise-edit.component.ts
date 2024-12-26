@@ -26,11 +26,10 @@ import { MatInputModule } from '@angular/material/input';
 export class ExerciseEditComponent {
   readonly dialogRef = inject(MatDialogRef<ExerciseEditComponent>);
 
-  // Definiujemy typ 'exercise' na podstawie struktury 'data'
   exercise: { id: number, title: string, description: string } = {
-    id: this.data.id,       // Pobieramy id z danych przekazanych do dialogu
-    title: this.data.title, // Pobieramy title z danych przekazanych do dialogu
-    description: this.data.description // Pobieramy description z danych przekazanych do dialogu
+    id: this.data.id,
+    title: this.data.title,
+    description: this.data.description
   };
 
   exercises: any[] = [];
@@ -41,6 +40,7 @@ export class ExerciseEditComponent {
 
   ngOnInit(): void {
     this.loadExercises();
+    this.autoResize(this.textarea.nativeElement);
   }
 
   getId(): void{

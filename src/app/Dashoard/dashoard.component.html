@@ -6,7 +6,7 @@
         <img src="/assets/BicepsWorkout.jpg" class="rounded img-fluid float-start" style="max-width: 40%;height: auto;">
         <div class="float-start" style="padding: 10% 0 0 10%">
             <p class="fs-4 fw-bold">Today's workout</p>
-            <p class="fs-5">Biceps Workout</p>
+            <p class="fs-5">{{ todaysWorkout }}</p>
         </div>
     </div>
     <br>
@@ -22,10 +22,10 @@
 
     <div class="WhatsNextContener">
         <label class="fs-5 fw-bold">What's next</label> 
-        <div *ngFor="let WhatsnextIndex of WhatsnextIndexArray">
-            <button class="btn text-start WhatsNext" [attr.WhatsnextDay]="WhatsnextDayList[WhatsnextIndex]">
-                <p class="mb-0 fw-bolder">{{ WhatsnextDayList[WhatsnextIndex] }}</p>
-                <p>{{ WhatsnextWorkoutsList[WhatsnextIndex] }}</p>
+        <div *ngFor="let session of upcomingSessions">
+            <button class="btn text-start WhatsNext">
+                <p class="mb-0 fw-bolder">{{ session.date }}</p>
+                <p>{{ session.title }}</p>
             </button>
         </div>
     </div>
