@@ -12,6 +12,8 @@ import { inject } from "@vercel/analytics";
   templateUrl: './app.component.html',
 })
 export class AppComponent {
+    title = 'FitBuddy';
+
   ngOnInit(): void {
     injectSpeedInsights({ debug: false });
     inject({ debug: false });

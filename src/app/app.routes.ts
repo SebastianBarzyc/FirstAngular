@@ -15,7 +15,7 @@ export const routes: Routes = [
   { path: 'Profile', component: ProfileComponent },
   { path: 'Progress', component: ProgressComponent },
   { path: 'Workouts', component: WorkoutsComponent },
-  { path: '**', redirectTo: '/Dashboard' } // Wildcard route for a 404 page
+  { path: '**', redirectTo: '/Dashboard' }
 ];
 
 @NgModule({

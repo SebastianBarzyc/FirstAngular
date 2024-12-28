@@ -4,19 +4,21 @@ import { Component, Injectable } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { supabase } from '../supabase-client';
 import { BehaviorSubject } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
-    selector: 'app-login',
-    templateUrl: './login.component.html',
-    standalone: true,
-    imports: [
-        FormsModule,
-        CommonModule,
-        ]
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  standalone: true,
+  imports: [
+    FormsModule,
+    CommonModule,
+    TranslateModule
+  ]
 })
-  @Injectable({
-    providedIn: 'root'
-  })
+@Injectable({
+  providedIn: 'root'
+})
 export class LoginComponent {
   email: string = '';
   username: string = '';
@@ -24,10 +26,11 @@ export class LoginComponent {
   showRegister: boolean = false;
   supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1bnZzd3F1c3ZidGNjYWRvY2RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQwMzgyOTYsImV4cCI6MjA0OTYxNDI5Nn0.zGoZJifm-QCa83fDOLG5U5MM9QsyQSeDZBaYtnkXLzw';
   token: string | null = null;
+  errorMessage: string = '';
+  successMessage: string = '';
 
   private isLoggedInSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public isLoggedIn$ = this.isLoggedInSubject.asObservable();
-
 
   headers = new HttpHeaders({
     apikey: this.supabaseKey,
@@ -37,16 +40,42 @@ export class LoginComponent {
   constructor(private http: HttpClient) {}
 
   onSubmit() {
+    this.errorMessage = '';
+    this.successMessage = '';
     const loginData = {
-      email: this.email,
+      email: this.email.toLowerCase(),
       password: this.password,
       username: this.username
     };
 
     if (this.showRegister) {
-      this.register(loginData.email, loginData.password, loginData.username);
+      this.checkEmailExists(loginData.email).then(exists => {
+        if (exists) {
+          this.errorMessage = 'Email already exists. Please use a different email.';
+        } else {
+          this.register(loginData.email, loginData.password, loginData.username);
+        }
+      }).catch(error => {
+        this.errorMessage = 'Error checking email: ' + error.message;
+        console.error('Error checking email existence:', error);
+      });
     } else {
       this.login(loginData.email, loginData.password);
+    }
+  }
+
+  async checkEmailExists(email: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase.auth.admin.listUsers(); // Pobiera użytkowników
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Sprawdza, czy email istnieje w danych użytkowników
+      return data.users.some(user => user.email === email);
+    } catch (error) {
+      console.error('Error checking email existence:', error);
+      throw error;
     }
   }
 
@@ -61,37 +90,47 @@ export class LoginComponent {
           },
         },
       });
-  
+
       if (error) {
-        console.error('Błąd rejestracji:', error.message);
+        this.errorMessage = error.message;
+        console.error('Registration error:', error.message);
         return;
       }
-  
+
+      this.successMessage = 'Registration successful. Please check your email to verify your account.';
     } catch (error) {
-      console.error('Błąd podczas rejestracji:', error);
+      this.errorMessage = 'Error during registration.';
+      console.error('Error during registration:', error);
     }
   }
-  
+
   async login(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      console.error('Logowanie nieudane:', error.message);
-      return { error: error.message };
-    }
-    if (data?.session) {
-      localStorage.setItem('session', JSON.stringify(data.session));
-      console.log("session: ", data.session);
-      this.isLoggedInSubject.next(true);
-      console.log('isLoggedIn after login:', true);
-    }
-    console.log("user: ", data);
+      if (error) {
+        this.errorMessage = 'Login failed: ' + error.message;
+        console.error('Login failed:', error.message);
+        return { error: error.message };
+      }
+      if (data?.session) {
+        localStorage.setItem('session', JSON.stringify(data.session));
+        console.log("session: ", data.session);
+        this.isLoggedInSubject.next(true);
+        console.log('isLoggedIn after login:', true);
+      }
+      console.log("user: ", data);
 
-    const sessionResponse = await supabase.auth.getSession();
-    console.log("Session data: ", sessionResponse);
-    return { user: data?.user };
+      const sessionResponse = await supabase.auth.getSession();
+      console.log("Session data: ", sessionResponse);
+      return { user: data?.user };
+    } catch (error) {
+      this.errorMessage = 'Unexpected error during login.';
+      console.error('Unexpected error during login:', error);
+      return { error: 'Unexpected error occurred' };
+    }
   }
-  
+
   toggleRegister(event: Event) {
     this.showRegister = !this.showRegister;
     event.preventDefault();

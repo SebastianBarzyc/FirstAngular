@@ -6,6 +6,9 @@
     </h3>
 
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
       <div class="mb-3">
         <label for="email" class="form-label">E-mail</label>
         <input type="text" id="email" class="form-control" placeholder="E-mail" required [(ngModel)]="email" name="email" #emailInput="ngModel">
@@ -20,7 +23,7 @@
 
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        <input type="password" id="password" class="form-control" placeholder="Wprowadź hasło" required [(ngModel)]="password" name="password" #passwordInput="ngModel">
+        <input type="password" id="password" class="form-control" placeholder="Enter password" required [(ngModel)]="password" name="password" #passwordInput="ngModel">
         <div *ngIf="passwordInput.invalid && passwordInput.touched" class="text-danger">Password is required</div>
       </div>
 
