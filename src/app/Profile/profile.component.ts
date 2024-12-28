@@ -1,8 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { LoginComponent } from './login.component';
 import { CommonModule } from '@angular/common';
-import { HttpClient} from '@angular/common/http';
-import { supabase, getUser } from '../supabase-client';
+import { HttpClient } from '@angular/common/http';
+import { supabase } from '../supabase-client';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
@@ -12,8 +12,7 @@ import { BehaviorSubject } from 'rxjs';
     LoginComponent,
     CommonModule,
   ],
-  providers: [
-  ],
+  providers: [],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {
@@ -38,16 +37,20 @@ export class ProfileComponent implements OnInit {
         localStorage.setItem('session', JSON.stringify(session));
         this.refreshProfile();
         this.isLoggedInSubject.next(true);
-      } else {
-        console.log('Logged out or no active session.');
-        this.session = null;
-        localStorage.removeItem('session');
-        this.isLoggedInSubject.next(false);
       }
     });
   }
 
   async ngOnInit() {
+    const storedSession = localStorage.getItem('session');
+    if (storedSession) {
+      this.session = JSON.parse(storedSession);
+      this.userId = this.session.user.id;
+      this.displayName = this.session.user.user_metadata?.['display_name'];
+      this.isLoggedInSubject.next(true);
+    
+    }
+
     this.isLoggedIn$.subscribe(isLoggedIn => {
       console.log('isLoggedIn subscription:', isLoggedIn);
       this.isLoggedIn = isLoggedIn;
@@ -56,31 +59,6 @@ export class ProfileComponent implements OnInit {
         this.getRecentWorkouts();
       }
     });
-
-    const storedSession = localStorage.getItem('session');
-    if (storedSession) {
-      this.session = JSON.parse(storedSession);
-      this.userId = this.session.user.id;
-      this.displayName = this.session.user.user_metadata?.['display_name'];
-      this.isLoggedInSubject.next(true);
-    } else {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
-
-        this.session = data.session;
-        if (this.session) {
-          this.userId = this.session.user.id;
-          this.displayName = this.session.user.user_metadata?.['display_name'];
-          localStorage.setItem('session', JSON.stringify(this.session));
-          this.isLoggedInSubject.next(true);
-        } else {
-          this.isLoggedInSubject.next(false);
-        }
-      } catch (error) {
-        console.error('Error during component initialization:', error);
-      }
-    }
   }
 
   loadUserProfile() {
@@ -258,7 +236,7 @@ export class ProfileComponent implements OnInit {
           })
           .slice(0, 5) || [];
         console.log('Recent Workouts:', this.recentWorkouts);
-        this.cdr.detectChanges(); // Trigger change detection
+        this.cdr.detectChanges();
       });
   }
 }

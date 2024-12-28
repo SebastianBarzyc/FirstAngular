@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, Injectable } from '@angular/core';
+import { Component, Injectable, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { supabase } from '../supabase-client';
 import { BehaviorSubject } from 'rxjs';
@@ -19,7 +19,7 @@ import { TranslateModule } from '@ngx-translate/core';
 @Injectable({
   providedIn: 'root'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email: string = '';
   username: string = '';
   password: string = '';
@@ -38,6 +38,10 @@ export class LoginComponent {
   });
 
   constructor(private http: HttpClient) {}
+
+  ngOnInit() {
+
+  }
 
   onSubmit() {
     this.errorMessage = '';
@@ -66,12 +70,11 @@ export class LoginComponent {
 
   async checkEmailExists(email: string): Promise<boolean> {
     try {
-      const { data, error } = await supabase.auth.admin.listUsers(); // Pobiera użytkowników
+      const { data, error } = await supabase.auth.admin.listUsers();
       if (error) {
         throw new Error(error.message);
       }
 
-      // Sprawdza, czy email istnieje w danych użytkowników
       return data.users.some(user => user.email === email);
     } catch (error) {
       console.error('Error checking email existence:', error);
@@ -134,5 +137,12 @@ export class LoginComponent {
   toggleRegister(event: Event) {
     this.showRegister = !this.showRegister;
     event.preventDefault();
+  }
+
+  logout() {
+    supabase.auth.signOut().then(() => {
+      localStorage.removeItem('session');
+      this.isLoggedInSubject.next(false);
+    });
   }
 }

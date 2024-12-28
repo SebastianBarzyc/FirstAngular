@@ -1,84 +1,84 @@
 <div class="mainContent text-center">
-    <div class="profile-page" *ngIf="isLoggedIn; else loginTemplate">
-      <!-- Nagłówek profilu -->
-      <div class="profile-header" *ngIf="displayName">
-        <h1>Welcome, {{ displayName }} ! (Flag)</h1>
-        <p>{{ userProfile.goal }}</p>
-      </div>
-    
-      <!-- Statystyki -->
-      <div class="stats">
-        <div class="stat-card">
-          <h2>Workouts</h2>
-          <p>{{ totalSessions !== null ? totalSessions : '0' }}</p>
-        </div>
-        <div class="stat-card">
-          <h2>Weights</h2>
-          <p>{{ totalWeights !== null ? totalWeights : '0' }}</p>
-        </div>
-        <div class="stat-card">
-          <h2>Active Days</h2>
-          <p>{{ consecutiveSessions !== null ? consecutiveSessions : '0' }}</p>
-        </div>
-      </div>
-    
-      <!-- Historia aktywności -->
-      <div class="activity-history">
-        <h2>Recent Workouts</h2>
-        <ul>
-          <li *ngFor="let workout of recentWorkouts">
-            <span>{{ workout.title }}</span>
-            <span>{{ workout.date | date: 'shortDate' }}</span>
-          </li>
-        </ul>
-      </div>
-    
-      <!-- Cele -->
-      <div class="goals">
-        <h2>Goals</h2>
-        <div class="stats">
-          <div class="stat-card">
-            <h2>Bench press record</h2>
-            <p>(Bench press record) / (Goal bench press)</p>
-          </div>
-          <div class="stat-card">
-            <h2>Squat record</h2>
-            <p>(Squat record) / (Goal squat)</p>
-          </div>
-          <div class="stat-card">
-            <h2>Deadlift record</h2>
-            <p>(Deadlift record) / (Goal deadlift)</p>
-          </div>
-        </div>
-      </div>
+  <div class="profile-page" *ngIf="isLoggedIn; else loginTemplate">
+    <!-- Nagłówek profilu -->
+    <div class="profile-header" *ngIf="displayName">
+      <h1>Welcome, {{ displayName }} ! (Flag)</h1>
+      <p>{{ userProfile.goal }}</p>
+    </div>
   
-      <!-- Badges-->
-      <div class="badges">
-        <h2>Badges</h2>
-        <div class="stats">
-          <div class="badges-card">
-            <h2>Bench press record</h2>
-            <img src="/assets/benchpress-badge.png" alt="Bench Press Badge">
-          </div>
-          <div class="badges-card">
-            <h2>Squat record</h2>
-            <img src="/assets/squat-badge.png" alt="Squat Badge">
-          </div>
-          <div class="badges-card">
-            <h2>Deadlift record</h2>
-            <img src="/assets/deadlift-badge.png" alt="Deadlift Badge">
-          </div>
-        </div>
+    <!-- Statystyki -->
+    <div class="stats">
+      <div class="stat-card">
+        <h2>Workouts</h2>
+        <p>{{ totalSessions !== null ? totalSessions : '0' }}</p>
       </div>
-    
-      <!-- Ustawienia -->
-      <div class="settings">
-        <button>Edit Profile</button>
-        <button (click)="logout()">Log Out</button>
+      <div class="stat-card">
+        <h2>Weights</h2>
+        <p>{{ totalWeights !== null ? totalWeights : '0' }}</p>
+      </div>
+      <div class="stat-card">
+        <h2>Active Days</h2>
+        <p>{{ consecutiveSessions !== null ? consecutiveSessions : '0' }}</p>
       </div>
     </div>
   
-    <ng-template #loginTemplate>
-      <app-login></app-login>
-    </ng-template>
+    <!-- Historia aktywności -->
+    <div class="activity-history">
+      <h2>Recent Workouts</h2>
+      <ul>
+        <li *ngFor="let workout of recentWorkouts">
+          <span>{{ workout.title }}</span>
+          <span>{{ workout.date | date: 'shortDate' }}</span>
+        </li>
+      </ul>
+    </div>
+  
+    <!-- Cele -->
+    <div class="goals">
+      <h2>Goals</h2>
+      <div class="stats">
+        <div class="stat-card">
+          <h2>Bench press record</h2>
+          <p>(Bench press record) / (Goal bench press)</p>
+        </div>
+        <div class="stat-card">
+          <h2>Squat record</h2>
+          <p>(Squat record) / (Goal squat)</p>
+        </div>
+        <div class="stat-card">
+          <h2>Deadlift record</h2>
+          <p>(Deadlift record) / (Goal deadlift)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badges-->
+    <div class="badges">
+      <h2>Badges</h2>
+      <div class="stats">
+        <div class="badges-card">
+          <h2>Bench press record</h2>
+          <img src="/assets/benchpress-badge.png" alt="Bench Press Badge">
+        </div>
+        <div class="badges-card">
+          <h2>Squat record</h2>
+          <img src="/assets/squat-badge.png" alt="Squat Badge">
+        </div>
+        <div class="badges-card">
+          <h2>Deadlift record</h2>
+          <img src="/assets/deadlift-badge.png" alt="Deadlift Badge">
+        </div>
+      </div>
+    </div>
+  
+    <!-- Ustawienia -->
+    <div class="settings">
+      <button>Edit Profile</button>
+      <button (click)="logout()">Log Out</button>
+    </div>
   </div>
+
+  <ng-template #loginTemplate>
+    <app-login></app-login>
+  </ng-template>
+</div>
