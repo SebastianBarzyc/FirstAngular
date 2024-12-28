@@ -3,14 +3,14 @@ import {
   PortalModule,
   TemplatePortal,
   UniqueSelectionDispatcher
-} from "./chunk-TFWORY3H.js";
+} from "./chunk-EO3UM4LB.js";
 import {
   animate,
   state,
   style,
   transition,
   trigger
-} from "./chunk-PKNXJLYM.js";
+} from "./chunk-EZZCVUDQ.js";
 import {
   ENTER,
   FocusKeyManager,
@@ -18,10 +18,10 @@ import {
   MatCommonModule,
   SPACE,
   hasModifierKey
-} from "./chunk-Z2X5YE3H.js";
+} from "./chunk-74TEM6JF.js";
 import {
   DOCUMENT
-} from "./chunk-ID3BV52I.js";
+} from "./chunk-T4KLQAQQ.js";
 import {
   ANIMATION_MODULE_TYPE,
   Attribute,
@@ -83,7 +83,7 @@ import {
   ɵɵstyleProp,
   ɵɵtemplate,
   ɵɵviewQuery
-} from "./chunk-WXLQRJIA.js";
+} from "./chunk-SROTSVUJ.js";
 import {
   EMPTY,
   Subject,
@@ -92,7 +92,8 @@ import {
   merge,
   startWith,
   take
-} from "./chunk-ZSY7TSMJ.js";
+} from "./chunk-KOIB4TPY.js";
+import "./chunk-HM5YLMWO.js";
 import "./chunk-SOUAK7E5.js";
 
 // node_modules/@angular/cdk/fesm2022/accordion.mjs

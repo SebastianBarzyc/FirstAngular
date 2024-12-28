@@ -1,5 +1,5 @@
 // exercises-backend.component.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, Input, inject } from '@angular/core';
 import { ExerciseService } from './exercises.service';
 import { CommonModule } from '@angular/common';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -16,6 +16,7 @@ import { ExerciseEditComponent } from './exercise-edit.component';
   imports: [CommonModule, MatExpansionModule, FormsModule]
 })
 export class ExercisesBackend implements OnInit {
+  @Input() isLoggedIn: boolean = false;
   exercises: any[] = [];
   isPanelExpanded = false;
   searchSubscription: Subscription = new Subscription();
@@ -28,10 +29,10 @@ export class ExercisesBackend implements OnInit {
   ngOnInit(): void {
     this.refreshSubscription = this.exerciseService.onRefreshNeeded().subscribe(() => {
       console.log('Refresh needed triggered');
-      this.loadExercises();
+      this.loadExercises(this.isLoggedIn);
     });
 
-    this.loadExercises();
+    this.loadExercises(this.isLoggedIn);
   }
 
   ngOnDestroy(): void {
@@ -39,8 +40,8 @@ export class ExercisesBackend implements OnInit {
     this.searchSubscription.unsubscribe();
   }
 
-  loadExercises(): void {
-    this.exerciseService.getData().subscribe(data => {
+  loadExercises(includeUserExercises: boolean = false): void {
+    this.exerciseService.getData(includeUserExercises).subscribe(data => {
       this.exercises = data;
       console.log('Loaded exercises:', data);
     });
@@ -53,12 +54,12 @@ export class ExercisesBackend implements OnInit {
   constructor(private exerciseService: ExerciseService) {}
 
   onSubmit(): void {
-    console.log(this.exercise);  // Check the form data
+    console.log(this.exercise);
 
     this.exerciseService.addExercise(this.exercise).pipe(
       tap(response => {
         console.log('Exercise added successfully:', response);
-        this.loadExercises();  // Reload exercises after adding
+        this.loadExercises(this.isLoggedIn);
         this.resetForm();
       }),
       catchError(error => {
@@ -82,9 +83,8 @@ export class ExercisesBackend implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       console.log('Dialog closed');
-      // Po zamknięciu okna dialogowego, odśwież ćwiczenia
       if (result) {
-        this.loadExercises();
+        this.loadExercises(this.isLoggedIn);
       }
     });
   }

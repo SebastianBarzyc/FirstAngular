@@ -1,9 +1,21 @@
 <div class="mainContent">
   <p class="fs-2 fw-bold text-center">Exercises</p>
   <div class="SearchBarContainer d-flex align-items-center">
-    <input type="text" class="form-control mx-3" id="SearchBar"placeholder="Search Exercise">
+    <input type="text" class="form-control mx-3" id="SearchBar" placeholder="Search Exercise">
     <button class="btn"><i class="bi bi-search fs-5"></i></button>
     <button class="btn RaisedBtn ms-auto" (click)="togglePanel()">Create exercise</button>
+  </div>
+  <div class="form-check form-switch mt-3 d-flex align-items-center justify-content-center">
+    <input
+      class="form-check-input"
+      type="checkbox"
+      id="toggleSwitch"
+      [(ngModel)]="isToggled"
+      (change)="onToggleChange($event)"
+    />
+    <label class="ms-2" for="toggleSwitch">
+      {{ isToggled ? "User's Exercises" : 'Default Exercises' }}
+    </label>
   </div>
   <exercises-backend></exercises-backend>
 </div>

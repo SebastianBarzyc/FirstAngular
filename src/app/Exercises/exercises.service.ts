@@ -10,7 +10,7 @@ export class ExerciseService {
 
   constructor() {}
 
-  getData(): Observable<any[]> {
+  getData(includeUserExercises: boolean = false): Observable<any[]> {
     return new Observable(observer => {
       const userId = getUser();
 
@@ -19,20 +19,26 @@ export class ExerciseService {
         return;
       }
 
-      supabase
+      let query = supabase
         .from('exercises')
         .select('*')
-        .eq('user_id', userId)
-        .order('id', { ascending: true })
-        .then(({ data, error }: { data: any[] | null; error: any }) => {
-          if (error) {
-            console.error('Błąd pobierania ćwiczeń:', error);
-            observer.error('Wystąpił błąd podczas pobierania ćwiczeń.');
-          } else {
-            observer.next(data || []);
-          }
-          observer.complete();
-        })
+        .order('id', { ascending: true });
+
+      if (includeUserExercises) {
+        query = query.or(`user_id.eq.${userId},user_id.eq.5d3ab3e6-e980-4df6-af92-e0063728a5fc`);
+      } else {
+        query = query.eq('user_id', '5d3ab3e6-e980-4df6-af92-e0063728a5fc');
+      }
+
+      query.then(({ data, error }: { data: any[] | null; error: any }) => {
+        if (error) {
+          console.error('Błąd pobierania ćwiczeń:', error);
+          observer.error('Wystąpił błąd podczas pobierania ćwiczeń.');
+        } else {
+          observer.next(data || []);
+        }
+        observer.complete();
+      });
     });
   }
   
