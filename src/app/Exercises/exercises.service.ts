@@ -24,10 +24,10 @@ export class ExerciseService {
         .select('*')
         .order('id', { ascending: true });
 
-      if (includeUserExercises) {
+      if (!includeUserExercises) {
         query = query.or(`user_id.eq.${userId},user_id.eq.5d3ab3e6-e980-4df6-af92-e0063728a5fc`);
       } else {
-        query = query.eq('user_id', '5d3ab3e6-e980-4df6-af92-e0063728a5fc');
+        query = query.eq('user_id', userId);
       }
 
       query.then(({ data, error }: { data: any[] | null; error: any }) => {
