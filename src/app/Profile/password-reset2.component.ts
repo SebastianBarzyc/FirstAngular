@@ -31,7 +31,6 @@ export class PasswordResetComponent2 {
         this.errorMessage = 'Invalid or missing token';
       }else if(!this.email){
         this.errorMessage = 'Invalid or missing email';
-
       }
     });
   }
