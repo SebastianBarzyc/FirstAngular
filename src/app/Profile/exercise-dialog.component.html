@@ -1,0 +1,14 @@
+<h2 style="text-align: center;">Select Exercises</h2>
+<div class="exercise-selection">
+  <div class="exercise-tile card" *ngFor="let exercise of data.exercises" 
+       [class.selected]="isExerciseSelected(exercise.title)" 
+       (click)="toggleExerciseSelection(exercise)">
+    <div class="card-body">
+      {{ exercise.title }}
+    </div>
+  </div>
+</div>
+<div class="dialog-actions" style="margin-top: 20px;">
+  <button mat-raised-button color="primary" (click)="onSave()">Save</button>
+  <button mat-raised-button (click)="onCancel()">Cancel</button>
+</div>

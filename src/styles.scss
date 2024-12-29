@@ -345,6 +345,52 @@ textarea {
   justify-content: space-between;
 }
 
+.exercise-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin: 20px;
+}
+
+.exercise-tile {
+  background-color: $card-background-color;
+  border: 1px solid $card-border-color;
+  border-radius: 8px;
+  width: calc(25% - 15px);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s, border-color 0.3s;
+
+  &:hover {
+    background-color: #f0f0f0;
+    border-color: $secondary-color;
+  }
+
+  &.selected {
+    background-color: $secondary-color;
+    color: white;
+    border-color: $secondary-color;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 20px;
+}
+
+h2 {
+  text-align: center;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 20px;
+}
+
 @media (max-width: 768px) {
   nav {
     padding: 0.5rem;

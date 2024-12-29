@@ -8,6 +8,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { ExerciseDialogComponent } from './exercise-dialog.component';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-profile',
@@ -18,7 +21,8 @@ import { FormsModule } from '@angular/forms';
     MatSelectModule,
     MatCheckboxModule,
     FormsModule,
-    LoginComponent
+    LoginComponent,
+    MatButtonModule
   ],
   providers: [],
   templateUrl: './profile.component.html',
@@ -37,8 +41,9 @@ export class ProfileComponent implements OnInit {
   userExercisesSelected: any[] = [];
   private isLoggedInSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public isLoggedIn$ = this.isLoggedInSubject.asObservable();
+  showExerciseSelection = false;
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef, public dialog: MatDialog) {
     supabase.auth.onAuthStateChange((event, session) => {
       console.log(`Event: ${event}`);
       if (session) {
@@ -351,5 +356,36 @@ export class ProfileComponent implements OnInit {
     } else {
       console.log('All exercises removed from goals');
     }
+  }
+
+  toggleExerciseSelection(exercise: any) {
+    if (this.isExerciseSelected(exercise.title)) {
+      this.userExercisesSelected = this.userExercisesSelected.filter(ex => ex.title !== exercise.title);
+    } else {
+      this.userExercisesSelected.push(exercise);
+    }
+  }
+
+  async saveSelectedExercises() {
+    await this.removeExerciseFromGoals();
+    for (const exercise of this.userExercisesSelected) {
+      await this.saveExerciseToGoals(exercise);
+    }
+    this.showExerciseSelection = false;
+    this.cdr.detectChanges();
+  }
+
+  openExerciseDialog() {
+    const dialogRef = this.dialog.open(ExerciseDialogComponent, {
+      width: '80vw',
+      data: { exercises: this.userExercises, selectedExercises: [...this.userExercisesSelected] }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.userExercisesSelected = result;
+        this.saveSelectedExercises();
+      }
+    });
   }
 }
