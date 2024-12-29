@@ -27,8 +27,11 @@ export class PasswordResetComponent2 {
     this.route.queryParams.subscribe(params => {
       this.token = params['token'] || null;
       this.email = params['email'] || null;
-      if (!this.token || !this.email) {
-        this.errorMessage = 'Invalid or missing token/email';
+      if (!this.token) {
+        this.errorMessage = 'Invalid or missing token';
+      }else if(!this.email){
+        this.errorMessage = 'Invalid or missing email';
+
       }
     });
   }
