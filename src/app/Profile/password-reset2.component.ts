@@ -18,15 +18,17 @@ export class PasswordResetComponent2 {
   confirmPassword: string = '';
   errorMessage: string = '';
   successMessage: string = '';
-  accessToken: string | null = null;
+  token: string | null = null;
+  email: string | null = null;
 
   constructor(private router: Router, private route: ActivatedRoute) {}
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
-      this.accessToken = params['access_token'] || null;
-      if (!this.accessToken) {
-        this.errorMessage = 'Invalid or missing access token';
+      this.token = params['token'] || null;
+      this.email = params['email'] || null;
+      if (!this.token || !this.email) {
+        this.errorMessage = 'Invalid or missing token/email';
       }
     });
   }
@@ -44,18 +46,29 @@ export class PasswordResetComponent2 {
       return;
     }
 
-    if (!this.accessToken) {
-      this.errorMessage = 'Invalid or missing access token';
+    if (!this.token || !this.email) {
+      this.errorMessage = 'Invalid or missing token/email';
       return;
     }
 
     try {
-      const { error } = await supabase.auth.updateUser({
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token: this.token,
+        type: 'recovery',
+        email: this.email
+      });
+
+      if (verifyError) {
+        this.errorMessage = 'Error verifying token: ' + verifyError.message;
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
         password: this.newPassword
       });
 
-      if (error) {
-        this.errorMessage = 'Error resetting password: ' + error.message;
+      if (updateError) {
+        this.errorMessage = 'Error resetting password: ' + updateError.message;
       } else {
         this.successMessage = 'Password reset successfully';
         setTimeout(() => {
