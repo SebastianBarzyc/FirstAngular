@@ -1,6 +1,8 @@
 $background-color: #FAFAFA;
 $primary-color: #1C1E1F;
 $secondary-color: #607AFC;
+$card-background-color: #FFFFFF;
+$card-border-color: #E0E0E0;
 
 //GLOBAL
 html, body { height: 100%; }
@@ -281,26 +283,28 @@ textarea {
 }
 
 .stat-card {
-  background: #f4f4f4;
+  background: $card-background-color;
   padding: 10px;
   border-radius: 8px;
   text-align: center;
   width: 30%;
+  border: 1px solid $card-border-color;
 }
 
 .badges-card {
-  background: #f4f4f4;
+  background: $card-background-color;
   padding: 10px;
   border-radius: 8px;
   text-align: center;
-  width: 200px;
+  width: 150px; /* Smaller width for badges */
+  border: 1px solid $card-border-color;
 }
 
 .badges-card img {
-  max-width: 100%; /* Dopasowanie do szerokości kontenera */
-  height: auto; /* Zachowanie proporcji */
+  max-width: 80%; /* Smaller image size */
+  height: auto;
   display: block;
-  margin: 10px auto; /* Wyśrodkowanie obrazu w kontenerze */
+  margin: 10px auto;
 }
 
 .activity-history ul {
@@ -312,7 +316,7 @@ textarea {
   display: flex;
   justify-content: space-between;
   padding: 10px 0;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid $card-border-color;
 }
 
 .goals {
@@ -323,6 +327,16 @@ textarea {
   display: flex;
   justify-content: space-between;
   margin-top: 20px;
+}
+
+.btn-primary {
+  background-color: $secondary-color !important;
+  border-color: $secondary-color !important;
+}
+
+.btn-secondary {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
 }
 
 @media (max-width: 768px) {
