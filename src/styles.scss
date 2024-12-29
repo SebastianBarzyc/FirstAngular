@@ -296,12 +296,12 @@ textarea {
   padding: 10px;
   border-radius: 8px;
   text-align: center;
-  width: 150px; /* Smaller width for badges */
+  width: 150px;
   border: 1px solid $card-border-color;
 }
 
 .badges-card img {
-  max-width: 80%; /* Smaller image size */
+  max-width: 80%;
   height: auto;
   display: block;
   margin: 10px auto;
@@ -337,6 +337,12 @@ textarea {
 .btn-secondary {
   background-color: #6c757d !important;
   border-color: #6c757d !important;
+}
+
+.goals-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 @media (max-width: 768px) {

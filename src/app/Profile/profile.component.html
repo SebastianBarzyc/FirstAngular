@@ -36,18 +36,18 @@
     <!-- Goals -->
     <div class="goals">
       <h2>Goals</h2>
+      <mat-form-field appearance="fill">
+        <mat-label>Add</mat-label>
+        <mat-select multiple [(ngModel)]="userExercisesSelected" (selectionChange)="onAddExercise($event)">
+          <mat-option *ngFor="let exercise of userExercises" [value]="exercise">
+            {{ exercise.title }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
       <div class="stats">
-        <div class="stat-card">
-          <h2>Bench Press Record</h2>
-          <p>(Bench press record) / (Goal bench press)</p>
-        </div>
-        <div class="stat-card">
-          <h2>Squat Record</h2>
-          <p>(Squat record) / (Goal squat)</p>
-        </div>
-        <div class="stat-card">
-          <h2>Deadlift Record</h2>
-          <p>(Deadlift record) / (Goal deadlift)</p>
+        <div class="stat-card" *ngFor="let exercise of userExercisesSelected">
+          <h2>{{ exercise.title }} Record</h2>
+          <p>{{ exercise.highestWeight }} / {{ exercise.goalWeight }}</p>
         </div>
       </div>
     </div>

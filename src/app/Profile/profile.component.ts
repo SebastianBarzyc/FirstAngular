@@ -4,13 +4,21 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { supabase } from '../supabase-client';
 import { BehaviorSubject } from 'rxjs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [
-    LoginComponent,
     CommonModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    FormsModule,
+    LoginComponent
   ],
   providers: [],
   templateUrl: './profile.component.html',
@@ -25,6 +33,8 @@ export class ProfileComponent implements OnInit {
   userId: any;
   displayName: string | null = null;
   recentWorkouts: any[] = [];
+  userExercises: any[] = [];
+  userExercisesSelected: any[] = [];
   private isLoggedInSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
@@ -57,6 +67,7 @@ export class ProfileComponent implements OnInit {
       if (isLoggedIn) {
         this.loadUserProfile();
         this.getRecentWorkouts();
+        this.getUserExercises();
       }
     });
   }
@@ -238,5 +249,107 @@ export class ProfileComponent implements OnInit {
         console.log('Recent Workouts:', this.recentWorkouts);
         this.cdr.detectChanges();
       });
+  }
+
+  async getUserExercises() {
+    if (!this.session) {
+      console.error('No active session');
+      return;
+    }
+  
+    if (!this.userId) {
+      console.error('Failed to get userId from session');
+      return;
+    }
+  
+    const { data: exercisesData, error: exercisesError } = await supabase
+      .from('session_exercises')
+      .select('exercise_title, weight')
+      .eq('user_id', this.userId);
+  
+    if (exercisesError) {
+      console.error('Error fetching exercises:', exercisesError.message);
+      return;
+    }
+  
+    const highestWeights: { [key: string]: number } = exercisesData.reduce((acc: { [key: string]: number }, exercise: any) => {
+      if (!acc[exercise.exercise_title] || acc[exercise.exercise_title] < exercise.weight) {
+        acc[exercise.exercise_title] = exercise.weight;
+      }
+      return acc;
+    }, {});
+  
+    const { data: goalsData, error: goalsError } = await supabase
+      .from('users_goals')
+      .select('title, goal')
+      .eq('user_id', this.userId);
+  
+    if (goalsError) {
+      console.error('Error fetching goals:', goalsError.message);
+      return;
+    }
+  
+    const goalsMap = new Map(goalsData.map(goal => [goal.title, goal.goal]));
+  
+    this.userExercises = Object.keys(highestWeights).map(exerciseTitle => ({
+      title: exerciseTitle,
+      highestWeight: highestWeights[exerciseTitle],
+      goalWeight: goalsMap.get(exerciseTitle) || 0
+    }));
+  
+    this.userExercisesSelected = this.userExercises.filter(exercise => goalsMap.has(exercise.title));
+  
+    this.cdr.detectChanges();
+  }
+
+  onExerciseSelectionChange(event: any) {
+    const selectedExercise = JSON.parse(event.target.value);
+    if (event.target.checked) {
+      this.userExercisesSelected.push(selectedExercise);
+    } else {
+      this.userExercisesSelected = this.userExercisesSelected.filter(exercise => exercise.title !== selectedExercise.title);
+    }
+    this.cdr.detectChanges();
+  }
+
+  onAddExercise(event: any) {
+    this.removeExerciseFromGoals().then(() => {
+      const selectedExercises = event.value;
+      for (const exercise of selectedExercises) {
+        console.log("exercise: ", exercise, "selectedExercises: ", selectedExercises);
+        this.saveExerciseToGoals(exercise);
+      }
+      console.log('Selected exercises:', selectedExercises);
+      this.cdr.detectChanges();
+    });
+  }
+  
+  isExerciseSelected(exerciseTitle: string): boolean {
+    return this.userExercisesSelected.some(ex => ex.title === exerciseTitle);
+  }
+  
+  async saveExerciseToGoals(exercise: any) {
+    const { data, error } = await supabase
+      .from('users_goals')
+      .insert([{ user_id: this.userId, title: exercise.title, goal: exercise.goalWeight }]);
+  
+    if (error) {
+      console.error('Error saving exercise to goals:', error.message);
+    } else {
+      console.log('Exercise saved to goals:', data);
+    }
+  }
+  
+  async removeExerciseFromGoals() {
+    const { error } = await supabase
+      .from('users_goals')
+      .delete()
+      .eq('user_id', this.userId);
+  
+    if (error) {
+      console.error('Error removing exercises from goals:', error.message);
+    } else {
+      console.log('All exercises removed from goals');
+    }
   }
 }
