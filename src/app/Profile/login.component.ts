@@ -144,7 +144,8 @@ export class LoginComponent implements OnInit {
     event.preventDefault();
   }
 
-  navigateToPasswordReset() {
+  navigateToPasswordReset(event: Event) {
+    event.preventDefault();
     this.router.navigate(['/password-reset']);
   }
 
