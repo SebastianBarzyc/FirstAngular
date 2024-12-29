@@ -289,6 +289,9 @@ textarea {
   text-align: center;
   width: 30%;
   border: 1px solid $card-border-color;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .badges-card {
@@ -373,6 +376,15 @@ textarea {
   }
 }
 
+.goal-weight-input {
+  width: 50px;
+  text-align: center;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -389,6 +401,10 @@ h2 {
   justify-content: flex-end;
   gap: 10px;
   margin: 20px;
+}
+
+.stat-content {
+  margin-top: auto;
 }
 
 @media (max-width: 768px) {

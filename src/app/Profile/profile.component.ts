@@ -358,6 +358,20 @@ export class ProfileComponent implements OnInit {
     }
   }
 
+  async updateGoalWeight(exercise: any) {
+    const { error } = await supabase
+      .from('users_goals')
+      .update({ goal: exercise.goalWeight })
+      .eq('user_id', this.userId)
+      .eq('title', exercise.title);
+  
+    if (error) {
+      console.error('Error updating goal weight:', error.message);
+    } else {
+      console.log('Goal weight updated successfully for exercise:', exercise.title);
+    }
+  }
+
   toggleExerciseSelection(exercise: any) {
     if (this.isExerciseSelected(exercise.title)) {
       this.userExercisesSelected = this.userExercisesSelected.filter(ex => ex.title !== exercise.title);
@@ -371,7 +385,7 @@ export class ProfileComponent implements OnInit {
     for (const exercise of this.userExercisesSelected) {
       await this.saveExerciseToGoals(exercise);
     }
-    this.showExerciseSelection = false;
+    this.showExerciseSelection = true;
     this.cdr.detectChanges();
   }
 
@@ -387,5 +401,9 @@ export class ProfileComponent implements OnInit {
         this.saveSelectedExercises();
       }
     });
+  }
+
+  editProfile() {
+    this.showExerciseSelection = !this.showExerciseSelection;
   }
 }
