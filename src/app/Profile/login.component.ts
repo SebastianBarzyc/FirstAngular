@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, Injectable, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { supabase } from '../supabase-client';
 import { BehaviorSubject } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
@@ -37,10 +38,13 @@ export class LoginComponent implements OnInit {
     'Content-Type': 'application/json',
   });
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit() {
-
+    const session = localStorage.getItem('session');
+    if (session) {
+      this.isLoggedInSubject.next(true);
+    }
   }
 
   onSubmit() {
@@ -121,6 +125,7 @@ export class LoginComponent implements OnInit {
         console.log("session: ", data.session);
         this.isLoggedInSubject.next(true);
         console.log('isLoggedIn after login:', true);
+        this.router.navigate(['/profile']); // Navigate to profile page
       }
       console.log("user: ", data);
 
@@ -137,6 +142,10 @@ export class LoginComponent implements OnInit {
   toggleRegister(event: Event) {
     this.showRegister = !this.showRegister;
     event.preventDefault();
+  }
+
+  navigateToPasswordReset() {
+    this.router.navigate(['/password-reset']);
   }
 
   logout() {
