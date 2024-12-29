@@ -27,6 +27,7 @@ export class PasswordResetComponent2 {
     this.route.queryParams.subscribe(params => {
       this.token = params['token'] || null;
       this.email = params['email'] || null;
+      console.log("this.token: ", this.token, "this.email: ", this.email);
       if (!this.token) {
         this.errorMessage = 'Invalid or missing token';
       }else if(!this.email){
