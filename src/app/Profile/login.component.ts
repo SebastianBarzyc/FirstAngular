@@ -125,7 +125,7 @@ export class LoginComponent implements OnInit {
         console.log("session: ", data.session);
         this.isLoggedInSubject.next(true);
         console.log('isLoggedIn after login:', true);
-        this.router.navigate(['/profile']); // Navigate to profile page
+        this.router.navigate(['/profile']);
       }
       console.log("user: ", data);
 

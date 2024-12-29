@@ -36,7 +36,8 @@ export class PasswordResetComponent {
     }
   }
 
-  navigateToLogin() {
-    this.router.navigate(['/login']);
+  navigateToLogin(event: Event) {
+    event.preventDefault();
+    this.router.navigate(['/Profile']);
   }
 }
