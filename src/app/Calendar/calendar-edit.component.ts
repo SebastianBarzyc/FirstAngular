@@ -1,6 +1,6 @@
 import { CalendarComponent } from './calendar.component';
 import { WorkoutService } from './../Workouts/workouts.service';
-import { Component, Inject, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Inject, Input, OnInit, QueryList, ViewChildren, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -67,9 +67,8 @@ interface Exercise2 {
 ],
 })
 
-export class CalendarEditComponent implements OnInit {
+export class CalendarEditComponent implements OnInit, AfterViewInit {
   refreshNeeded$!: Subject<void>;
-
   exercises: Exercise[] = [];
   exercisesList: Exercise[] = [];
   workouts: Workout[] = [];
@@ -87,20 +86,36 @@ export class CalendarEditComponent implements OnInit {
     private calendarService: CalendarService,
     public dialogRef: MatDialogRef<CalendarEditComponent>,
     private workoutService: WorkoutService,
+    private cdr: ChangeDetectorRef
   ) {
     this.refreshNeeded$ = data.refreshNeeded$
   }
+
+  @ViewChildren('textarea') textareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
 
   async ngOnInit(): Promise<void> {
     await this.loadSessions().toPromise();
     this.loadWorkouts();
     this.loadExercisesList();
     const session = this.getSessionOrEmpty();
-  if (session) {
-    this.newSession.title = session.title;
-    this.newSession.description = session.description;
-    this.newSession.date = session.date;
+    if (session) {
+      this.newSession.title = session.title;
+      this.newSession.description = session.description;
+      this.newSession.date = session.date;
+    }
   }
+
+  ngAfterViewInit(): void {
+    console.log('Textareas:', this.textareas);
+    this.textareas.changes.subscribe(() => {
+      setTimeout(() => {
+        this.textareas.forEach(textarea => {
+          console.log('Resizing textarea:', textarea.nativeElement);
+          this.autoResize(textarea.nativeElement);
+        });
+      }, 0);
+    });
+    this.cdr.detectChanges(); 
   }
   
   loadSessions(): Observable<Session[]> {
@@ -129,7 +144,7 @@ export class CalendarEditComponent implements OnInit {
   
   
   getSessionOrEmpty(): any {
-    const date = this.getDate();
+    const date = this.getDate()
     const session = this.sessions.find(s => s.date === date);
     if (session) {
       return session;
@@ -166,9 +181,7 @@ export class CalendarEditComponent implements OnInit {
   }
 
   Save(session: any): void {
-
     const newSessionId = this.getMaxSessionId() + 1;
-  
     const sessionToSave = {
       ...session,
       title: this.newSession.title || session.title,
@@ -252,6 +265,7 @@ export class CalendarEditComponent implements OnInit {
   }
   
   autoResize(textarea: HTMLTextAreaElement) {
+    console.log('Auto resizing textarea:', textarea);
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
   }
@@ -354,4 +368,3 @@ export class CalendarEditComponent implements OnInit {
   }
   
 }
- 

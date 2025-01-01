@@ -1,10 +1,10 @@
 // exercise-edit.component.ts
 import { CommonModule } from '@angular/common';
 import { ExerciseService } from './exercises.service';
-import { Component, ElementRef, Inject, inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, inject, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
@@ -23,7 +23,7 @@ import { MatInputModule } from '@angular/material/input';
     CommonModule
   ]
 })
-export class ExerciseEditComponent {
+export class ExerciseEditComponent implements AfterViewInit {
   readonly dialogRef = inject(MatDialogRef<ExerciseEditComponent>);
 
   exercise: { id: number, title: string, description: string } = {
@@ -36,11 +36,10 @@ export class ExerciseEditComponent {
 
   constructor(private exerciseService: ExerciseService, @Inject(MAT_DIALOG_DATA) public data: any) {}
 
-  @ViewChild('textarea') textarea!: ElementRef;
+  @ViewChildren('textarea') textareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
 
   ngOnInit(): void {
     this.loadExercises();
-    this.autoResize(this.textarea.nativeElement);
   }
 
   getId(): void{
@@ -48,9 +47,13 @@ export class ExerciseEditComponent {
  }
 
   ngAfterViewInit(): void {
-    if (this.textarea) {
-      this.autoResize(this.textarea.nativeElement);
-    }
+    this.textareas.changes.subscribe(() => {
+      setTimeout(() => {
+        this.textareas.forEach(textarea => {
+          this.autoResize(textarea.nativeElement);
+        });
+      }, 0);
+    });
   }
 
 loadExercises(): void {

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { WorkoutService } from './workouts.service';
-import { ChangeDetectorRef, Component, ComponentRef, ElementRef, EventEmitter, inject, Inject, Input, OnInit, Output, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ComponentRef, ElementRef, EventEmitter, inject, Inject, Input, OnInit, Output, QueryList, ViewChild, ViewChildren, ViewContainerRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
@@ -31,7 +31,7 @@ import { forkJoin } from 'rxjs';
 })
 export class WorkoutEditComponent implements OnInit {
   @Output() workoutChanged = new EventEmitter<void>();
-  @ViewChild('textarea') textarea!: ElementRef;
+  @ViewChildren('textarea') textareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
 
   readonly dialogRef = inject(MatDialogRef<WorkoutEditComponent>);
   @Input() workout: any;
@@ -56,9 +56,13 @@ export class WorkoutEditComponent implements OnInit {
   }
 
   ngAfterViewInit(): void {
-    if (this.textarea) {
-      this.autoResize(this.textarea.nativeElement);
-    }
+    this.textareas.changes.subscribe(() => {
+      setTimeout(() => {
+        this.textareas.forEach(textarea => {
+          this.autoResize(textarea.nativeElement);
+        });
+      }, 0);
+    });
   }
 
   loadWorkouts(): void {
