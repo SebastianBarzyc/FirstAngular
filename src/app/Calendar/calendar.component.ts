@@ -82,6 +82,10 @@ export class CalendarComponent implements OnInit {
       data: { date: selectedDate, refreshNeeded$: this.refreshNeeded$},
       panelClass: 'editPanel'
     });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadSessions();
+    });
   }
 
   changeMonth(offset: number): void {
@@ -102,6 +106,7 @@ export class CalendarComponent implements OnInit {
     this.calendarService.getSessions().subscribe( 
       (data: Session[]) => {
         this.sessions = data;
+        this.generateCalendar(this.currentDate);
       }
     );
   }
@@ -111,8 +116,11 @@ export class CalendarComponent implements OnInit {
       return null;
     }
     const date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-    const formattedDate = this.datePipe.transform(date, 'd.M.yyyy');
+    const formattedDate = this.datePipe.transform(date, 'dd.MM.yyyy');
     const session = this.sessions.find(s => s.date === formattedDate);
+    console.log('Sessions:', this.sessions);
+    console.log('formattedDate:', formattedDate);
+    console.log('Session:', session);
     return session ? session.title : null;
   }
   
@@ -150,11 +158,12 @@ export class CalendarComponent implements OnInit {
         data: { session, date: sessionDate, refreshNeeded$: this.refreshNeeded$ },
         panelClass: 'editPanel'
       });
+
+      dialogRef.afterClosed().subscribe(() => {
+        this.loadSessions();
+      });
     } else {
       console.error('Session data is missing or invalid', session);
     }
   }
-
-  
-  
 }

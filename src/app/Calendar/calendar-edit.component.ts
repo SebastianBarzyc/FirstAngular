@@ -105,13 +105,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
       this.newSession.description = session.description;
       this.newSession.date = session.date;
     }
-    // Call autoResize for each textarea after data is loaded
-    setTimeout(() => {
-      this.textareas.forEach(textarea => {
-        console.log('Initial resizing textarea:', textarea.nativeElement);
-        this.autoResize(textarea.nativeElement);
-      });
-    }, 0);
   }
 
   ngAfterViewInit(): void {
@@ -124,6 +117,13 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
         });
       }, 0);
     });
+    // Call autoResize for each textarea immediately after view initialization
+    setTimeout(() => {
+      this.textareas.forEach(textarea => {
+        console.log('Initial resizing textarea:', textarea.nativeElement);
+        this.autoResize(textarea.nativeElement);
+      });
+    }, 0);
     this.cdr.detectChanges(); 
   }
   
