@@ -15,6 +15,7 @@ interface Exercise {
 interface Set {
   reps: number;
   weight: number;
+  breakTime?: number; // Add breakTime property
 }
 
 @Injectable({
@@ -152,7 +153,7 @@ export class CalendarService {
     });
   }*/
 
-  editSession3(exercise_id: number, reps: number, weight: number, session_id: number, exercise_title: string): Observable<any> {
+  editSession3(exercises: any[], session_id: number): Observable<any> {
     const userId = getUser();
   
     if (!userId) {
@@ -163,32 +164,45 @@ export class CalendarService {
     }
   
     return new Observable(observer => {
+      // Delete all existing exercises for the session
       supabase
         .from('session_exercises')
-        .insert([{
-          exercise_id: exercise_id || null,
-          reps: reps || 0,
-          weight: weight || 0,
-          session_id: session_id || 0,
-          user_id: userId,
-          exercise_title: exercise_title
-        }])
-        .select('*')
-        .then(({ data, error }) => {
-          console.log('Insert result:', { data, error });
-  
-          if (error) {
-            console.error('Błąd edytowania sesji:', error);
-            observer.error('Błąd edytowania sesji: ' + error.message);
-          } else {
-            if (data) {
+        .delete()
+        .eq('session_id', session_id)
+        .then(({ error: deleteError }) => {
+          if (deleteError) {
+            observer.error('Error deleting existing exercises: ' + deleteError.message);
+            return;
+          }
+
+          // Prepare the exercises data for insertion
+          const exercisesData = exercises.flatMap(exercise => 
+            exercise.sets.map((set: Set) => ({
+              exercise_id: exercise.exercise_id,
+              reps: set.reps,
+              weight: set.weight,
+              breakTime: set.breakTime || 60,
+              session_id: session_id,
+              user_id: userId,
+              exercise_title: exercise.exercise_title
+            }))
+          );
+
+          // Insert new exercises
+          supabase
+            .from('session_exercises')
+            .insert(exercisesData)
+            .select('*')
+            .then(({ data, error }) => {
+              if (error) {
+                observer.error('Error inserting new exercises: ' + error.message);
+                return;
+              }
+
               observer.next(data);
               observer.complete();
-            } else {
-              observer.error('No data returned after insertion');
-            }
-          }
-        })
+            });
+        });
     });
   }  
 
@@ -277,7 +291,7 @@ export class CalendarService {
     return new Observable(observer => {
       supabase
         .from('session_exercises')
-        .select('exercise_id, exercise_title, reps, weight')
+        .select('exercise_id, exercise_title, reps, weight, breakTime') // Include breakTime
         .eq('session_id', sessionId)
         .order('exercise_id', { ascending: true })
         .then(({ data, error }) => {
@@ -316,7 +330,8 @@ export class CalendarService {
   
             exercisesMap[item.exercise_id].sets.push({
               reps: item.reps || 0,
-              weight: item.weight || 0
+              weight: item.weight || 0,
+              breakTime: item.breakTime || 60 // Include breakTime
             });
           });
   

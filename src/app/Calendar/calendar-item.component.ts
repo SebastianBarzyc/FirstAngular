@@ -11,6 +11,8 @@ import { ExerciseService } from '../Exercises/exercises.service';
 interface Set {
   reps: number;
   weight: number;
+  breakTime?: number; // Add breakTime property
+  id?: number; // Add id property
 }
 
 interface Exercise {
@@ -74,9 +76,10 @@ export class CalendarItemComponent {
   async ngOnInit(): Promise<void> {
     await this.loadExercises();
     if (this.exercise.reps && Array.isArray(this.exercise.reps)) {
-      this.exercise.sets = this.exercise.reps.map(repsValue => ({
+      this.exercise.sets = this.exercise.reps.map((repsValue, index) => ({
         reps: repsValue,
-        weight: 0
+        weight: 0,
+        id: index + 1 // Ensure each set has a unique id
       }));
     }
   }
@@ -103,7 +106,7 @@ export class CalendarItemComponent {
   }
 
   addSet(exercise: any): void {
-    const newSet = { reps: 0, weight: 0 };
+    const newSet = { reps: 0, weight: 0, breakTime: 60 }; // Add breakTime with default value
     exercise.sets.push(newSet);
   }
 

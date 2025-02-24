@@ -38,6 +38,8 @@ interface Exercise {
 interface Set {
   reps: number;
   weight: number;
+  breakTime?: number; // Add breakTime property
+  id?: number; // Add id property
 }
 
 interface Exercise2 {
@@ -196,25 +198,26 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
       this.updateSession(sessionToSave);
     }
     
-    this.exercisesList.forEach(exercise => {
-      exercise.sets.forEach(set => {
-        this.calendarService.editSession3(
-          exercise.exercise_id,
-          set.reps,
-          set.weight,
-          sessionToSave.session_id,
-          exercise.exercise_title
-        ).subscribe({
-          next: response => {
-            this.refreshNeeded$.next();
-            console.log('Session saved:', response);
-          },
-          error: error => {
-            console.error('Error during saving session:', error);
-          }
-        });
-      });
+    const exercises = this.exercisesList.map(exercise => ({
+      exercise_id: exercise.exercise_id,
+      exercise_title: exercise.exercise_title,
+      sets: exercise.sets.map(set => ({
+        reps: set.reps,
+        weight: set.weight,
+        breakTime: set.breakTime || 60
+      }))
+    }));
+
+    this.calendarService.editSession3(exercises, sessionToSave.session_id).subscribe({
+      next: response => {
+        this.refreshNeeded$.next();
+        console.log('Session saved:', response);
+      },
+      error: error => {
+        console.error('Error during saving session:', error);
+      }
     });
+
     this.refreshNeeded$.next();
     this.dialogRef.close();
   }
@@ -301,7 +304,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
       exercise_title: '', 
       title: this.getSessionOrEmpty().title || '',
       sets: [
-        { reps: 0, weight: 0 },
+        { reps: 0, weight: 0, breakTime: 60 }
       ],
       id: maxId + 1
     };

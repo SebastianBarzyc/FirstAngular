@@ -307,7 +307,8 @@ app.get('/rest/v1/session/:id/exercises', async (req, res) => {
         sessions:session_id (title), 
         exercises:exercise_id (title),
         reps:reps, 
-        weight:weight
+        weight:weight,
+        breakTime:breakTime
       `)
       .eq('session_id', sessionId)
       .eq('user_id', userId);
@@ -322,7 +323,7 @@ app.get('/rest/v1/session/:id/exercises', async (req, res) => {
     }
 
     const exercises = data.reduce((acc, row) => {
-      const { exercise_id, sessions, exercises, reps, weight } = row;
+      const { exercise_id, sessions, exercises, reps, weight, breakTime } = row;
 
       let exercise = acc.find(ex => ex.exercise_id === exercise_id);
       if (!exercise) {
@@ -334,7 +335,7 @@ app.get('/rest/v1/session/:id/exercises', async (req, res) => {
         };
         acc.push(exercise);
       }
-      exercise.sets.push({ reps, weight });
+      exercise.sets.push({ reps, weight, breakTime }); // Include breakTime
       return acc;
     }, []);
 
@@ -671,36 +672,52 @@ app.post('/rest/v1/update-workout3/', async (req, res) => {
 });
 
 app.post('/rest/v1/update-session3/', async (req, res) => {
-  const { exercise_id, reps, weight, session_id } = req.body;
+  const { exercises, session_id } = req.body;
   const userId = req.user.userId;
 
   try {
+    // Delete all existing exercises for the session
+    const { error: deleteError } = await supabase
+      .from('session_exercises')
+      .delete()
+      .eq('session_id', session_id);
+
+    if (deleteError) {
+      console.error('Supabase error:', deleteError);
+      return res.status(500).json({ message: 'Error deleting existing exercises', error: deleteError.message });
+    }
+
+    // Prepare the exercises data for insertion
+    const exercisesData = exercises.flatMap(exercise => 
+      exercise.sets.map(set => ({
+        exercise_id: exercise.exercise_id,
+        reps: set.reps,
+        weight: set.weight,
+        breakTime: set.breakTime || 60,
+        session_id: session_id,
+        user_id: userId,
+        exercise_title: exercise.exercise_title
+      }))
+    );
+
+    // Insert new exercises
     const { data, error } = await supabase
       .from('session_exercises')
-      .insert([
-        {
-          exercise_id: exercise_id,
-          reps: reps,
-          weight: weight,
-          session_id: session_id,
-          user_id: userId,
-        }
-      ])
+      .insert(exercisesData)
       .select('*');
 
     if (error) {
       console.error('Supabase error:', error);
-      return res.status(500).json({ message: 'Error updating data', error: error.message });
+      return res.status(500).json({ message: 'Error inserting new exercises', error: error.message });
     }
 
     res.status(200).json({
-      message: 'Data has been added',
+      message: 'Exercises have been updated',
       data: data
     });
-
   } catch (error) {
     console.error('Unexpected error:', error);
-    res.status(500).json({ message: 'Error updating data', error: error.message });
+    res.status(500).json({ message: 'Error updating exercises', error: error.message });
   }
 });
 
@@ -958,5 +975,4 @@ app.delete('/rest/v1/update-session2/:id', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 }
-
 );*/
