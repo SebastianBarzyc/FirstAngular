@@ -22,9 +22,11 @@ export class ExercisesBackend implements OnInit {
   searchSubscription: Subscription = new Subscription();
   exercise = {
     title: '',
-    description: ''
+    description: '',
+    isDefault: false
   };
   private refreshSubscription: Subscription = new Subscription();
+  private staticUserId = '5d3ab3e6-e980-4df6-af92-e0063728a5fc'; // Static user ID
 
   ngOnInit(): void {
     this.refreshSubscription = this.exerciseService.onRefreshNeeded().subscribe(() => {
@@ -42,13 +44,17 @@ export class ExercisesBackend implements OnInit {
 
   loadExercises(includeUserExercises: boolean = false): void {
     this.exerciseService.getData(includeUserExercises).subscribe(data => {
-      this.exercises = data;
-      console.log('Loaded exercises:', data);
+      this.exercises = data.map(exercise => ({
+        ...exercise,
+        isDefault: exercise.user_id === this.staticUserId
+      }));
+      console.log('Loaded exercises:', this.exercises);
     });
   }
 
   togglePanel() {
     this.isPanelExpanded = !this.isPanelExpanded;
+    this.loadExercises(this.isLoggedIn);
   }
 
   constructor(private exerciseService: ExerciseService) {}
@@ -70,7 +76,7 @@ export class ExercisesBackend implements OnInit {
   }
 
   resetForm(): void {
-    this.exercise = { title: '', description: '' };
+    this.exercise = { title: '', description: '', isDefault: false };
   }
 
   readonly dialog = inject(MatDialog);
@@ -87,5 +93,13 @@ export class ExercisesBackend implements OnInit {
         this.loadExercises(this.isLoggedIn);
       }
     });
+  }
+
+  handleClick(exercise: any): void {
+    if (exercise.isDefault) {
+      console.log('Default exercise clicked, no action taken.');
+      return;
+    }
+    this.openDialog(exercise.id, exercise.title, exercise.description);
   }
 }
