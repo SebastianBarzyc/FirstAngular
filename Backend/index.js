@@ -689,7 +689,7 @@ app.post('/rest/v1/update-session3/', async (req, res) => {
 
     // Prepare the exercises data for insertion
     const exercisesData = exercises.flatMap(exercise => 
-      exercise.sets.map(set => ({
+      exercise.sets.map((set) => ({
         exercise_id: exercise.exercise_id,
         reps: set.reps,
         weight: set.weight,
