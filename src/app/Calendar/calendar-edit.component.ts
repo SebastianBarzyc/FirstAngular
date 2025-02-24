@@ -97,14 +97,21 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadSessions().toPromise();
-    this.loadWorkouts();
-    this.loadExercisesList();
+    await this.loadWorkouts();
+    await this.loadExercisesList();
     const session = this.getSessionOrEmpty();
     if (session) {
       this.newSession.title = session.title;
       this.newSession.description = session.description;
       this.newSession.date = session.date;
     }
+    // Call autoResize for each textarea after data is loaded
+    setTimeout(() => {
+      this.textareas.forEach(textarea => {
+        console.log('Initial resizing textarea:', textarea.nativeElement);
+        this.autoResize(textarea.nativeElement);
+      });
+    }, 0);
   }
 
   ngAfterViewInit(): void {
@@ -201,7 +208,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     const exercises = this.exercisesList.map(exercise => ({
       exercise_id: exercise.exercise_id,
       exercise_title: exercise.exercise_title,
-      sets: exercise.sets.map(set => ({
+      sets: exercise.sets.map((set: Set) => ({
         reps: set.reps,
         weight: set.weight,
         breakTime: set.breakTime || 60
@@ -325,6 +332,13 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
             ...exercise,
             id: maxId + index + 1
           }));
+          // Call autoResize for each textarea after exercises are loaded
+          setTimeout(() => {
+            this.textareas.forEach(textarea => {
+              console.log('Resizing textarea after exercises load:', textarea.nativeElement);
+              this.autoResize(textarea.nativeElement);
+            });
+          }, 0);
         },
         error: (error) => {
           console.error('Error during exercise fetch:', error);
@@ -361,6 +375,13 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   
           console.log('Transformed exercises list:', this.exercisesList);
           resolve();
+          // Call autoResize for each textarea after exercises are loaded
+          setTimeout(() => {
+            this.textareas.forEach(textarea => {
+              console.log('Resizing textarea after exercises load:', textarea.nativeElement);
+              this.autoResize(textarea.nativeElement);
+            });
+          }, 0);
         },
         error: (err) => {
           console.error('Error fetching or transforming exercises:', err);
