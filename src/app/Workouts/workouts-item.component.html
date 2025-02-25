@@ -1,4 +1,4 @@
-<div *ngFor="let exercise of exercisesdata" class="exercise-grid">
+<div *ngFor="let exercise of exercisesdata; trackBy: trackByFn" class="exercise-grid">
   <div class="exercise-row">
     <mat-form-field class="select-field">
       <mat-label>Exercise</mat-label>
@@ -27,7 +27,7 @@
   </div>
 
   <div class="reps-container">
-    <div *ngFor="let rep of exercise.reps; let i = index" class="reps-field">
+    <div *ngFor="let rep of exercise.reps; let i = index; trackBy: trackByIndex" class="reps-field">
       <mat-form-field class="input-number">
         <mat-label>Reps {{ i + 1 }}</mat-label>
         <input matInput 

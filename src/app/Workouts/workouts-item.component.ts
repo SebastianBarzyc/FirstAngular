@@ -80,6 +80,7 @@ export class WorkoutsItemComponent implements OnInit {
       if (exerciseId !== null) {
         const inputSets = exercise.sets ?? 0;
         const inputReps = exercise.reps ?? [];
+        console.log('reps:', exercise.reps);
   
         const existingExerciseIndex = this.exercisesList.findIndex(
           (e) => e.exercise_title === exercise.exercise_title,
@@ -87,14 +88,14 @@ export class WorkoutsItemComponent implements OnInit {
   
         if (existingExerciseIndex !== -1) {
           this.exercisesList[existingExerciseIndex].sets = inputSets;
-          this.exercisesList[existingExerciseIndex].reps = inputReps;
+          this.exercisesList[existingExerciseIndex].reps = [...inputReps];
           this.exercisesList[existingExerciseIndex].exercise_id = exerciseId;
         } else {
           this.exercisesList.push({
             exercise_id: exerciseId,
             exercise_title: exercise.exercise_title,
             sets: inputSets,
-            reps: inputReps.length ? inputReps : Array(inputSets).fill(0),
+            reps: inputReps.length ? [...inputReps] : Array(inputSets).fill(0),
           });
         }
       }
@@ -115,7 +116,14 @@ export class WorkoutsItemComponent implements OnInit {
     else if (currentSets < currentReps.length) {
       exercise.reps.splice(currentSets);
     }
-    exercise.reps = currentReps;
+    exercise.reps = [...currentReps];
   }
-  
+
+  trackByFn(index: number, item: any): number {
+    return item.exercise_id; // or item.id
+  }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
 }
