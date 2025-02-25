@@ -36,16 +36,20 @@ export class WorkoutsExerciseComponent implements OnInit {
     });
   }
   
-    onSetsChange() {
-      if (this.sets !== null) {
-        this.repsArray = new Array(this.sets).fill(0);     
-      }
+  onSetsChange() {
+    if (this.sets !== null) {
+      this.repsArray = new Array(this.sets).fill(0);     
     }
+  }
 
-    onChange() {
+  onChange() {
+    const selectedExerciseData = this.exercises.find(ex => ex.title === this.selectedExercise);
+    if (selectedExerciseData) {
       this.workoutService.addExerciseToWorkout({
         title: this.selectedExercise,
-        reps: [...this.repsArray]
+        reps: [...this.repsArray],
+        exercise_id: selectedExerciseData.id
       });
     }
+  }
 }

@@ -146,6 +146,7 @@ interface PlanExercise {
     
       const validWorkouts = workouts.filter(workout => workout.exercise_id !== 0);
       console.log("workouts2: ", validWorkouts);
+      console.log("workouts: ", workouts);
 
       if (validWorkouts.length === 0) {
         console.error('Brak prawidłowych ćwiczeń do zapisania.');
@@ -176,38 +177,25 @@ interface PlanExercise {
       console.log('Workout successfully added:', data);
     }    
 
-    async getExerciseByTitle(title: string): Promise<Observable<any>> {
+    async getExerciseByTitle(title: string): Promise<any> {
       const userId = await getUser();
-
-      return new Observable(observer => {
-        supabase
-          .from('exercises')
-          .select('*')
-          .eq('title', title)
-          .eq('user_id', userId)
-          .single()
-          .then(({ data, error }) => {
-            if (error) {
-              observer.error('Błąd przy wyszukiwaniu ćwiczenia: ' + error.message);
-            } else if (data) {
-              observer.next(data);
-            } else {
-              observer.error('Ćwiczenie nie znalezione');
-            }
-          })
-          catchError(error => {
-            console.error('Błąd w usłudze:', error);
-            return throwError(error);
-          })
-      }).pipe(
-        tap(response => {
-          console.log('Znaleziono ćwiczenie:', response);
-        }),
-        catchError(error => {
-          console.error('Błąd w usłudze:', error);
-          return throwError(error);
-        })
-      );
+      if (!userId) {
+        throw new Error('User not logged in');
+      }
+  
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('*')
+        .eq('title', title)
+        .eq('user_id', userId)
+        .single();
+  
+      if (error) {
+        console.error('Error fetching exercise by title:', error);
+        throw error;
+      }
+  
+      return data;
     }
 
     editWorkout(id: number, newTitle: string, newDescription: string): Observable<any> {
@@ -446,29 +434,17 @@ interface PlanExercise {
     );
   }  
 
-  async addExerciseToWorkout(exercise: { title: string, reps: number[] }) {
+  async addExerciseToWorkout(exercise: { title: string, reps: number[], exercise_id: number }) {
     try {
-      (await this.getExerciseByTitle(exercise.title)).subscribe(
-        (data) => {
-          this.idFromTitle = data.id;
-          console.log("Znaleziono ćwiczenie: ", data);
-        },
-        (error) => {
-          console.error("Błąd podczas wyszukiwania ćwiczenia:", error);
-        }
-      );
-
-      const exerciseId = this.idFromTitle;
       const existingExerciseIndex = this.workoutExercises.findIndex(
-        (e) => e.exercise_id === exerciseId
+        (e) => e.exercise_id === exercise.exercise_id
       );
-      console.log("exerciseid: ", exerciseId);
+      console.log("exerciseid: ", exercise.exercise_id);
       if (existingExerciseIndex !== -1) {
         this.workoutExercises[existingExerciseIndex].reps = exercise.reps;
-        
       } else {
         this.workoutExercises.push({
-          exercise_id: exerciseId,
+          exercise_id: exercise.exercise_id,
           reps: exercise.reps,
           title: exercise.title,
         });

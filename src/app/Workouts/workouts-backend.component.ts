@@ -104,6 +104,21 @@ export class WorkoutsBackend implements OnInit, OnDestroy {
     this.workoutService.addWorkout(this.workout).pipe(
         tap(response => {
             console.log('Workout added successfully:', response);
+            this.workoutExercises = this.workoutService.getWorkoutExercises();
+            console.log("workoutExercises: ", this.workoutExercises);
+            this.workoutService.addWorkout2(this.workoutExercises).pipe(
+              tap(response => {
+                console.log('Workout exercises added successfully:', response);
+              })
+            ).subscribe(
+              response => {
+                this.loadWorkouts();
+                this.resetForm();
+              },
+              error => {
+                console.error('Error adding workout exercises:', error);
+              }
+            );
         })
     ).subscribe(
         response => {
@@ -113,21 +128,6 @@ export class WorkoutsBackend implements OnInit, OnDestroy {
         error => {
             console.error('Error adding workout:', error);
         }
-    );
-
-    this.workoutExercises = this.workoutService.getWorkoutExercises();
-    this.workoutService.addWorkout2(this.workoutExercises).pipe(
-      tap(response => {
-        console.log('Workout added successfully:', response);
-      })
-    ).subscribe(
-      response => {
-        this.loadWorkouts();
-        this.resetForm();
-      },
-      error => {
-        console.error('Error adding workout:', error);
-      }
     );
 }
 
