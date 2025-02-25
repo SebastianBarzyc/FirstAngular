@@ -92,43 +92,48 @@ export class WorkoutEditComponent implements OnInit {
   }
 
   Save(id: number, newTitle: string, newDescription: string): void {
-
+    // Update workout details
     this.workoutService.editWorkout(id, newTitle, newDescription).subscribe({
       next: response => {
         console.log('Response from server (editWorkout):', response);
-        this.dialogRef.close();
+        // Delete existing exercises for the workout
+        this.workoutService.editworkout2(this.WorkoutID).subscribe({
+          next: response => {
+            console.log('Response from server (editWorkout):', response);
+            // Save new exercises for the workout in the correct order
+            const saveObservables = this.exercises.map((exercise, index) => 
+              this.workoutService.editWorkout3(
+                this.WorkoutID,
+                exercise.exercise_id,
+                exercise.reps,
+                exercise.exercise_title,
+                index // Pass the index to maintain order
+              )
+            );
+          
+            forkJoin(saveObservables).subscribe({
+              next: () => {
+                console.log('All exercises have been saved!');
+                this.loadExercisesForPlan(this.WorkoutID); // Reload exercises after saving
+                this.dialogRef.close();
+                this.loadWorkouts();
+              },
+              error: error => {
+                console.error('Error saving exercises:', error);
+                // Handle error: reload exercises to ensure data integrity
+                this.loadExercisesForPlan(this.WorkoutID);
+              }
+            });
+          },
+          error: error => {
+            console.error('Error from server (editWorkout):', error);
+            // Handle error: reload exercises to ensure data integrity
+            this.loadExercisesForPlan(this.WorkoutID);
+          }
+        });
       },
       error: error => {
         console.error('Error from server (editWorkout):', error);
-      }
-    });
-  
-    this.workoutService.editworkout2(this.WorkoutID).subscribe({
-      next: response => {
-        console.log('Response from server (editWorkout):', response);
-      },
-      error: error => {
-        console.error('Error from server (editWorkout):', error);
-      }
-    });
-  
-    const saveObservables = this.exercises.map(exercise => 
-      this.workoutService.editWorkout3(
-        this.WorkoutID,
-        exercise.exercise_id,
-        exercise.reps,
-        exercise.exercise_title
-      )
-    );
-  
-    forkJoin(saveObservables).subscribe({
-      next: () => {
-        console.log('Wszystkie ćwiczenia zostały zapisane!');
-        this.dialogRef.close();
-        this.loadWorkouts();
-      },
-      error: error => {
-        console.error('Błąd podczas zapisywania ćwiczeń:', error);
       }
     });
   }
@@ -182,7 +187,7 @@ export class WorkoutEditComponent implements OnInit {
 
     newExercise.reps = Array(newExercise.sets).fill(0); 
   
-    this.exercises.push(newExercise);
+    this.exercises.push(newExercise); // Ensure new exercises are added to the end of the array
   }
   
 }

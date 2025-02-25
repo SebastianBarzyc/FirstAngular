@@ -286,7 +286,7 @@ interface PlanExercise {
     );
   }
 
-  editWorkout3(planId: number, idExercise: number, reps: number[], exercise_title: string): Observable<any> {
+  editWorkout3(planId: number, idExercise: number, reps: number[], exercise_title: string, order: number): Observable<any> {
     return new Observable(observer => {
       Promise.resolve(getUser())
         .then(userId => {
@@ -301,7 +301,8 @@ interface PlanExercise {
             exercise_id: idExercise,
             reps: rep,
             exercise_title,
-            user_id: userId
+            user_id: userId,
+            order // Include the order to maintain the correct sequence
           }));
   
           supabase
@@ -404,7 +405,7 @@ interface PlanExercise {
         .select('exercise_id, exercise_title, reps')
         .eq('plan_id', planId)
         .eq('user_id', userId)
-        .order('exercise_title', { ascending: true })
+        .order('order', { ascending: true })
         .then(({ data, error }: { data: PlanExercise[] | null; error: any }) => {
           if (error) {
             observer.error('Supabase error: ' + error.message);

@@ -176,7 +176,7 @@ export class CalendarService {
           }
 
           // Prepare the exercises data for insertion
-          const exercisesData = exercises.flatMap(exercise => 
+          const exercisesData = exercises.flatMap((exercise, index) => 
             exercise.sets.map((set: Set) => ({
               exercise_id: exercise.exercise_id,
               reps: set.reps,
@@ -184,7 +184,8 @@ export class CalendarService {
               breakTime: set.breakTime || 60,
               session_id: session_id,
               user_id: userId,
-              exercise_title: exercise.exercise_title
+              exercise_title: exercise.exercise_title,
+              order: index // Include the order to maintain the correct sequence
             }))
           );
 
@@ -291,9 +292,9 @@ export class CalendarService {
     return new Observable(observer => {
       supabase
         .from('session_exercises')
-        .select('exercise_id, exercise_title, reps, weight, breakTime') // Include breakTime
+        .select('exercise_id, exercise_title, reps, weight, breakTime, order') // Include order
         .eq('session_id', sessionId)
-        .order('exercise_id', { ascending: true })
+        .order('order', { ascending: true }) // Order by the 'order' column to ensure correct order
         .then(({ data, error }) => {
           console.log('Zapytanie wyniki:', { data, error });
   

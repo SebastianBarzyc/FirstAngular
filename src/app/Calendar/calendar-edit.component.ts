@@ -205,14 +205,15 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
       this.updateSession(sessionToSave);
     }
     
-    const exercises = this.exercisesList.map(exercise => ({
+    const exercises = this.exercisesList.map((exercise, index) => ({
       exercise_id: exercise.exercise_id,
       exercise_title: exercise.exercise_title,
       sets: exercise.sets.map((set: Set) => ({
         reps: set.reps,
         weight: set.weight,
         breakTime: set.breakTime || 60
-      }))
+      })),
+      order: index // Include the order to maintain the correct sequence
     }));
 
     this.calendarService.editSession3(exercises, sessionToSave.session_id).subscribe({
