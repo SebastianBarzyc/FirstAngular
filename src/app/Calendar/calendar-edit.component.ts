@@ -211,7 +211,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
       sets: exercise.sets.map((set: Set) => ({
         reps: set.reps,
         weight: set.weight,
-        breakTime: set.breakTime || 60
+        breakTime: set.breakTime || 0
       })),
       order: index // Include the order to maintain the correct sequence
     }));

@@ -106,8 +106,9 @@ export class WorkoutEditComponent implements OnInit {
                 this.WorkoutID,
                 exercise.exercise_id,
                 exercise.reps,
+                exercise.breakTimes,
                 exercise.exercise_title,
-                index // Pass the index to maintain order
+                index
               )
             );
           
@@ -175,17 +176,20 @@ export class WorkoutEditComponent implements OnInit {
         exercise_id: number; 
         reps: number[];
         sets: number; 
-        exercise_title: string 
+        exercise_title: string;
+        breakTimes: number[];
       } = {
         id: maxId + 1,
         plan_id: this.WorkoutID,
         exercise_id: 0,
         reps: [],
         sets: 1,
-        exercise_title: ''
+        exercise_title: '',
+        breakTimes: []
       };
 
     newExercise.reps = Array(newExercise.sets).fill(0); 
+    newExercise.breakTimes = Array(newExercise.sets).fill(0);
   
     this.exercises.push(newExercise); // Ensure new exercises are added to the end of the array
   }

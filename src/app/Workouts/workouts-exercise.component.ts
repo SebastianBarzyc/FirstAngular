@@ -23,6 +23,7 @@ export class WorkoutsExerciseComponent implements OnInit {
   exercises: any[] = [];
   sets: number | null = null;
   repsArray: number[] = [];
+  breakTimesArray: number[] = [];
 
   constructor(private exerciseService: ExerciseService, private workoutService: WorkoutService) { }
 
@@ -38,7 +39,8 @@ export class WorkoutsExerciseComponent implements OnInit {
   
   onSetsChange() {
     if (this.sets !== null) {
-      this.repsArray = new Array(this.sets).fill(0);     
+      this.repsArray = new Array(this.sets).fill(0);
+      this.breakTimesArray = new Array(this.sets).fill(0);     
     }
   }
 
@@ -48,7 +50,8 @@ export class WorkoutsExerciseComponent implements OnInit {
       this.workoutService.addExerciseToWorkout({
         title: this.selectedExercise,
         reps: [...this.repsArray],
-        exercise_id: selectedExerciseData.id
+        exercise_id: selectedExerciseData.id,
+        breakTimes: [...this.breakTimesArray]
       });
     }
   }

@@ -89,11 +89,11 @@ export class WorkoutsBackend implements OnInit, OnDestroy {
       const componentRef = this.target.createComponent(componentFactory);
       this.componentRefs.push(componentRef);
   
-      const newExercise = {
-        plan_id: 0,
+      const newExercise: WorkoutExercise = {
         exercise_id: 0,
         reps: [],
-        title: ""
+        title: "",
+        breakTimes: []
       };
       
       this.workoutExercises.push(newExercise);

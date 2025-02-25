@@ -8,6 +8,7 @@ interface Workout {
   exercise_id: number;
   title: string;
   reps: number[];
+  breakTimes: number[];
 }
 
 interface InsertData {
@@ -16,18 +17,21 @@ interface InsertData {
   reps: number;
   exercise_title: string;
   user_id: string;
+  breakTime: number;
 }
 
 interface PlanExercise {
   exercise_id: number;
   exercise_title: string;
   reps: number;
+  breakTime: number;
 }
 
   export interface WorkoutExercise {
     exercise_id: number;
     reps: number[];
     title: string;
+    breakTimes: number[];
   };
 
   @Injectable({
@@ -153,13 +157,14 @@ interface PlanExercise {
         throw new Error('Brak prawidłowych ćwiczeń do zapisania.');
       }
       
-      const insertData: InsertData[] = validWorkouts.flatMap(({ exercise_id, title, reps }) => {
-        return reps.map((rep: number) => ({
+      const insertData: InsertData[] = validWorkouts.flatMap(({ exercise_id, title, reps, breakTimes }) => {
+        return reps.map((rep: number, index: number) => ({
           plan_id,
           exercise_id,
           reps: rep,
           exercise_title: title,
           user_id: userId,
+          breakTime: breakTimes[index]
         }));
       });
       console.log("workouts3: ", insertData);
@@ -274,7 +279,7 @@ interface PlanExercise {
     );
   }
 
-  editWorkout3(planId: number, idExercise: number, reps: number[], exercise_title: string, order: number): Observable<any> {
+  editWorkout3(planId: number, idExercise: number, reps: number[], breakTimes: number[], exercise_title: string, order: number): Observable<any> {
     return new Observable(observer => {
       Promise.resolve(getUser())
         .then(userId => {
@@ -284,12 +289,13 @@ interface PlanExercise {
             return;
           }
   
-          const exercises = reps.map(rep => ({
+          const exercises = reps.map((rep, index) => ({
             plan_id: planId,
             exercise_id: idExercise,
             reps: rep,
             exercise_title,
             user_id: userId,
+            breakTime: breakTimes[index],
             order // Include the order to maintain the correct sequence
           }));
   
@@ -390,7 +396,7 @@ interface PlanExercise {
   
       supabase
         .from('plan_exercises')
-        .select('exercise_id, exercise_title, reps')
+        .select('exercise_id, exercise_title, reps, breakTime, order')
         .eq('plan_id', planId)
         .eq('user_id', userId)
         .order('order', { ascending: true })
@@ -402,16 +408,18 @@ interface PlanExercise {
               const exerciseIndex = acc.findIndex(ex => ex.exercise_id === row.exercise_id);
               if (exerciseIndex !== -1) {
                 acc[exerciseIndex].reps.push(row.reps);
+                acc[exerciseIndex].breakTimes.push(row.breakTime);
               } else {
                 acc.push({
                   exercise_id: row.exercise_id,
                   exercise_title: row.exercise_title,
                   sets: 1,
-                  reps: [row.reps]
+                  reps: [row.reps],
+                  breakTimes: [row.breakTime]
                 });
               }
               return acc;
-            }, [] as { exercise_id: number; exercise_title: string; sets: number; reps: number[] }[]);
+            }, [] as { exercise_id: number; exercise_title: string; sets: number; reps: number[]; breakTimes: number[] }[]);
   
             exercisesData.forEach(exercise => {
               exercise.sets = exercise.reps.length;
@@ -434,7 +442,7 @@ interface PlanExercise {
     );
   }  
 
-  async addExerciseToWorkout(exercise: { title: string, reps: number[], exercise_id: number }) {
+  async addExerciseToWorkout(exercise: { title: string, reps: number[], exercise_id: number, breakTimes: number[] }) {
     try {
       const existingExerciseIndex = this.workoutExercises.findIndex(
         (e) => e.exercise_id === exercise.exercise_id
@@ -442,11 +450,13 @@ interface PlanExercise {
       console.log("exerciseid: ", exercise.exercise_id);
       if (existingExerciseIndex !== -1) {
         this.workoutExercises[existingExerciseIndex].reps = exercise.reps;
+        this.workoutExercises[existingExerciseIndex].breakTimes = exercise.breakTimes;
       } else {
         this.workoutExercises.push({
           exercise_id: exercise.exercise_id,
           reps: exercise.reps,
           title: exercise.title,
+          breakTimes: exercise.breakTimes
         });
         console.log("Added new exercise:", this.workoutExercises);
       }

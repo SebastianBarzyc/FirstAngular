@@ -80,6 +80,7 @@ export class WorkoutsItemComponent implements OnInit {
       if (exerciseId !== null) {
         const inputSets = exercise.sets ?? 0;
         const inputReps = exercise.reps ?? [];
+        const inputBreakTimes = exercise.breakTimes ?? [];
         console.log('reps:', exercise.reps);
   
         const existingExerciseIndex = this.exercisesList.findIndex(
@@ -90,12 +91,14 @@ export class WorkoutsItemComponent implements OnInit {
           this.exercisesList[existingExerciseIndex].sets = inputSets;
           this.exercisesList[existingExerciseIndex].reps = [...inputReps];
           this.exercisesList[existingExerciseIndex].exercise_id = exerciseId;
+          this.exercisesList[existingExerciseIndex].breakTimes = [...inputBreakTimes];
         } else {
           this.exercisesList.push({
             exercise_id: exerciseId,
             exercise_title: exercise.exercise_title,
             sets: inputSets,
             reps: inputReps.length ? [...inputReps] : Array(inputSets).fill(0),
+            breakTimes: inputBreakTimes.length ? [...inputBreakTimes] : Array(inputSets).fill(0)
           });
         }
       }
@@ -107,16 +110,20 @@ export class WorkoutsItemComponent implements OnInit {
   onSetsChange(exercise: any): void {
     const currentSets = exercise.sets || 0;
     const currentReps = exercise.reps || [];
+    const currentBreakTimes = exercise.breakTimes || [];
   
     if (currentSets > currentReps.length) {
       for (let i = currentReps.length; i < currentSets; i++) {
         currentReps.push(0);
+        currentBreakTimes.push(0);
       }
     } 
     else if (currentSets < currentReps.length) {
       exercise.reps.splice(currentSets);
+      exercise.breakTimes.splice(currentSets);
     }
     exercise.reps = [...currentReps];
+    exercise.breakTimes = [...currentBreakTimes];
   }
 
   trackByFn(index: number, item: any): number {
