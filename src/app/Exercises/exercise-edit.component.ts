@@ -103,4 +103,20 @@ Save(id: number, newTitle: string, newDescription: string): void {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
   }
+
+  handleDelete(exercise: any): void {
+    if (exercise.isDefault) {
+      console.log('Default exercise delete clicked, no action taken.');
+      return;
+    }
+    this.Delete(exercise.id);
+  }
+
+  handleSave(exercise: any): void {
+    if (exercise.isDefault) {
+      console.log('Default exercise save clicked, no action taken.');
+      return;
+    }
+    this.Save(exercise.id, exercise.title, exercise.description);
+  }
 }

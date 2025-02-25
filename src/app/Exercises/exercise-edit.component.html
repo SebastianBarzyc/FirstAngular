@@ -4,18 +4,18 @@
     <mat-dialog-content>
       <p class="fw-bold">Title:</p>
       <mat-form-field>
-        <input matInput name="title-{{exercise.id}}" [(ngModel)]="exercise.title" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
+        <input matInput name="title-{{exercise.id}}" [(ngModel)]="exercise.title" [ngModelOptions]="{ standalone: true }" style="text-align: center;" [disabled]="exercise.isDefault">
       </mat-form-field>
       <br>
       <p class="fw-bold">Description:</p>
       <mat-form-field style="width: 90%;">
-        <textarea matInput name="description-{{exercise.id}}" [(ngModel)]="exercise.description" [ngModelOptions]="{ standalone: true }" (input)="autoResize(textarea)" #textarea></textarea>
+        <textarea matInput name="description-{{exercise.id}}" [(ngModel)]="exercise.description" [ngModelOptions]="{ standalone: true }" (input)="autoResize(textarea)" #textarea [disabled]="exercise.isDefault"></textarea>
       </mat-form-field>
     </mat-dialog-content>
     <mat-dialog-actions>
       <div style="width:100%; margin-bottom: 2%">
-        <button mat-button (click)="Delete(exercise.id)" cdkFocusInitial class="RaisedBtn DeleteBtn float-start">Delete exercise</button>
-        <button mat-button (click)="Save(exercise.id, exercise.title, exercise.description)" cdkFocusInitial class="RaisedBtn float-end">Save changes</button>
+        <button mat-button (click)="handleDelete(exercise)" cdkFocusInitial class="RaisedBtn DeleteBtn float-start">Delete exercise</button>
+        <button mat-button (click)="handleSave(exercise)" cdkFocusInitial class="RaisedBtn float-end">Save changes</button>
       </div>
     </mat-dialog-actions>
   </div>

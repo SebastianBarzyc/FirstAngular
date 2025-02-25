@@ -13,13 +13,13 @@
   </mat-expansion-panel>
 </div>
 <div class="ExercisesContainer mt-3">
-  <div *ngFor="let exercise of exercises">
+  <div *ngFor="let exercise of filteredExercises">
     <button class="btn text-start Exercises" (click)="handleClick(exercise)">
       <p class="mb-0 fw-bold">{{ exercise.title }}</p>
       <p>{{ exercise.description }}</p>
     </button>
   </div>
-  <div *ngIf="exercises.length === 0">
+  <div *ngIf="filteredExercises.length === 0">
     <p>Brak wyników do wyświetlenia.</p>
   </div>
 </div>

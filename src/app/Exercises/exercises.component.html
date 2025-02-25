@@ -1,8 +1,7 @@
 <div class="mainContent">
   <p class="fs-2 fw-bold text-center">Exercises</p>
   <div class="SearchBarContainer d-flex align-items-center">
-    <input type="text" class="form-control mx-3" id="SearchBar" placeholder="Search Exercise">
-    <button class="btn"><i class="bi bi-search fs-5"></i></button>
+    <input type="text" class="form-control mx-3" id="SearchBar" placeholder="Search Exercise" [(ngModel)]="searchQuery" (input)="onSearchChange()">
     <button class="btn RaisedBtn ms-auto" (click)="togglePanel()">Create exercise</button>
   </div>
   <div class="form-check form-switch mt-3 d-flex align-items-center justify-content-center">
@@ -17,5 +16,5 @@
       {{ isToggled ? "Only user's Exercises" : 'Default Exercises' }}
     </label>
   </div>
-  <exercises-backend></exercises-backend>
+  <exercises-backend [searchQuery]="searchQuery"></exercises-backend>
 </div>

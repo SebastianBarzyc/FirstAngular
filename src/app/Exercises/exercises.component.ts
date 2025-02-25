@@ -19,6 +19,7 @@ export class ExercisesComponent implements OnInit, AfterViewInit {
   @ViewChild(ExercisesBackend) exercisesBackend!: ExercisesBackend;
   isToggled: boolean = false;
   isLoggedIn: boolean = false;
+  searchQuery: string = '';
 
   constructor(private router: Router) {}
 
@@ -50,6 +51,12 @@ export class ExercisesComponent implements OnInit, AfterViewInit {
       this.router.navigate(['/Profile']);
     } else {
       this.loadExercises(this.isToggled);
+    }
+  }
+
+  onSearchChange() {
+    if (this.exercisesBackend) {
+      this.exercisesBackend.searchSubject.next(this.searchQuery);
     }
   }
 }

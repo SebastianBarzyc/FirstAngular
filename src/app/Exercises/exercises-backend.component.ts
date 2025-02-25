@@ -1,12 +1,13 @@
 // exercises-backend.component.ts
-import { Component, OnInit, Input, inject } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy, inject } from '@angular/core';
 import { ExerciseService } from './exercises.service';
 import { CommonModule } from '@angular/common';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { FormsModule } from '@angular/forms';
-import { Subscription, catchError, tap } from 'rxjs';
+import { Subscription, Subject, debounceTime, distinctUntilChanged, catchError } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ExerciseEditComponent } from './exercise-edit.component';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'exercises-backend',
@@ -15,11 +16,14 @@ import { ExerciseEditComponent } from './exercise-edit.component';
   providers: [ExerciseService],
   imports: [CommonModule, MatExpansionModule, FormsModule]
 })
-export class ExercisesBackend implements OnInit {
+export class ExercisesBackend implements OnInit, OnDestroy {
   @Input() isLoggedIn: boolean = false;
+  @Input() searchQuery: string = '';
   exercises: any[] = [];
+  filteredExercises: any[] = [];
   isPanelExpanded = false;
   searchSubscription: Subscription = new Subscription();
+  searchSubject: Subject<string> = new Subject<string>();
   exercise = {
     title: '',
     description: '',
@@ -32,6 +36,14 @@ export class ExercisesBackend implements OnInit {
     this.refreshSubscription = this.exerciseService.onRefreshNeeded().subscribe(() => {
       console.log('Refresh needed triggered');
       this.loadExercises(this.isLoggedIn);
+    });
+
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.searchQuery = query;
+      this.filterExercises();
     });
 
     this.loadExercises(this.isLoggedIn);
@@ -48,8 +60,19 @@ export class ExercisesBackend implements OnInit {
         ...exercise,
         isDefault: exercise.user_id === this.staticUserId
       }));
+      this.filterExercises();
       console.log('Loaded exercises:', this.exercises);
     });
+  }
+
+  filterExercises(): void {
+    if (this.searchQuery) {
+      this.filteredExercises = this.exercises.filter(exercise =>
+        exercise.title.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    } else {
+      this.filteredExercises = this.exercises;
+    }
   }
 
   togglePanel() {
@@ -103,3 +126,24 @@ export class ExercisesBackend implements OnInit {
     this.openDialog(exercise.id, exercise.title, exercise.description);
   }
 }
+function tap<T>(next: (value: T) => void): (source: Observable<T>) => Observable<T> {
+  return (source: Observable<T>) => new Observable<T>(observer => {
+    return source.subscribe({
+      next(value) {
+        try {
+          next(value);
+          observer.next(value);
+        } catch (err) {
+          observer.error(err);
+        }
+      },
+      error(err) {
+        observer.error(err);
+      },
+      complete() {
+        observer.complete();
+      }
+    });
+  });
+}
+
