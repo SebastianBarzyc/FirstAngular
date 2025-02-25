@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ViewContainerRef, ComponentFactoryResolver, ComponentRef, Injectable } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewContainerRef, ComponentFactoryResolver, ComponentRef, Injectable, Input, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WorkoutExercise, WorkoutService } from './workouts.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { WorkoutsExerciseComponent } from './workouts-exercise.component';
 import { WorkoutEditComponent } from './workouts-edit.component';
-import { Subscription, tap } from 'rxjs';
+import { Subscription, Subject, tap, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'workouts-backend',
@@ -19,9 +19,11 @@ import { Subscription, tap } from 'rxjs';
   providedIn: 'root'
 })
 
-export class WorkoutsBackend implements OnInit {
+export class WorkoutsBackend implements OnInit, OnDestroy {
+  @Input() searchQuery: string = '';
   componentRefs: ComponentRef<any>[] = [];
   workouts: any[] = [];
+  filteredWorkouts: any[] = [];
   workout = {
     title: '',
     description: ''
@@ -29,7 +31,9 @@ export class WorkoutsBackend implements OnInit {
   @ViewChild('parent', { read: ViewContainerRef })
   target: ViewContainerRef | undefined;
   isPanelExpanded = false;
-  private refreshSubscription: Subscription | undefined;  
+  private refreshSubscription: Subscription | undefined;
+  searchSubscription: Subscription = new Subscription();
+  searchSubject: Subject<string> = new Subject<string>();
   workoutExercises: WorkoutExercise[] = [];
 
   constructor(
@@ -37,11 +41,21 @@ export class WorkoutsBackend implements OnInit {
     private workoutService: WorkoutService,
     public dialog: MatDialog,
   ) {}
+
   ngOnInit(): void {
     this.refreshSubscription = this.workoutService.onRefreshNeeded().subscribe(() => {
       console.log("dd");
       this.loadWorkouts();
     });
+
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.searchQuery = query;
+      this.filterWorkouts();
+    });
+
     this.loadWorkouts();
   }
 
@@ -49,13 +63,24 @@ export class WorkoutsBackend implements OnInit {
     if (this.refreshSubscription) {
       this.refreshSubscription.unsubscribe();
     }
+    this.searchSubscription.unsubscribe();
   }
-  
 
   loadWorkouts(): void {
     this.workoutService.getData().subscribe(response => {
       this.workouts = response;
-  });
+      this.filterWorkouts();
+    });
+  }
+
+  filterWorkouts(): void {
+    if (this.searchQuery) {
+      this.filteredWorkouts = this.workouts.filter(workout =>
+        workout.title.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    } else {
+      this.filteredWorkouts = this.workouts;
+    }
   }
 
   addElement() {
