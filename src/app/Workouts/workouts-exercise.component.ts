@@ -52,4 +52,12 @@ export class WorkoutsExerciseComponent implements OnInit {
       });
     }
   }
+
+  trackByFn(index: number, item: any): number {
+    return item.exercise_id; // or item.id
+  }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
 }

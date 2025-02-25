@@ -145,8 +145,15 @@ resetForm() {
 
   openDialog(id: number, title: string, description: string): void {
     const dialogRef = this.dialog.open(WorkoutEditComponent, {
-      data: { id: id, title: title, description: description },
+      data: { id, title, description },
       panelClass: 'editPanel'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('Dialog closed');
+      if (result) {
+        this.loadWorkouts();
+      }
     });
   }
 }

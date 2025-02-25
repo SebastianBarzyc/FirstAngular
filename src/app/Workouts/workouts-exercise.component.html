@@ -27,7 +27,7 @@
   </div>
 
   <div *ngIf="selectedExercise" class="reps-container">
-    <div *ngFor="let rep of repsArray; let i = index" class="reps-field">
+    <div *ngFor="let rep of repsArray; let i = index; trackBy: trackByIndex" class="reps-field">
       <mat-form-field class="input-number">
         <mat-label>Reps {{ i + 1 }}</mat-label>
         <input matInput 
