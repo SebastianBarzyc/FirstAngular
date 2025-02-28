@@ -26,8 +26,7 @@ export class ExercisesBackend implements OnInit, OnDestroy {
   searchSubject: Subject<string> = new Subject<string>();
   exercise = {
     title: '',
-    description: '',
-    isDefault: false
+    description: ''
   };
   private refreshSubscription: Subscription = new Subscription();
   private staticUserId = '5d3ab3e6-e980-4df6-af92-e0063728a5fc'; // Static user ID
@@ -99,7 +98,7 @@ export class ExercisesBackend implements OnInit, OnDestroy {
   }
 
   resetForm(): void {
-    this.exercise = { title: '', description: '', isDefault: false };
+    this.exercise = { title: '', description: '' };
   }
 
   readonly dialog = inject(MatDialog);

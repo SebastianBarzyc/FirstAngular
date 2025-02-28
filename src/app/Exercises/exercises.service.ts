@@ -53,6 +53,7 @@ export class ExerciseService {
       supabase
         .from('exercises')
         .insert([{ ...exercise, user_id: userId }])
+        .select()
         .then(({ data, error }: { data: any | null; error: any }) => {
           if (error) {
             observer.error('Błąd dodawania ćwiczenia: ' + error.message);
