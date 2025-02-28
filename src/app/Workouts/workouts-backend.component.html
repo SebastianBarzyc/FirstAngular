@@ -18,9 +18,9 @@
 <div class="workoutsContainer mt-3">
   <div *ngFor="let workout of filteredWorkouts">
     <button class="btn text-start workouts" (click)="openDialog(workout.id,workout.title,workout.description)">
-    <p class="mb-0 fw-bold">{{ workout.title }}</p>
+      <p class="mb-0 fw-bold">{{ workout.title }}</p>
       <p>{{ workout.description }}</p>
-      </button>
+    </button>
   </div>
   <div *ngIf="filteredWorkouts.length === 0">
     <p>Brak wyników do wyświetlenia.</p>

@@ -75,8 +75,12 @@ nav a{
 }
 
 .ExercisesContainer{
-  column-count: 2;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
   margin-top: 2%;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .editPanel {
@@ -129,6 +133,9 @@ textarea {
 
 .workoutsContainer {
   font-size: 1.2rem;
+  max-height: 60vh;
+  overflow-y: auto; /* Ensure vertical scroll bar */
+  overflow-x: hidden; /* Prevent horizontal scroll bar */
 }
 
 .reps-field {
@@ -447,10 +454,6 @@ h2 {
 
   .WhatsNext, .Achievements {
     width: 100%;
-  }
-
-  .ExercisesContainer {
-    column-count: 1;
   }
 
   .editPanel {
