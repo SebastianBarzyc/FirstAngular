@@ -16,5 +16,5 @@
       {{ isToggled ? "Only user's Exercises" : 'Default Exercises' }}
     </label>
   </div>
-  <exercises-backend [searchQuery]="searchQuery"></exercises-backend>
+  <exercises-backend [searchQuery]="searchQuery" [includeUserExercises]="isToggled"></exercises-backend>
 </div>

@@ -26,7 +26,8 @@ export class ExercisesComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     const session = localStorage.getItem('session');
     this.isLoggedIn = !!session;
-    this.isToggled = this.isLoggedIn;
+    const storedToggleState = localStorage.getItem('isToggled');
+    this.isToggled = storedToggleState ? JSON.parse(storedToggleState) : this.isLoggedIn;
   }
 
   ngAfterViewInit() {
@@ -47,6 +48,7 @@ export class ExercisesComponent implements OnInit, AfterViewInit {
 
   onToggleChange(event: any) {
     console.log('Toggle switch changed:', this.isToggled);
+    localStorage.setItem('isToggled', JSON.stringify(this.isToggled));
     if (!this.isLoggedIn && this.isToggled) {
       this.router.navigate(['/Profile']);
     } else {

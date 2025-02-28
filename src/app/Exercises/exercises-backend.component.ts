@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 export class ExercisesBackend implements OnInit, OnDestroy {
   @Input() isLoggedIn: boolean = false;
   @Input() searchQuery: string = '';
+  @Input() includeUserExercises: boolean = false; // Add this input
   exercises: any[] = [];
   filteredExercises: any[] = [];
   isPanelExpanded = false;
@@ -34,7 +35,7 @@ export class ExercisesBackend implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.refreshSubscription = this.exerciseService.onRefreshNeeded().subscribe(() => {
       console.log('Refresh needed triggered');
-      this.loadExercises(this.isLoggedIn);
+      this.loadExercises(this.includeUserExercises); // Use the input flag
     });
 
     this.searchSubscription = this.searchSubject.pipe(
@@ -45,7 +46,7 @@ export class ExercisesBackend implements OnInit, OnDestroy {
       this.filterExercises();
     });
 
-    this.loadExercises(this.isLoggedIn);
+    this.loadExercises(this.includeUserExercises); // Use the input flag
   }
 
   ngOnDestroy(): void {
@@ -76,7 +77,9 @@ export class ExercisesBackend implements OnInit, OnDestroy {
 
   togglePanel() {
     this.isPanelExpanded = !this.isPanelExpanded;
-    this.loadExercises(this.isLoggedIn);
+    if (this.isPanelExpanded) {
+      this.loadExercises(this.includeUserExercises); // Use the input flag
+    }
   }
 
   constructor(private exerciseService: ExerciseService) {}
@@ -87,7 +90,7 @@ export class ExercisesBackend implements OnInit, OnDestroy {
     this.exerciseService.addExercise(this.exercise).pipe(
       tap(response => {
         console.log('Exercise added successfully:', response);
-        this.loadExercises(this.isLoggedIn);
+        this.loadExercises(this.includeUserExercises); // Use the input flag
         this.resetForm();
       }),
       catchError(error => {
@@ -112,7 +115,7 @@ export class ExercisesBackend implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       console.log('Dialog closed');
       if (result) {
-        this.loadExercises(this.isLoggedIn);
+        this.loadExercises(this.includeUserExercises); // Use the input flag
       }
     });
   }
