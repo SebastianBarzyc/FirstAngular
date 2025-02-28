@@ -42,6 +42,7 @@
         <input matInput 
                type="number" 
                [(ngModel)]="breakTimesArray[i]" 
+               (ngModelChange)="onChange()"
                min="0" 
                required>
       </mat-form-field>

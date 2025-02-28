@@ -137,6 +137,7 @@ resetForm() {
 
     this.workoutExercises = [];
     this.componentRefs.forEach(ref => ref.destroy());
+    this.componentRefs = [];
 }
 
   togglePanel() {
