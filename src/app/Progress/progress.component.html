@@ -1,5 +1,23 @@
 <div class="mainContent text-center">
-    <h1>This site is under construction</h1>
-    <br>
-    <img src="/assets/building.png" alt="Website in building" width="60%" height="60%">
+    <ngx-charts-line-chart
+  [results]="chartData"
+  [scheme]="'cool'"
+  [xAxis]="true"
+  [yAxis]="true"
+  [legend]="true"
+  [autoScale]="true"
+  [view]="[1000, 600]"
+  [tooltipDisabled]="false">
+    
+
+    <!-- Custom tooltip template -->
+    <ng-template #tooltipTemplate let-model="model">
+        <div class="tooltip-content">
+            <strong>{{ model.series }}</strong><br>
+            Date: {{ model.name }}<br>
+            Max Weight: {{ model.value }} kg<br>
+            
+        </div>
+    </ng-template>
+</ngx-charts-line-chart>
 </div>
