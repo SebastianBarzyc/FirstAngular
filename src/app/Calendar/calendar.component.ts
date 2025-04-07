@@ -4,6 +4,7 @@ import { CalendarEditComponent } from './calendar-edit.component';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CalendarService } from './calendar.service';
 import { Subject } from 'rxjs';
+import { CalendarAdvancedComponent } from './calendar-advanced.component'; // Import the advanced component
 
 interface Session {
   session_id: number;
@@ -165,5 +166,12 @@ export class CalendarComponent implements OnInit {
     } else {
       console.error('Session data is missing or invalid', session);
     }
+  }
+
+  openAdvancedDialog(): void {
+    this.dialog.open(CalendarAdvancedComponent, {
+      width: '80vw',
+      height: '80vh',
+    });
   }
 }

@@ -341,4 +341,34 @@ export class CalendarService {
         });
     });
   }  
+
+  getAdvancedGroups(): Observable<string[]> {
+    const userId = getUser();
+    return new Observable((observer) => {
+      supabase
+        .from('sessions')
+        .select('Advanced_group')
+        .eq('user_id', userId)
+        .not('Advanced_group', 'is', null)
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Error fetching Advanced_group values:', error);
+            observer.error('Error fetching Advanced_group values');
+            return;
+          }
+
+          if (data) {
+            // Extract unique values
+            const uniqueGroups = Array.from(
+              new Set(data.map((row) => row.Advanced_group))
+            );
+            observer.next(uniqueGroups);
+          } else {
+            observer.next([]);
+          }
+
+          observer.complete();
+        });
+    });
+  }
 }
