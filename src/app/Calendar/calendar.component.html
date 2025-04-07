@@ -39,6 +39,12 @@
   
   <div class="schedule">
     <h2 class="mb-3">Schedule</h2>
+
+    <!-- Conditional message for no upcoming sessions -->
+    <div *ngIf="getUpcomingSessions().length === 0" class="no-data-message">
+        <p>No scheduled sessions found.</p>
+    </div>
+
     <button 
       *ngFor="let session of getUpcomingSessions()" 
       (click)="openSessionEditor(session)"
@@ -53,4 +59,4 @@
       <small class="text-end">{{ session.date }}</small>
     </button>
   </div>  
-</div>  
+</div>

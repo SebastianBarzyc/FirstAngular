@@ -1,21 +1,6 @@
 <div class="mainContent text-center">
-    <div class="date-range">
-        <mat-form-field appearance="fill">
-            <mat-label>From</mat-label>
-            <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" />
-            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
-            <mat-datepicker #startPicker></mat-datepicker>
-        </mat-form-field>
-    
-        <mat-form-field appearance="fill">
-            <mat-label>To</mat-label>
-            <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" />
-            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
-            <mat-datepicker #endPicker></mat-datepicker>
-        </mat-form-field>
-    </div>
     <ngx-charts-line-chart
-  [results]="filteredChartData"
+  [results]="chartData"
   [scheme]="'cool'"
   [xAxis]="true"
   [yAxis]="true"
@@ -28,10 +13,8 @@
         <div class="tooltip-content">
             <strong>{{ model.series }}</strong><br>
             Date: {{ model.name }}<br>
-            <div *ngFor="let rep of model.sets | keyvalue">
-                Reps: {{ rep.key }} 
-                Weight: {{ rep.value }} kg
-            </div>
+            
+            
         </div>
     </ng-template>
 </ngx-charts-line-chart>
