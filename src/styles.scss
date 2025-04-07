@@ -500,3 +500,11 @@ h2 {
     flex-direction: column;
   }
 }
+
+//Progress
+  .date-range{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 35% 0 10%;
+  }
