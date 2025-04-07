@@ -31,26 +31,22 @@ interface ChartData {
     TooltipModule,
     FormsModule,
     MatDatepickerModule,
-    MatFormField,
-    MatLabel,
-    MatNativeDateModule, // Add Material Datepicker modules
-    MatInputModule, // Add MatInputModule here
+    MatNativeDateModule,
+    MatInputModule,
   ],
   templateUrl: './progress.component.html',
 })
 export class ProgressComponent implements OnInit {
   chartData: ChartData[] = [];
-  startDate: Date | null = null; // Use Date object for Material Datepicker
+  startDate: Date | null = null;
   endDate: Date | null = null;
 
   async ngOnInit() {
-    const userId = await getUser(); // Fetch the logged-in user's ID
-    console.log("id: ", userId); // Debug log to check userId
+    const userId = await getUser();
     await this.fetchChartData(userId);
   }
 
   get filteredChartData(): ChartData[] {
-    // Filter chart data based on the selected date range
     if (!this.startDate && !this.endDate) {
       return this.chartData;
     }
@@ -69,30 +65,23 @@ export class ProgressComponent implements OnInit {
 
   async fetchChartData(userId: string) {
     try {
-      // Fetch sessions for the logged-in user
       const { data: sessions, error: sessionsError } = await supabase
         .from('sessions')
         .select('session_id, date')
-        .eq('user_id', userId); // Filter by userId
+        .eq('user_id', userId);
 
       if (sessionsError) throw sessionsError;
 
-      // Fetch session_exercises for the logged-in user
       const { data: sessionExercises, error: exercisesError } = await supabase
         .from('session_exercises')
         .select('session_id, exercise_title, reps, weight')
         .in(
           'session_id',
-          sessions.map((session) => session.session_id) // Filter by session IDs
+          sessions.map((session) => session.session_id)
         );
 
       if (exercisesError) throw exercisesError;
 
-      // Debug logs
-      console.log('Sessions:', sessions);
-      console.log('Session Exercises:', sessionExercises);
-
-      // Map data to chart format
       const chartDataMap: { [key: string]: any } = {};
 
       sessions.forEach((session) => {
@@ -101,7 +90,6 @@ export class ProgressComponent implements OnInit {
         );
 
         sessionExercisesForSession.forEach((exercise) => {
-          // Skip if exercise_title or session.date is null
           if (!exercise.exercise_title || !session.date) {
             console.warn('Skipping invalid data:', exercise, session);
             return;
@@ -114,7 +102,6 @@ export class ProgressComponent implements OnInit {
             };
           }
 
-          // Find or create the entry for this date
           let dateEntry = chartDataMap[exercise.exercise_title].series.find(
             (entry: any) => entry.name === session.date
           );
@@ -122,23 +109,20 @@ export class ProgressComponent implements OnInit {
           if (!dateEntry) {
             dateEntry = {
               name: session.date,
-              value: 0, // Will be updated to the max weight
-              sets: {}, // Will store aggregated reps and sets
+              value: 0,
+              sets: {},
             };
             chartDataMap[exercise.exercise_title].series.push(dateEntry);
           }
 
-          // Update the max weight for the day
           dateEntry.value = Math.max(dateEntry.value, exercise.weight);
 
-          // Aggregate reps and sets
           if (!dateEntry.sets[`${exercise.reps}`]) {
             dateEntry.sets[`${exercise.reps}`] = exercise.weight;
           }
         });
       });
 
-      // Sort the series array by date for each exercise
       Object.values(chartDataMap).forEach((exercise: any) => {
         console.log('Before sorting:', exercise.series.map((entry: any) => entry.name));
         exercise.series.sort((a: any, b: any) => {
@@ -157,10 +141,8 @@ export class ProgressComponent implements OnInit {
   }
 
   parseDate(dateString: string): number {
-    // Handle different date formats (e.g., DD.MM.YYYY)
     const parts = dateString.split('.');
     if (parts.length === 3) {
-      // Convert DD.MM.YYYY to YYYY-MM-DD
       const formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
       const date = new Date(formattedDate).getTime();
       if (isNaN(date)) {
@@ -169,7 +151,6 @@ export class ProgressComponent implements OnInit {
       }
       return date;
     }
-    // Fallback to default parsing
     const parsedDate = new Date(dateString).getTime();
     const date = new Date(dateString.trim()).getTime();
     if (isNaN(date)) {
