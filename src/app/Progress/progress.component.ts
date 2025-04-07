@@ -44,7 +44,9 @@ export class ProgressComponent implements OnInit {
   endDate: Date | null = null;
 
   async ngOnInit() {
-    await this.fetchChartData();
+    const userId = await getUser(); // Fetch the logged-in user's ID
+    console.log("id: ", userId); // Debug log to check userId
+    await this.fetchChartData(userId);
   }
 
   get filteredChartData(): ChartData[] {
@@ -65,19 +67,24 @@ export class ProgressComponent implements OnInit {
     }));
   }
 
-  async fetchChartData() {
+  async fetchChartData(userId: string) {
     try {
-      // Fetch sessions
+      // Fetch sessions for the logged-in user
       const { data: sessions, error: sessionsError } = await supabase
         .from('sessions')
-        .select('session_id, date');
+        .select('session_id, date')
+        .eq('user_id', userId); // Filter by userId
 
       if (sessionsError) throw sessionsError;
 
-      // Fetch session_exercises
+      // Fetch session_exercises for the logged-in user
       const { data: sessionExercises, error: exercisesError } = await supabase
         .from('session_exercises')
-        .select('session_id, exercise_title, reps, weight');
+        .select('session_id, exercise_title, reps, weight')
+        .in(
+          'session_id',
+          sessions.map((session) => session.session_id) // Filter by session IDs
+        );
 
       if (exercisesError) throw exercisesError;
 
