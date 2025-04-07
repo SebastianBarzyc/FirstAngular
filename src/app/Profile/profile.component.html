@@ -28,7 +28,7 @@
       <ul>
         <li *ngFor="let workout of recentWorkouts">
           <span>{{ workout.title }}</span>
-          <span>{{ workout.date | date: 'shortDate' }}</span>
+          <span>{{ workout.date | date: 'dd.MM.yyyy' }}</span>
         </li>
       </ul>
     </div>
