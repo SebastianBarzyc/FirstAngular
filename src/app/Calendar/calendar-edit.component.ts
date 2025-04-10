@@ -38,8 +38,8 @@ interface Exercise {
 interface Set {
   reps: number;
   weight: number;
-  breakTime?: number; // Add breakTime property
-  id?: number; // Add id property
+  breakTime?: number;
+  id?: number;
 }
 
 interface Exercise2 {

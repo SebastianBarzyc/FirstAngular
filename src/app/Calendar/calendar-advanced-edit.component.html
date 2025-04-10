@@ -2,12 +2,24 @@
   Edit Advanced Settings
 </h2>
 <mat-dialog-content>
-  <p>You are editing the group: <strong>{{ data.group }}</strong></p>
-  <!-- Add your editing form or content here -->
+  <p class="fw-bold">Title:</p>
+  <mat-form-field appearance="fill">
+    <mat-label>Title</mat-label>
+    <input matInput name="{{data.group}}" [(ngModel)]="data.group" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
+  </mat-form-field>
+  <p class="fw-bold">Exercises:</p>
+  <mat-form-field appearance="fill" style="width:100%;">
+    <mat-label>Workouts</mat-label>
+    <mat-select [(ngModel)]="selectedWorkoutTitle" name="workouts">
+      <mat-option *ngFor="let workout of workouts" [value]="workout?.title">
+        {{ workout?.title }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
 </mat-dialog-content>
 <mat-dialog-actions>
-    <div style="width:100%; margin-bottom: 2%">
-      <button mat-button class="RaisedBtn DeleteBtn float-start">Delete exercise</button>
-      <button mat-button class="RaisedBtn float-end">Save changes</button>
-    </div>
-  </mat-dialog-actions>
+  <div style="width:100%; margin-bottom: 2%">
+    <button mat-button class="RaisedBtn DeleteBtn float-start">Delete exercise</button>
+    <button mat-button class="RaisedBtn float-end">Save changes</button>
+  </div>
+</mat-dialog-actions>

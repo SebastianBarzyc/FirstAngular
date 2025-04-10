@@ -15,7 +15,7 @@ interface Exercise {
 interface Set {
   reps: number;
   weight: number;
-  breakTime?: number; // Add breakTime property
+  breakTime?: number;
 }
 
 @Injectable({
@@ -129,29 +129,6 @@ export class CalendarService {
         })
     });
   }
-/*
-  editSession2(id: number): Observable<any> {
-    return new Observable(observer => {
-      supabase
-        .from('sessions')
-        .delete()
-        .eq('session_id', id)
-        .then(({ data, error }) => {
-          if (error) {
-            console.error('Błąd usuwania sesji:', error);
-            observer.error('Błąd usuwania sesji: ' + error.message);
-          } else {
-            if (!data) {
-              console.error('Nie znaleziono sesji do usunięcia');
-              observer.error('Nie znaleziono sesji do usunięcia');
-            } else {
-              observer.next(data);
-              observer.complete();
-            }
-          }
-        })
-    });
-  }*/
 
   editSession3(exercises: any[], session_id: number): Observable<any> {
     const userId = getUser();
@@ -164,7 +141,6 @@ export class CalendarService {
     }
   
     return new Observable(observer => {
-      // Delete all existing exercises for the session
       supabase
         .from('session_exercises')
         .delete()
@@ -175,7 +151,6 @@ export class CalendarService {
             return;
           }
 
-          // Prepare the exercises data for insertion
           const exercisesData = exercises.flatMap((exercise, index) => 
             exercise.sets.map((set: Set) => ({
               exercise_id: exercise.exercise_id,
@@ -185,11 +160,10 @@ export class CalendarService {
               session_id: session_id,
               user_id: userId,
               exercise_title: exercise.exercise_title,
-              order: index // Include the order to maintain the correct sequence
+              order: index
             }))
           );
 
-          // Insert new exercises
           supabase
             .from('session_exercises')
             .insert(exercisesData)
@@ -367,6 +341,30 @@ export class CalendarService {
             observer.next([]);
           }
 
+          observer.complete();
+        });
+    });
+  }
+
+  workoutChange(workoutTitle: string): Observable<any> {
+    const userId = getUser();
+    if (!userId) {
+      throw new Error('User is not logged in.');
+    }
+
+    return new Observable((observer) => {
+      supabase
+        .from('training_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('title', workoutTitle)
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Error fetching workout details:', error);
+            observer.error('Error fetching workout details.');
+          } else {
+            observer.next(data || []);
+          }
           observer.complete();
         });
     });

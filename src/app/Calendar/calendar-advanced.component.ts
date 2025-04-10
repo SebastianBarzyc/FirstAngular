@@ -19,7 +19,7 @@ import { CalendarAdvancedEditComponent } from './calendar-advanced-edit.componen
 ],
 })
 export class CalendarAdvancedComponent implements OnInit {
-  advancedGroups: string[] = []; // Store unique Advanced_group values
+  advancedGroups: string[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<CalendarAdvancedComponent>,
