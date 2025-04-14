@@ -37,14 +37,19 @@ export class CalendarComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.calendarService.refreshNeeded$.subscribe(() => {
+      this.loadSessions(); // Reload sessions
+    });
+
     this.loadSessions();
   }
 
   subscribeToRefresh(): void {
-    this.refreshNeeded$.subscribe(() => {
+    this.calendarService.refreshNeeded$.subscribe(() => {
       this.loadSessions();
     });
   }
+
   generateCalendar(date: Date): void {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -104,12 +109,15 @@ export class CalendarComponent implements OnInit {
   }
 
   loadSessions(): void {
-    this.calendarService.getSessions().subscribe( 
-      (data: Session[]) => {
-        this.sessions = data;
-        this.generateCalendar(this.currentDate);
-      }
-    );
+    this.calendarService.getSessions().subscribe({
+      next: (sessions) => {
+        this.sessions = sessions;
+        this.generateCalendar(this.currentDate); // Regenerate calendar
+      },
+      error: (err) => {
+        console.error('Error loading sessions:', err);
+      },
+    });
   }
 
   getPlanForDay(day: number): string | null {
@@ -119,9 +127,6 @@ export class CalendarComponent implements OnInit {
     const date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
     const formattedDate = this.datePipe.transform(date, 'dd.MM.yyyy');
     const session = this.sessions.find(s => s.date === formattedDate);
-    console.log('Sessions:', this.sessions);
-    console.log('formattedDate:', formattedDate);
-    console.log('Session:', session);
     return session ? session.title : null;
   }
   

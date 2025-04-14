@@ -3,17 +3,17 @@
 </h2>
 <mat-dialog-content>
   <div *ngIf="advancedGroups.length > 0; else noGroups">
-      <button class="btn" *ngFor="let group of advancedGroups" (click)="openEditDialog(group)" style="cursor: pointer;">
-        {{ group }}
-        </button>
+    <button class="btn" *ngFor="let group of advancedGroups" (click)="openAddDialog(group)" style="cursor: pointer;">
+      {{ group }}
+    </button>
   </div>
   <ng-template #noGroups>
     <p>No advanced groups found.</p>
   </ng-template>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <div style="width:100%;margin-bottom: 2%">
-    <button mat-fab>
+  <div style="width:100%; margin-bottom: 2%">
+    <button mat-fab (click)="openAddDialog()">
       <mat-icon>add</mat-icon>
     </button>
     <button (click)="closeDialog()" class="RaisedBtn btn float-end">Close</button>

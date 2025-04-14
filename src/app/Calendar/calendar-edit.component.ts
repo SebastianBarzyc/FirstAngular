@@ -276,7 +276,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   }
   
   autoResize(textarea: HTMLTextAreaElement) {
-    console.log('Auto resizing textarea:', textarea);
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
   }
@@ -368,7 +367,9 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
           this.exercisesList = response.map((exercise: Exercise2) => ({
             exercise_id: exercise.exercise_id,
             exercise_title: exercise.exercise_title,
-            sets: exercise.reps.map(rep => ({ reps: rep, weight: 0 })),
+            sets: Array.isArray(exercise.reps) // Ensure reps is an array
+              ? exercise.reps.map(rep => ({ reps: rep, weight: 0 }))
+              : [], // Fallback to an empty array if reps is not valid
             id: this.exercisesList.length > 0 
               ? Math.max(...this.exercisesList.map(ex => ex.id)) + 1 
               : 1

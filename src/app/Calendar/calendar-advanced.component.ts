@@ -34,6 +34,7 @@ export class CalendarAdvancedComponent implements OnInit {
   loadAdvancedGroups(): void {
     this.calendarService.getAdvancedGroups().subscribe({
       next: (groups) => {
+        console.log('Reloaded advanced groups:', groups); // Debug log
         this.advancedGroups = groups;
       },
       error: (err) => {
@@ -42,10 +43,14 @@ export class CalendarAdvancedComponent implements OnInit {
     });
   }
 
-  openEditDialog(group: string): void {
-    this.dialog.open(CalendarAdvancedEditComponent, {
+  openAddDialog(group?: string): void {
+    const dialogRef = this.dialog.open(CalendarAdvancedEditComponent, {
       width: '50vw',
-      data: { group },
+      data: { group }, // Pass the group data
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadAdvancedGroups(); // Reload advanced groups after adding or editing
     });
   }
 

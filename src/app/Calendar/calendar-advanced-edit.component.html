@@ -1,25 +1,55 @@
 <h2 mat-dialog-title class="fw-bold">
-  Edit Advanced Settings
+  {{ isEditMode ? 'Edit Advanced Series' : 'Add New Advanced Series' }}
 </h2>
 <mat-dialog-content>
-  <p class="fw-bold">Title:</p>
-  <mat-form-field appearance="fill">
-    <mat-label>Title</mat-label>
-    <input matInput name="{{data.group}}" [(ngModel)]="data.group" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
+  <p class="fw-bold">Group Title:</p>
+  <p *ngIf="isEditMode" class="fw-bold">{{ newGroupTitle }}</p>
+  <mat-form-field *ngIf="!isEditMode" appearance="fill">
+    <mat-label>Group Title</mat-label>
+    <input matInput [(ngModel)]="newGroupTitle" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
   </mat-form-field>
-  <p class="fw-bold">Exercises:</p>
-  <mat-form-field appearance="fill" style="width:100%;">
+  <p class="fw-bold">Workout:</p>
+  <p *ngIf="isEditMode" class="fw-bold">{{ workoutPlanName }}</p> <!-- Display the workout plan name -->
+  <mat-form-field *ngIf="!isEditMode" appearance="fill" style="width:100%;">
     <mat-label>Workouts</mat-label>
-    <mat-select [(ngModel)]="selectedWorkoutTitle" name="workouts">
-      <mat-option *ngFor="let workout of workouts" [value]="workout?.title">
-        {{ workout?.title }}
+    <mat-select [(ngModel)]="selectedWorkoutTitle" name="workouts" (selectionChange)="loadExercisesForPlan($event.value.id)">
+      <mat-option *ngFor="let workout of workouts" [value]="workout">
+        {{ workout.title }}
       </mat-option>
     </mat-select>
   </mat-form-field>
+  <p class="fw-bold">Days:</p>
+  <mat-form-field appearance="fill" style="width:100%;" *ngIf="!isEditMode">
+    <mat-label>Days</mat-label>
+    <mat-select name="days" (selectionChange)="this.getDays($event.value)">
+      <mat-option value="1">Monday</mat-option>
+      <mat-option value="2">Tuesday</mat-option>
+      <mat-option value="3">Wednesday</mat-option>
+      <mat-option value="4">Thursday</mat-option>
+      <mat-option value="5">Friday</mat-option>
+      <mat-option value="6">Saturday</mat-option>
+      <mat-option value="7">Sunday</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div *ngIf="days.length > 0">
+    <p class="fw-bold">{{ isEditMode ? ' ' : 'Planned days: ' }}</p>
+    <ul>
+      <li *ngFor="let day of days">{{ day }}</li>
+    </ul>
+  </div>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <div style="width:100%; margin-bottom: 2%">
-    <button mat-button class="RaisedBtn DeleteBtn float-start">Delete exercise</button>
-    <button mat-button class="RaisedBtn float-end">Save changes</button>
+  <div style="width:100%;margin-bottom: 2%">
+    <button *ngIf="isEditMode" mat-button class="RaisedBtn DeleteBtn btn float-start" (click)="deleteGroup()">
+      Delete
+    </button>
+    <div>
+      <button *ngIf="!isEditMode" mat-button class="RaisedBtn btn float-end" (click)="saveNewSeries()">
+        Save
+      </button>
+      <button *ngIf="isEditMode" mat-button class="RaisedBtn btn float-end" (click)="closeDialog()">
+        Close
+      </button>
+    </div>
   </div>
 </mat-dialog-actions>

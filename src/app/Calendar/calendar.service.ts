@@ -26,6 +26,10 @@ export class CalendarService {
 
   constructor(private http: HttpClient) {}
 
+  triggerRefresh(): void {
+    this.refreshNeeded$.next();
+  }
+
   getSessions(): Observable<any[]> {
     return new Observable(observer => {
       const id = getUser();
@@ -36,7 +40,7 @@ export class CalendarService {
 
       supabase
         .from('sessions')
-        .select('*')
+        .select('session_id, date, title, description, Advanced_group') // Ensure session_id is included
         .eq('user_id', id)
         .order('session_id', { ascending: true })
         .then(({ data, error }) => {
@@ -129,10 +133,9 @@ export class CalendarService {
         })
     });
   }
-
+  
   editSession3(exercises: any[], session_id: number): Observable<any> {
     const userId = getUser();
-  
     if (!userId) {
       console.error('User ID is missing');
       return new Observable(observer => {
@@ -147,33 +150,40 @@ export class CalendarService {
         .eq('session_id', session_id)
         .then(({ error: deleteError }) => {
           if (deleteError) {
+            console.error('Error deleting existing exercises:', deleteError.message);
             observer.error('Error deleting existing exercises: ' + deleteError.message);
             return;
           }
-
+  
+          console.log('Deleted existing exercises for session_id:', session_id); // Debug log
+  
           const exercisesData = exercises.flatMap((exercise, index) => 
             exercise.sets.map((set: Set) => ({
-              exercise_id: exercise.exercise_id,
-              reps: set.reps,
-              weight: set.weight,
-              breakTime: set.breakTime || 60,
-              session_id: session_id,
-              user_id: userId,
-              exercise_title: exercise.exercise_title,
+              session_id: session_id, // Ensure session_id is assigned
+              user_id: userId,       // Ensure user_id is assigned
+              exercise_id: exercise.exercise_id || 0, // Fallback to 0 if undefined
+              exercise_title: exercise.exercise_title || 'Unknown', // Fallback to 'Unknown' if undefined
+              reps: Number(set.reps) || 0, // Ensure reps is a valid number
+              weight: Number(set.weight) || 0, // Ensure weight is a valid number
+              breakTime: Number(set.breakTime) || 60, // Ensure breakTime is a valid number
               order: index
             }))
           );
-
+  
+          console.log('Prepared exercises for insertion:', exercisesData); // Debug log
+  
           supabase
             .from('session_exercises')
             .insert(exercisesData)
             .select('*')
             .then(({ data, error }) => {
               if (error) {
+                console.error('Error inserting new exercises:', error.message);
                 observer.error('Error inserting new exercises: ' + error.message);
                 return;
               }
-
+  
+              console.log('Inserted exercises:', data); // Debug log
               observer.next(data);
               observer.complete();
             });
@@ -318,6 +328,10 @@ export class CalendarService {
 
   getAdvancedGroups(): Observable<string[]> {
     const userId = getUser();
+    if (!userId) {
+      throw new Error('User is not logged in.');
+    }
+  
     return new Observable((observer) => {
       supabase
         .from('sessions')
@@ -330,7 +344,9 @@ export class CalendarService {
             observer.error('Error fetching Advanced_group values');
             return;
           }
-
+  
+          console.log('Fetched Advanced_group values:', data); // Debug log
+  
           if (data) {
             // Extract unique values
             const uniqueGroups = Array.from(
@@ -340,33 +356,139 @@ export class CalendarService {
           } else {
             observer.next([]);
           }
-
+  
           observer.complete();
         });
     });
   }
 
-  workoutChange(workoutTitle: string): Observable<any> {
+  saveSessionAndExercises(
+    title: string,
+    days: string[],
+    exercises: any[],
+    group: string
+  ): Observable<void> {
     const userId = getUser();
     if (!userId) {
       throw new Error('User is not logged in.');
     }
-
+  
     return new Observable((observer) => {
-      supabase
-        .from('training_plans')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('title', workoutTitle)
-        .then(({ data, error }) => {
-          if (error) {
-            console.error('Error fetching workout details:', error);
-            observer.error('Error fetching workout details.');
-          } else {
-            observer.next(data || []);
+      (async () => {
+        try {
+          for (const day of days) {
+            const { data: sessionData, error: sessionError } = await supabase
+              .from('sessions')
+              .insert({
+                user_id: userId,
+                title: title,
+                date: day,
+                description: `Advanced group: ${group}`,
+                Advanced_group: group,
+              })
+              .select('*')
+              .single();
+    
+            // Ensure session_id and user_id are assigned to exercises
+            const exercisesToInsert = exercises.map((exercise) => ({
+              session_id: sessionData.session_id, // Assign session_id
+              user_id: userId, // Assign user_id
+              exercise_id: exercise.exercise_id,
+              exercise_title: exercise.exercise_title,
+              reps: exercise.reps || 0,
+              weight: exercise.weight || 0,
+              breakTime: exercise.breakTime || 60,
+            }));
+    
+            if (exercisesToInsert.length > 0) {
+              const { error: exercisesError } = await supabase
+                .from('session_exercises')
+                .insert(exercisesToInsert);
+            
+              if (exercisesError) {
+                console.error('Error inserting into session_exercises:', exercisesError.message);
+              } else {
+                console.log('Inserted exercises for session:', sessionData.session_id);
+              }
+            } else {
+              console.log('No exercises to insert for session:', sessionData.session_id);
+            }
           }
+  
+          console.log('All changes saved successfully.');
+          observer.next();
           observer.complete();
-        });
+        } catch (error) {
+          console.error('Error saving changes:', error);
+          observer.error(error);
+        }
+      })();
+    });
+  }
+
+  deleteAdvancedGroup(group: string): Observable<void> {
+    const userId = getUser();
+    if (!userId) {
+      throw new Error('User is not logged in.');
+    }
+  
+    return new Observable((observer) => {
+      (async () => {
+        try {
+          // Fetch sessions associated with the Advanced_group
+          const { data: sessions, error: fetchError } = await supabase
+            .from('sessions')
+            .select('session_id')
+            .eq('user_id', userId)
+            .eq('Advanced_group', group);
+  
+          if (fetchError) {
+            console.error('Error fetching sessions for advanced group:', fetchError.message);
+            observer.error(fetchError);
+            return;
+          }
+  
+          if (!sessions || sessions.length === 0) {
+            console.warn('No sessions found for the advanced group:', group);
+            observer.next();
+            observer.complete();
+            return;
+          }
+  
+          const sessionIds = sessions.map((session) => session.session_id);
+  
+          // Delete all exercises associated with the sessions
+          const { error: deleteExercisesError } = await supabase
+            .from('session_exercises')
+            .delete()
+            .in('session_id', sessionIds);
+  
+          if (deleteExercisesError) {
+            console.error('Error deleting exercises for advanced group:', deleteExercisesError.message);
+            observer.error(deleteExercisesError);
+            return;
+          }
+  
+          // Delete the sessions
+          const { error: deleteSessionsError } = await supabase
+            .from('sessions')
+            .delete()
+            .in('session_id', sessionIds);
+  
+          if (deleteSessionsError) {
+            console.error('Error deleting sessions for advanced group:', deleteSessionsError.message);
+            observer.error(deleteSessionsError);
+            return;
+          }
+  
+          console.log('Advanced group deleted successfully:', group);
+          observer.next();
+          observer.complete();
+        } catch (error) {
+          console.error('Error deleting advanced group:', error);
+          observer.error(error);
+        }
+      })();
     });
   }
 }
