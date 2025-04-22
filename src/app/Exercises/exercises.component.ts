@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ExercisesBackend } from './exercises-backend.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { supabase } from '../supabase-client';
+import { getUser } from '../supabase-client';
 
 @Component({
   selector: 'app-exercises',
@@ -17,17 +17,21 @@ import { supabase } from '../supabase-client';
 })
 export class ExercisesComponent implements OnInit, AfterViewInit {
   @ViewChild(ExercisesBackend) exercisesBackend!: ExercisesBackend;
-  isToggled: boolean = false;
   isLoggedIn: boolean = false;
   searchQuery: string = '';
+  isToggled: boolean = false;
 
   constructor(private router: Router) {}
 
   ngOnInit() {
     const session = localStorage.getItem('session');
     this.isLoggedIn = !!session;
-    const storedToggleState = localStorage.getItem('isToggled');
-    this.isToggled = storedToggleState ? JSON.parse(storedToggleState) : this.isLoggedIn;
+    if(getUser() === null) {
+      this.isToggled = false;
+    }else{
+      const storedToggleState = localStorage.getItem('isToggled');
+      this.isToggled = storedToggleState ? JSON.parse(storedToggleState) : this.isLoggedIn;
+    }
   }
 
   ngAfterViewInit() {
