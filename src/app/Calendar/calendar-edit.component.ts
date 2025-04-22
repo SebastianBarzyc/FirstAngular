@@ -13,6 +13,8 @@ import { Observable, Subject, tap } from 'rxjs';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { CalendarItemComponent } from "./calendar-item.component";
+import { getUser } from '../supabase-client';
+import { Router } from '@angular/router';
 
 interface Session {
   session_id: number;
@@ -88,7 +90,8 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     private calendarService: CalendarService,
     public dialogRef: MatDialogRef<CalendarEditComponent>,
     private workoutService: WorkoutService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {
     this.refreshNeeded$ = data.refreshNeeded$
   }
@@ -190,44 +193,50 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   }
 
   Save(session: any): void {
-    const newSessionId = this.getMaxSessionId() + 1;
-    const sessionToSave = {
-      ...session,
-      title: this.newSession.title || session.title,
-      description: this.newSession.description || session.description,
-      date: this.newSession.date || session.date,
-      session_id: this.getSessionOrEmpty().session_id || newSessionId
-    };
-  
-    if (sessionToSave.session_id == newSessionId) {
-      this.createSession(sessionToSave);  
+    if (getUser() === null) {
+      console.error('User ID is null, cannot add exercise.');
+      this.dialogRef.close();
+      this.router.navigate(['/Profile']);
     } else {
-      this.updateSession(sessionToSave);
-    }
+      const newSessionId = this.getMaxSessionId() + 1;
+      const sessionToSave = {
+        ...session,
+        title: this.newSession.title || session.title,
+        description: this.newSession.description || session.description,
+        date: this.newSession.date || session.date,
+        session_id: this.getSessionOrEmpty().session_id || newSessionId
+      };
     
-    const exercises = this.exercisesList.map((exercise, index) => ({
-      exercise_id: exercise.exercise_id,
-      exercise_title: exercise.exercise_title,
-      sets: exercise.sets.map((set: Set) => ({
-        reps: set.reps,
-        weight: set.weight,
-        breakTime: set.breakTime || 0
-      })),
-      order: index // Include the order to maintain the correct sequence
-    }));
-
-    this.calendarService.editSession3(exercises, sessionToSave.session_id).subscribe({
-      next: response => {
-        this.refreshNeeded$.next();
-        console.log('Session saved:', response);
-      },
-      error: error => {
-        console.error('Error during saving session:', error);
+      if (sessionToSave.session_id == newSessionId) {
+        this.createSession(sessionToSave);  
+      } else {
+        this.updateSession(sessionToSave);
       }
-    });
+      
+      const exercises = this.exercisesList.map((exercise, index) => ({
+        exercise_id: exercise.exercise_id,
+        exercise_title: exercise.exercise_title,
+        sets: exercise.sets.map((set: Set) => ({
+          reps: set.reps,
+          weight: set.weight,
+          breakTime: set.breakTime || 0
+        })),
+        order: index // Include the order to maintain the correct sequence
+      }));
 
-    this.refreshNeeded$.next();
-    this.dialogRef.close();
+      this.calendarService.editSession3(exercises, sessionToSave.session_id).subscribe({
+        next: response => {
+          this.refreshNeeded$.next();
+          console.log('Session saved:', response);
+        },
+        error: error => {
+          console.error('Error during saving session:', error);
+        }
+      });
+
+      this.refreshNeeded$.next();
+      this.dialogRef.close();
+    }
   }
 
   createSession(session: any) {

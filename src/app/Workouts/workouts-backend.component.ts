@@ -7,6 +7,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { WorkoutsExerciseComponent } from './workouts-exercise.component';
 import { WorkoutEditComponent } from './workouts-edit.component';
 import { Subscription, Subject, tap, debounceTime, distinctUntilChanged } from 'rxjs';
+import { getUser } from '../supabase-client';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'workouts-backend',
@@ -40,6 +42,7 @@ export class WorkoutsBackend implements OnInit, OnDestroy {
     private componentFactoryResolver: ComponentFactoryResolver,
     private workoutService: WorkoutService,
     public dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -101,34 +104,39 @@ export class WorkoutsBackend implements OnInit, OnDestroy {
   }
   
   async onSubmit() {
-    this.workoutService.addWorkout(this.workout).pipe(
-        tap(response => {
-            console.log('Workout added successfully:', response);
-            this.workoutExercises = this.workoutService.getWorkoutExercises();
-            console.log("workoutExercises: ", this.workoutExercises);
-            this.workoutService.addWorkout2(this.workoutExercises).pipe(
-              tap(response => {
-                console.log('Workout exercises added successfully:', response);
-              })
-            ).subscribe(
-              response => {
-                this.loadWorkouts();
-                this.resetForm();
-              },
-              error => {
-                console.error('Error adding workout exercises:', error);
-              }
-            );
-        })
-    ).subscribe(
-        response => {
-            this.loadWorkouts();
-            this.resetForm();
-        },
-        error => {
-            console.error('Error adding workout:', error);
-        }
-    );
+    if (getUser() === null) {
+      console.error('User ID is null, cannot add exercise.');
+      this.router.navigate(['/Profile']);
+    } else {
+      this.workoutService.addWorkout(this.workout).pipe(
+          tap(response => {
+              console.log('Workout added successfully:', response);
+              this.workoutExercises = this.workoutService.getWorkoutExercises();
+              console.log("workoutExercises: ", this.workoutExercises);
+              this.workoutService.addWorkout2(this.workoutExercises).pipe(
+                tap(response => {
+                  console.log('Workout exercises added successfully:', response);
+                })
+              ).subscribe(
+                response => {
+                  this.loadWorkouts();
+                  this.resetForm();
+                },
+                error => {
+                  console.error('Error adding workout exercises:', error);
+                }
+              );
+          })
+      ).subscribe(
+          response => {
+              this.loadWorkouts();
+              this.resetForm();
+          },
+          error => {
+              console.error('Error adding workout:', error);
+          }
+      );
+  }
 }
 
 resetForm() {

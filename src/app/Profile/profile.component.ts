@@ -89,6 +89,7 @@ export class ProfileComponent implements OnInit {
     supabase.auth.signOut().then(() => {
       this.session = null;
       localStorage.removeItem('session');
+      localStorage.removeItem('token');
       this.isLoggedInSubject.next(false);
     });
   }

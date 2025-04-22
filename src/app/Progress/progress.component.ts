@@ -6,6 +6,7 @@ import { MatNativeDateModule } from '@angular/material/core'; // For native date
 import { MatInputModule } from '@angular/material/input'; // Import MatInputModule
 import { supabase, getUser } from '../supabase-client';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { Router } from '@angular/router';
 
 // Define interfaces outside the component
 interface ChartDetails {
@@ -41,9 +42,17 @@ export class ProgressComponent implements OnInit {
   startDate: Date | null = null;
   endDate: Date | null = null;
 
+  constructor(
+    private router: Router
+  ) {}
+
   async ngOnInit() {
     const userId = await getUser();
     await this.fetchChartData(userId);
+    if (getUser() === null) {
+      console.error('User ID is null, cannot add exercise.');
+      this.router.navigate(['/Profile']);
+    }
   }
 
   get filteredChartData(): ChartData[] {

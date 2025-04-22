@@ -8,6 +8,8 @@ import { Subscription, Subject, debounceTime, distinctUntilChanged, catchError }
 import { MatDialog } from '@angular/material/dialog';
 import { ExerciseEditComponent } from './exercise-edit.component';
 import { Observable } from 'rxjs';
+import { getUser } from '../supabase-client';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'exercises-backend',
@@ -82,22 +84,26 @@ export class ExercisesBackend implements OnInit, OnDestroy {
     }
   }
 
-  constructor(private exerciseService: ExerciseService) {}
+  constructor(private exerciseService: ExerciseService, private router: Router) {}
 
   onSubmit(): void {
     console.log(this.exercise);
-
-    this.exerciseService.addExercise(this.exercise).pipe(
-      tap(response => {
-        console.log('Exercise added successfully:', response);
-        this.loadExercises(this.includeUserExercises); // Use the input flag
-        this.resetForm();
-      }),
-      catchError(error => {
-        console.error('Error adding exercise:', error);
-        throw error;
-      })
-    ).subscribe();
+    if (getUser() === null) {
+      console.error('User ID is null, cannot add exercise.');
+      this.router.navigate(['/Profile']);
+    } else {
+      this.exerciseService.addExercise(this.exercise).pipe(
+        tap(response => {
+          console.log('Exercise added successfully:', response);
+          this.loadExercises(this.includeUserExercises); // Use the input flag
+          this.resetForm();
+        }),
+        catchError(error => {
+          console.error('Error adding exercise:', error);
+          throw error;
+        })
+      ).subscribe();
+    }
   }
 
   resetForm(): void {

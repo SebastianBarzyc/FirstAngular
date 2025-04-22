@@ -5,6 +5,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CalendarService } from './calendar.service';
 import { Subject } from 'rxjs';
 import { CalendarAdvancedComponent } from './calendar-advanced.component'; // Import the advanced component
+import { getUser } from '../supabase-client';
 
 interface Session {
   session_id: number;
@@ -42,6 +43,7 @@ export class CalendarComponent implements OnInit {
     });
 
     this.loadSessions();
+    console.log("getuser: ", getUser());
   }
 
   subscribeToRefresh(): void {
