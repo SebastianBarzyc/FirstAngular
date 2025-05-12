@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ExerciseDialogComponent } from './exercise-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
@@ -42,7 +43,7 @@ export class ProfileComponent implements OnInit {
   userExercisesSelected: any[] = [];
   showExerciseSelection = false;
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef, public dialog: MatDialog) {
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef, public dialog: MatDialog, private router: Router) {
     supabase.auth.onAuthStateChange((event, session) => {
       console.log(`Event: ${event}`);
       if (session) {
@@ -50,14 +51,19 @@ export class ProfileComponent implements OnInit {
         this.session = session;
         localStorage.setItem('session', JSON.stringify(session));
         this.refreshProfile();
+        window.location.reload(); // Refresh the page after login
       }
     });
   }
 
   async ngOnInit() {
     this.user = getUser();
-    this.displayName = this.user.user_metadata['display_name'] || 'User';
-    this.refreshProfile();
+    if (this.user) {
+      this.displayName = this.user.user_metadata['display_name'] || 'User';
+      this.refreshProfile();
+    } else {
+      this.router.navigate(['/Profile']);
+    }
   }
 
   loadUserProfile() {
@@ -72,6 +78,7 @@ export class ProfileComponent implements OnInit {
     supabase.auth.signOut().then(() => {
       this.session = null;
       localStorage.removeItem('session');
+      window.location.reload(); // Refresh the page after logout
     });
   }
 
