@@ -14,7 +14,7 @@
       </div>
       <div class="stat-card">
         <h2>Weights</h2>
-        <p>{{ totalWeights !== null ? totalWeights : '0' }}</p>
+        <p>{{ totalWeights !== null ? (totalWeights | number: '1.2-2') : '0.00' }}</p>
       </div>
       <div class="stat-card">
         <h2>Active Days</h2>
