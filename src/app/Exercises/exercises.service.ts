@@ -12,13 +12,13 @@ export class ExerciseService {
 
   getData(includeUserExercises: boolean = false): Observable<any[]> {
     return new Observable(observer => {
-      const userId = getUser();
-
-      if (!userId) {
+      const user = getUser();
+      if (!user) {
         observer.error('Nie znaleziono identyfikatora użytkownika.');
         return;
       }
 
+      const userId = user.id;
       let query = supabase
         .from('exercises')
         .select('*')

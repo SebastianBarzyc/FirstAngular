@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AchievementsService } from './achievements.service';
 import { CalendarService } from '../Calendar/calendar.service';
+import { supabase, getUser } from '../supabase-client';
 
 @Component({
   selector: 'app-dashoard',
@@ -10,9 +11,11 @@ import { CalendarService } from '../Calendar/calendar.service';
   templateUrl: './dashoard.component.html',
 })
 export class DashoardComponent implements OnInit {
+[x: string]: any;
   sessions: any;
   upcomingSessions: any[] = [];
   todaysWorkout: string = '';
+  displayName: string = '';
 
   TitleAchievementList: string[];
   DescAchievementList: string[];
@@ -33,6 +36,14 @@ export class DashoardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUpcomingSessions();
+    const user = getUser();
+    if (user && user.user_metadata) {
+      this.displayName = user.user_metadata['display_name'] || 'User';
+    } else {
+      console.warn("User or user_metadata is null. Setting default displayName.");
+      this.displayName = 'User';
+    }
+    console.log("DashoardComponent - displayName:", this.displayName);
   }
 
   loadUpcomingSessions(): void {

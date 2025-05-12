@@ -39,11 +39,10 @@ export class CalendarComponent implements OnInit {
 
   ngOnInit(): void {
     this.calendarService.refreshNeeded$.subscribe(() => {
-      this.loadSessions(); // Reload sessions
+      this.loadSessions();
     });
 
     this.loadSessions();
-    console.log("getuser: ", getUser());
   }
 
   subscribeToRefresh(): void {

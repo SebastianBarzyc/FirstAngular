@@ -5,40 +5,17 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
-export function getUser() {
-  const token = localStorage.getItem('token');
+export function getUser(): any {
+  let session: any = null;
+  let userId: any;
+  let displayName: string | null = null;
 
-  if (!token) {
-    console.error("Token is null");
-    return null;
+  const storedSession = localStorage.getItem('session');
+  if (storedSession) {
+    session = JSON.parse(storedSession);
+    userId = session.user.id;
+    displayName = session.user.user_metadata?.['display_name'];
   }
-
-  const base64Url = token.split('.')[1];
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
-
-  const payload = JSON.parse(jsonPayload);
-
-  return payload.sub; 
-}
-
-export function getUsername(){
-  const token = localStorage.getItem('token');
-
-  if (!token) {
-    console.error("Token is null");
-    return null;
-  }
-
-  const base64Url = token.split('.')[1];
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
-
-  const payload = JSON.parse(jsonPayload);
-
-  return payload;
+  console.log("userId: ", userId, " displayName: ", displayName);
+  return session.user;
 }

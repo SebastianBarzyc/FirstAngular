@@ -47,7 +47,6 @@ export class WorkoutsBackend implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.refreshSubscription = this.workoutService.onRefreshNeeded().subscribe(() => {
-      console.log("dd");
       this.loadWorkouts();
     });
 

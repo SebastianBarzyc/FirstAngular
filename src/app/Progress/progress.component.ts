@@ -47,8 +47,8 @@ export class ProgressComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    const userId = await getUser();
-    await this.fetchChartData(userId);
+    const user = await getUser();
+    await this.fetchChartData(user.id);
     if (getUser() === null) {
       console.error('User ID is null, cannot add exercise.');
       this.router.navigate(['/Profile']);

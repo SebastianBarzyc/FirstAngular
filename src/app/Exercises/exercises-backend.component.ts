@@ -48,7 +48,12 @@ export class ExercisesBackend implements OnInit, OnDestroy {
       this.filterExercises();
     });
 
-    this.loadExercises(this.includeUserExercises); // Use the input flag
+    if (!this.isLoggedIn) {
+      console.warn('User is not logged in. Redirecting to Profile.');
+      this.router.navigate(['/Profile']);
+    } else {
+      this.loadExercises(this.includeUserExercises); // Use the input flag
+    }
   }
 
   ngOnDestroy(): void {

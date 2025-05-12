@@ -63,7 +63,10 @@ export class ProfileComponent implements OnInit {
       this.userId = this.session.user.id;
       this.displayName = this.session.user.user_metadata?.['display_name'];
       this.isLoggedInSubject.next(true);
-    
+    } else {
+      this.isLoggedInSubject.next(false);
+      console.warn("No active session. Redirecting to login.");
+      this.logout();
     }
 
     this.isLoggedIn$.subscribe(isLoggedIn => {
@@ -73,6 +76,9 @@ export class ProfileComponent implements OnInit {
         this.loadUserProfile();
         this.getRecentWorkouts();
         this.getUserExercises();
+      } else {
+        console.warn("User is not logged in. Redirecting to login.");
+        this.logout();
       }
     });
   }
@@ -89,7 +95,6 @@ export class ProfileComponent implements OnInit {
     supabase.auth.signOut().then(() => {
       this.session = null;
       localStorage.removeItem('session');
-      localStorage.removeItem('token');
       this.isLoggedInSubject.next(false);
     });
   }

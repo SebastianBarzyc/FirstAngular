@@ -32,8 +32,8 @@ export class CalendarService {
 
   getSessions(): Observable<any[]> {
     return new Observable(observer => {
-      const id = getUser();
-      if (!id) {
+      const user = getUser();
+      if (!user) {
         observer.error('Użytkownik nie jest zalogowany.');
         return;
       }
@@ -41,7 +41,7 @@ export class CalendarService {
       supabase
         .from('sessions')
         .select('session_id, date, title, description, Advanced_group') // Ensure session_id is included
-        .eq('user_id', id)
+        .eq('user_id', user.id)
         .order('session_id', { ascending: true })
         .then(({ data, error }) => {
           if (error) {
@@ -238,18 +238,13 @@ export class CalendarService {
   }
   
   getExercises(): Observable<any> {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error("Token is missing");
-    }
-  
-    const userId = getUser();
+    const user = getUser();
   
     return new Observable(observer => {
       supabase
         .from('exercises')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .order('id', { ascending: true })
         .then(({ data, error }) => {
           if (error) {
@@ -264,11 +259,6 @@ export class CalendarService {
   }
 
   getExercisesList(sessionId: number): Observable<Exercise[]> {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error("Token is missing");
-    }
-  
     if (!sessionId || typeof sessionId !== 'number') {
       throw new Error(`Invalid sessionId: ${sessionId}`);
     }

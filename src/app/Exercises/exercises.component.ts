@@ -1,18 +1,20 @@
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Component, ViewChild, OnInit, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, OnInit, AfterViewInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ExercisesBackend } from './exercises-backend.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { getUser } from '../supabase-client';
+import { ProfileComponent } from '../Profile/profile.component';
 
 @Component({
   selector: 'app-exercises',
   templateUrl: './exercises.component.html',
   standalone: true,
+  providers: [ProfileComponent],
   imports: [MatFormFieldModule, MatInputModule, FormsModule, MatButtonModule, FormsModule, MatExpansionModule, CommonModule, ExercisesBackend],
 })
 export class ExercisesComponent implements OnInit, AfterViewInit {
@@ -24,14 +26,12 @@ export class ExercisesComponent implements OnInit, AfterViewInit {
   constructor(private router: Router) {}
 
   ngOnInit() {
-    const session = localStorage.getItem('session');
-    this.isLoggedIn = !!session;
-    if(getUser() === null) {
-      this.isToggled = false;
-    }else{
-      const storedToggleState = localStorage.getItem('isToggled');
-      this.isToggled = storedToggleState ? JSON.parse(storedToggleState) : this.isLoggedIn;
+    const user = getUser();
+    if(user){
+      this.isLoggedIn = true;
     }
+    const storedToggleState = localStorage.getItem('isToggled');
+    this.isToggled = storedToggleState ? JSON.parse(storedToggleState) : this.isLoggedIn;
   }
 
   ngAfterViewInit() {

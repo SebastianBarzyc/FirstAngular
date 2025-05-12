@@ -51,15 +51,15 @@ interface PlanExercise {
     idFromTitle: number = 0;
 
     getData(): Observable<any> {
-      const userId = getUser();
-      if (!userId) {
+      const user = getUser();
+      if (!user) {
         return throwError(() => new Error("Użytkownik nie jest zalogowany"));
       }
 
       return new Observable(observer => {
-        const userId = getUser();
+        const user = getUser();
       
-        if (!userId) {
+        if (!user) {
           observer.error('Nie znaleziono identyfikatora użytkownika.');
           return;
         }
@@ -67,7 +67,7 @@ interface PlanExercise {
         const query = supabase
           .from('training_plans')
           .select('*')
-          .eq('user_id', userId)
+          .eq('user_id', user.id)
           .order('id', { ascending: true });
       
         query
