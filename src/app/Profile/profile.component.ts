@@ -68,19 +68,6 @@ export class ProfileComponent implements OnInit {
       console.warn("No active session. Redirecting to login.");
       this.logout();
     }
-
-    this.isLoggedIn$.subscribe(isLoggedIn => {
-      console.log('isLoggedIn subscription:', isLoggedIn);
-      this.isLoggedIn = isLoggedIn;
-      if (isLoggedIn) {
-        this.loadUserProfile();
-        this.getRecentWorkouts();
-        this.getUserExercises();
-      } else {
-        console.warn("User is not logged in. Redirecting to login.");
-        this.logout();
-      }
-    });
   }
 
   loadUserProfile() {
