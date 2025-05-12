@@ -90,8 +90,8 @@ interface PlanExercise {
     }
     
     private async addWorkoutPromise(workout: any): Promise<any> {
-      const userId = await getUser();
-      if (!userId) {
+      const user = await getUser();
+      if (!user) {
         console.error('Brak zalogowanego użytkownika');
         throw new Error('Brak zalogowanego użytkownika');
       }
@@ -102,7 +102,7 @@ interface PlanExercise {
           {
             title: workout.title,
             description: workout.description,
-            user_id: userId,
+            user_id: user.id,
           },
         ])
         .select('*');
@@ -124,8 +124,8 @@ interface PlanExercise {
     
     private async addWorkout2Promise(workouts: Workout[]): Promise<any> {
       console.log("workouts1: ", workouts);
-      const userId = await getUser();
-      if (!userId) {
+      const user = await getUser();
+      if (!user) {
         console.error('Brak zalogowanego użytkownika');
         throw new Error('Brak zalogowanego użytkownika');
       }
@@ -133,7 +133,7 @@ interface PlanExercise {
       const { data: lastPlan, error: lastPlanError } = await supabase
         .from('training_plans')
         .select('id')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .order('id', { ascending: false })
         .limit(1)
         .single();
@@ -163,7 +163,7 @@ interface PlanExercise {
           exercise_id,
           reps: rep,
           exercise_title: title,
-          user_id: userId,
+          user_id: user.id,
           breakTime: breakTimes[index]
         }));
       });
@@ -183,8 +183,8 @@ interface PlanExercise {
     }    
 
     async getExerciseByTitle(title: string): Promise<any> {
-      const userId = await getUser();
-      if (!userId) {
+      const user = await getUser();
+      if (!user) {
         throw new Error('User not logged in');
       }
   
@@ -192,7 +192,7 @@ interface PlanExercise {
         .from('exercises')
         .select('*')
         .eq('title', title)
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .single();
   
       if (error) {
@@ -282,8 +282,8 @@ interface PlanExercise {
   editWorkout3(planId: number, idExercise: number, reps: number[], breakTimes: number[], exercise_title: string, order: number): Observable<any> {
     return new Observable(observer => {
       Promise.resolve(getUser())
-        .then(userId => {
-          if (!userId) {
+        .then(user => {
+          if (!user) {
             observer.error('User is not logged in');
             observer.complete();
             return;
@@ -294,9 +294,9 @@ interface PlanExercise {
             exercise_id: idExercise,
             reps: rep,
             exercise_title,
-            user_id: userId,
+            user_id: user.id,
             breakTime: breakTimes[index],
-            order // Include the order to maintain the correct sequence
+            order
           }));
   
           supabase
@@ -330,8 +330,8 @@ interface PlanExercise {
     return new Observable(observer => {
       (async () => {
         try {
-          const userId = await getUser();
-          if (!userId) {
+          const user = await getUser();
+          if (!user) {
             observer.error('Brak zalogowanego użytkownika');
             observer.complete();
             return;
@@ -388,8 +388,8 @@ interface PlanExercise {
   
   getExercisesForPlan(planId: number): Observable<any> {
     return new Observable(observer => {
-      const userId = getUser();
-      if (!userId) {
+      const user = getUser();
+      if (!user) {
         observer.error('Brak zalogowanego użytkownika');
         return;
       }
@@ -398,7 +398,7 @@ interface PlanExercise {
         .from('plan_exercises')
         .select('exercise_id, exercise_title, reps, breakTime, order')
         .eq('plan_id', planId)
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .order('order', { ascending: true })
         .then(({ data, error }: { data: PlanExercise[] | null; error: any }) => {
           if (error) {

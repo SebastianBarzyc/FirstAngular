@@ -17,17 +17,15 @@ export class ExerciseService {
         observer.error('Nie znaleziono identyfikatora użytkownika.');
         return;
       }
-
-      const userId = user.id;
       let query = supabase
         .from('exercises')
         .select('*')
         .order('id', { ascending: true });
 
       if (!includeUserExercises) {
-        query = query.or(`user_id.eq.${userId},user_id.eq.5d3ab3e6-e980-4df6-af92-e0063728a5fc`);
+        query = query.or(`user_id.eq.${user.id},user_id.eq.5d3ab3e6-e980-4df6-af92-e0063728a5fc`);
       } else {
-        query = query.eq('user_id', userId);
+        query = query.eq('user_id', user.id);
       }
 
       query.then(({ data, error }: { data: any[] | null; error: any }) => {
@@ -44,15 +42,15 @@ export class ExerciseService {
   
   addExercise(exercise: any): Observable<any> {
     return new Observable(observer => {
-      const userId = getUser();
-      if (!userId) {
+      const user = getUser();
+      if (!user) {
         observer.error('Nie znaleziono identyfikatora użytkownika.');
         return;
       }
   
       supabase
         .from('exercises')
-        .insert([{ ...exercise, user_id: userId }])
+        .insert([{ ...exercise, user_id: user.id }])
         .select()
         .then(({ data, error }: { data: any | null; error: any }) => {
           if (error) {

@@ -41,7 +41,8 @@ export class CalendarComponent implements OnInit {
     this.calendarService.refreshNeeded$.subscribe(() => {
       this.loadSessions();
     });
-
+    const user = getUser();
+    console.log("userid: ", user.id);
     this.loadSessions();
   }
 

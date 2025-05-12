@@ -221,7 +221,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
           weight: set.weight,
           breakTime: set.breakTime || 0
         })),
-        order: index // Include the order to maintain the correct sequence
+        order: index
       }));
 
       this.calendarService.editSession3(exercises, sessionToSave.session_id).subscribe({
@@ -330,7 +330,8 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
 
   loadExercisesList(): void {
     const session = this.getSessionOrEmpty();
-    if(session){
+    console.log("session: ", session);
+    if(session.session_id){
       this.calendarService.getExercisesList(session.session_id).subscribe({
         next: (response) => {
           const maxId = this.exercisesList.length > 0 
@@ -341,7 +342,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
             ...exercise,
             id: maxId + index + 1
           }));
-          // Call autoResize for each textarea after exercises are loaded
+
           setTimeout(() => {
             this.textareas.forEach(textarea => {
               console.log('Resizing textarea after exercises load:', textarea.nativeElement);

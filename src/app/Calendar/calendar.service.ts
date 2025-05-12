@@ -23,6 +23,7 @@ interface Set {
 })
 export class CalendarService {
   refreshNeeded$ = new Subject<void>();
+  user: any;
 
   constructor(private http: HttpClient) {}
 
@@ -40,7 +41,7 @@ export class CalendarService {
 
       supabase
         .from('sessions')
-        .select('session_id, date, title, description, Advanced_group') // Ensure session_id is included
+        .select('session_id, date, title, description, Advanced_group')
         .eq('user_id', user.id)
         .order('session_id', { ascending: true })
         .then(({ data, error }) => {
@@ -57,9 +58,9 @@ export class CalendarService {
 
   getWorkouts(): Observable<any[]> {
     return new Observable((observer) => {
-      const id = getUser();
+      const user = getUser();
   
-      if (!id) {
+      if (!user) {
         observer.error('Użytkownik nie jest zalogowany.');
         return;
       }
@@ -67,7 +68,7 @@ export class CalendarService {
       supabase
         .from('training_plans')
         .select('*')
-        .eq('user_id', id)
+        .eq('user_id', user.id)
         .order('id', { ascending: true })
         .then(({ data, error }) => {
           if (error) {
@@ -83,9 +84,9 @@ export class CalendarService {
 
   addSession(session: { date: string; title: string; description: string }): Observable<any> {
     return new Observable((observer) => {
-      const id = getUser();
+      const user = getUser();
 
-      if (!id) {
+      if (!user) {
         observer.error('Użytkownik nie jest zalogowany.');
         return;
       }
@@ -96,7 +97,7 @@ export class CalendarService {
           date: session.date,
           title: session.title,
           description: session.description,
-          user_id: id,
+          user_id: user.id,
         })
         .select('*')
         .then(({ data, error }) => {
@@ -135,8 +136,8 @@ export class CalendarService {
   }
   
   editSession3(exercises: any[], session_id: number): Observable<any> {
-    const userId = getUser();
-    if (!userId) {
+    const user = getUser();
+    if (!user) {
       console.error('User ID is missing');
       return new Observable(observer => {
         observer.error('User ID is missing');
@@ -155,22 +156,22 @@ export class CalendarService {
             return;
           }
   
-          console.log('Deleted existing exercises for session_id:', session_id); // Debug log
-  
+          console.log('Deleted existing exercises for session_id:', session_id);
+
           const exercisesData = exercises.flatMap((exercise, index) => 
             exercise.sets.map((set: Set) => ({
-              session_id: session_id, // Ensure session_id is assigned
-              user_id: userId,       // Ensure user_id is assigned
-              exercise_id: exercise.exercise_id || 0, // Fallback to 0 if undefined
-              exercise_title: exercise.exercise_title || 'Unknown', // Fallback to 'Unknown' if undefined
-              reps: Number(set.reps) || 0, // Ensure reps is a valid number
-              weight: Number(set.weight) || 0, // Ensure weight is a valid number
-              breakTime: Number(set.breakTime) || 60, // Ensure breakTime is a valid number
+              session_id: session_id,
+              user_id: user.id,
+              exercise_id: exercise.exercise_id || 0,
+              exercise_title: exercise.exercise_title || 'Unknown',
+              reps: Number(set.reps) || 0,
+              weight: Number(set.weight) || 0,
+              breakTime: Number(set.breakTime) || 60,
               order: index
             }))
           );
   
-          console.log('Prepared exercises for insertion:', exercisesData); // Debug log
+          console.log('Prepared exercises for insertion:', exercisesData);
   
           supabase
             .from('session_exercises')
@@ -191,10 +192,9 @@ export class CalendarService {
     });
   }  
 
-  deleteSession(id: number): Observable<any> {
-    const userId = getUser();
-  
-    if (!userId) {
+  deleteSession(id: number): Observable<any> {  
+    const user = getUser();
+    if (!user) {
       return new Observable(observer => {
         observer.error('User ID is missing');
       });
@@ -259,7 +259,7 @@ export class CalendarService {
   }
 
   getExercisesList(sessionId: number): Observable<Exercise[]> {
-    if (!sessionId || typeof sessionId !== 'number') {
+    if (!sessionId) {
       throw new Error(`Invalid sessionId: ${sessionId}`);
     }
   
@@ -317,8 +317,8 @@ export class CalendarService {
   }  
 
   getAdvancedGroups(): Observable<string[]> {
-    const userId = getUser();
-    if (!userId) {
+    const user = getUser();
+    if (!user) {
       throw new Error('User is not logged in.');
     }
   
@@ -326,7 +326,7 @@ export class CalendarService {
       supabase
         .from('sessions')
         .select('Advanced_group')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .not('Advanced_group', 'is', null)
         .then(({ data, error }) => {
           if (error) {
@@ -358,8 +358,8 @@ export class CalendarService {
     exercises: any[],
     group: string
   ): Observable<void> {
-    const userId = getUser();
-    if (!userId) {
+    const user = getUser();
+    if (!user) {
       throw new Error('User is not logged in.');
     }
   
@@ -370,7 +370,7 @@ export class CalendarService {
             const { data: sessionData, error: sessionError } = await supabase
               .from('sessions')
               .insert({
-                user_id: userId,
+                user_id: user.id,
                 title: title,
                 date: day,
                 description: `Advanced group: ${group}`,
@@ -379,10 +379,9 @@ export class CalendarService {
               .select('*')
               .single();
     
-            // Ensure session_id and user_id are assigned to exercises
             const exercisesToInsert = exercises.map((exercise) => ({
-              session_id: sessionData.session_id, // Assign session_id
-              user_id: userId, // Assign user_id
+              session_id: sessionData.session_id,
+              user_id: user.id,
               exercise_id: exercise.exercise_id,
               exercise_title: exercise.exercise_title,
               reps: exercise.reps || 0,
@@ -417,19 +416,18 @@ export class CalendarService {
   }
 
   deleteAdvancedGroup(group: string): Observable<void> {
-    const userId = getUser();
-    if (!userId) {
+    const user = getUser();
+    if (!user.id) {
       throw new Error('User is not logged in.');
     }
   
     return new Observable((observer) => {
       (async () => {
         try {
-          // Fetch sessions associated with the Advanced_group
           const { data: sessions, error: fetchError } = await supabase
             .from('sessions')
             .select('session_id')
-            .eq('user_id', userId)
+            .eq('user_id', user.id)
             .eq('Advanced_group', group);
   
           if (fetchError) {
@@ -447,7 +445,6 @@ export class CalendarService {
   
           const sessionIds = sessions.map((session) => session.session_id);
   
-          // Delete all exercises associated with the sessions
           const { error: deleteExercisesError } = await supabase
             .from('session_exercises')
             .delete()
@@ -459,7 +456,6 @@ export class CalendarService {
             return;
           }
   
-          // Delete the sessions
           const { error: deleteSessionsError } = await supabase
             .from('sessions')
             .delete()

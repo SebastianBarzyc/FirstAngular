@@ -51,7 +51,7 @@ export class ProfileComponent implements OnInit {
         this.session = session;
         localStorage.setItem('session', JSON.stringify(session));
         this.refreshProfile();
-        window.location.reload(); // Refresh the page after login
+        window.location.reload();
       }
     });
   }
@@ -181,7 +181,7 @@ export class ProfileComponent implements OnInit {
           .sort((a, b) => a.getTime() - b.getTime());
   
         let maxStreak = 0;
-        let currentStreak = 1;
+        let currentStreak = 0;
   
         for (let i = 1; i < formattedDates.length; i++) {
           const prevDate = formattedDates[i - 1];
@@ -191,7 +191,7 @@ export class ProfileComponent implements OnInit {
             currentStreak++;
           } else {
             maxStreak = Math.max(maxStreak, currentStreak);
-            currentStreak = 1;
+            currentStreak = 0;
           }
         }
   
