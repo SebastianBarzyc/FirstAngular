@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { LoginComponent } from './login.component';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { supabase } from '../supabase-client';
+import { getUser, supabase } from '../supabase-client';
 import { BehaviorSubject } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -35,12 +35,11 @@ export class ProfileComponent implements OnInit {
   totalWeights: number | null = null;
   consecutiveSessions: number | null = null;
   userId: any;
+  user: any = null;
   displayName: string | null = null;
   recentWorkouts: any[] = [];
   userExercises: any[] = [];
   userExercisesSelected: any[] = [];
-  private isLoggedInSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  public isLoggedIn$ = this.isLoggedInSubject.asObservable();
   showExerciseSelection = false;
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef, public dialog: MatDialog) {
@@ -51,23 +50,14 @@ export class ProfileComponent implements OnInit {
         this.session = session;
         localStorage.setItem('session', JSON.stringify(session));
         this.refreshProfile();
-        this.isLoggedInSubject.next(true);
       }
     });
   }
 
   async ngOnInit() {
-    const storedSession = localStorage.getItem('session');
-    if (storedSession) {
-      this.session = JSON.parse(storedSession);
-      this.userId = this.session.user.id;
-      this.displayName = this.session.user.user_metadata?.['display_name'];
-      this.isLoggedInSubject.next(true);
-    } else {
-      this.isLoggedInSubject.next(false);
-      console.warn("No active session. Redirecting to login.");
-      this.logout();
-    }
+    this.user = getUser();
+    this.displayName = this.user.user_metadata['display_name'] || 'User';
+    this.refreshProfile();
   }
 
   loadUserProfile() {
@@ -82,14 +72,13 @@ export class ProfileComponent implements OnInit {
     supabase.auth.signOut().then(() => {
       this.session = null;
       localStorage.removeItem('session');
-      this.isLoggedInSubject.next(false);
     });
   }
 
   refreshProfile() {
-    if (this.session) {
-      this.userId = this.session.user.id;
+    if (this.user) {
       this.isLoggedIn = true;
+      this.userId = this.user.id;
       console.log('isLoggedIn in refreshProfile:', this.isLoggedIn);
       this.loadUserProfile();
     } else {
@@ -98,7 +87,7 @@ export class ProfileComponent implements OnInit {
   }
 
   getTotalSessions() {
-    if (!this.session) {
+    if (!this.user) {
       console.error('No active session');
       return;
     }
@@ -123,7 +112,7 @@ export class ProfileComponent implements OnInit {
   }
   
   getTotalWeights() {
-    if (!this.session) {
+    if (!this.user) {
       console.error('No active session');
       return;
     }
@@ -154,7 +143,7 @@ export class ProfileComponent implements OnInit {
   }
 
   getConsecutiveSessions() {
-    if (!this.session) {
+    if (!this.user) {
       console.error('No active session');
       return;
     }
@@ -205,7 +194,7 @@ export class ProfileComponent implements OnInit {
   }
 
   getRecentWorkouts() {    
-    if (!this.session) {
+    if (!this.user) {
       console.error('No active session');
       return;
     }
@@ -250,7 +239,7 @@ export class ProfileComponent implements OnInit {
   }
 
   async getUserExercises() {
-    if (!this.session) {
+    if (!this.user) {
       console.error('No active session');
       return;
     }
