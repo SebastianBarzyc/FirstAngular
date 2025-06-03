@@ -112,6 +112,55 @@ export class CalendarService {
     });
   }
 
+  getDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  async cleanAdvancedGroupSessions() {
+    const user = getUser();
+    if (!user) {
+      console.error('No active session');
+      return;
+    }
+  
+    const today = this.getDate(new Date());
+  
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('session_id, date, Advanced_group')
+        .eq('user_id', user.id)
+        .lt('date', today);
+  
+      if (error) {
+        console.error('Error fetching sessions:', error.message);
+        return;
+      }
+      console.log("CLEARING: ", data, ", day ", today);
+
+  
+      const sessionsToUpdate = data.filter(session => session.Advanced_group !== null);
+  
+      for (const session of sessionsToUpdate) {
+        const { error: updateError } = await supabase
+          .from('sessions')
+          .update({ Advanced_group: null })
+          .eq('session_id', session.session_id);
+  
+        if (updateError) {
+          console.error(`Error updating session ${session.session_id}:`, updateError.message);
+        } else {
+          console.log(`Session ${session.session_id} updated successfully.`);
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error during session cleanup:', error);
+    }
+  }
+
   editSession(id: number, newTitle: string, newDescription: string): Observable<any> {
     return new Observable(observer => {
       supabase
@@ -352,6 +401,11 @@ export class CalendarService {
     });
   }
 
+  convertDateToDatabaseFormat(date: string): string {
+    const [day, month, year] = date.split('.');
+    return `${year}-${month}-${day}`; // Convert DD.MM.YYYY to YYYY-MM-DD
+  }
+
   saveSessionAndExercises(
     title: string,
     days: string[],
@@ -367,18 +421,34 @@ export class CalendarService {
       (async () => {
         try {
           for (const day of days) {
+            const formattedDate = this.convertDateToDatabaseFormat(day); // Convert date format for database
+  
             const { data: sessionData, error: sessionError } = await supabase
               .from('sessions')
               .insert({
                 user_id: user.id,
                 title: title,
-                date: day,
+                date: formattedDate, // Use the converted date format
                 description: `Advanced group: ${group}`,
                 Advanced_group: group,
               })
               .select('*')
               .single();
-    
+  
+            if (sessionError) {
+              console.error('Error inserting session:', sessionError.message);
+              observer.error(sessionError);
+              return;
+            }
+  
+            if (!sessionData || !sessionData.session_id) {
+              console.error('Session data is invalid or missing:', sessionData);
+              observer.error('Session data is invalid or missing.');
+              return;
+            }
+  
+            console.log('Session data:', sessionData);
+  
             const exercisesToInsert = exercises.map((exercise) => ({
               session_id: sessionData.session_id,
               user_id: user.id,
@@ -388,7 +458,7 @@ export class CalendarService {
               weight: exercise.weight || 0,
               breakTime: exercise.breakTime || 60,
             }));
-    
+  
             if (exercisesToInsert.length > 0) {
               const { error: exercisesError } = await supabase
                 .from('session_exercises')
@@ -396,6 +466,8 @@ export class CalendarService {
             
               if (exercisesError) {
                 console.error('Error inserting into session_exercises:', exercisesError.message);
+                observer.error(exercisesError);
+                return;
               } else {
                 console.log('Inserted exercises for session:', sessionData.session_id);
               }

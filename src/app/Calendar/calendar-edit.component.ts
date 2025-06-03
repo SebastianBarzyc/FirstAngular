@@ -111,19 +111,15 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    console.log('Textareas:', this.textareas);
     this.textareas.changes.subscribe(() => {
       setTimeout(() => {
         this.textareas.forEach(textarea => {
-          console.log('Resizing textarea:', textarea.nativeElement);
           this.autoResize(textarea.nativeElement);
         });
       }, 0);
     });
-    // Call autoResize for each textarea immediately after view initialization
     setTimeout(() => {
       this.textareas.forEach(textarea => {
-        console.log('Initial resizing textarea:', textarea.nativeElement);
         this.autoResize(textarea.nativeElement);
       });
     }, 0);
@@ -158,6 +154,8 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   getSessionOrEmpty(): any {
     const date = this.getDate()
     const session = this.sessions.find(s => s.date === date);
+    console.log("getSessionOrEmpty: ", this.sessions , "date: ", date, "session: ", session);
+
     if (session) {
       return session;
     } else {
@@ -289,8 +287,11 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     textarea.style.height = textarea.scrollHeight + 'px';
   }
 
-  getDate() {
-    return this.data.date.toLocaleDateString('pl-PL');
+  getDate(): string {
+    const year = this.data.date.getFullYear();
+    const month = String(this.data.date.getMonth() + 1).padStart(2, '0');
+    const day = String(this.data.date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   isDateExist(): boolean{ 

@@ -44,6 +44,7 @@ export class CalendarComponent implements OnInit {
     const user = getUser();
     console.log("userid: ", user.id);
     this.loadSessions();
+    this.calendarService.cleanAdvancedGroupSessions();
   }
 
   subscribeToRefresh(): void {
@@ -127,7 +128,7 @@ export class CalendarComponent implements OnInit {
       return null;
     }
     const date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-    const formattedDate = this.datePipe.transform(date, 'dd.MM.yyyy');
+    const formattedDate = this.datePipe.transform(date, 'yyyy-MM-dd') || ''
     const session = this.sessions.find(s => s.date === formattedDate);
     return session ? session.title : null;
   }
