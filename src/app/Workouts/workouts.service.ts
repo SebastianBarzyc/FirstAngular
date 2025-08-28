@@ -8,6 +8,7 @@ interface Workout {
   exercise_id: number;
   title: string;
   reps: number[];
+  order: number;
   breakTimes: number[];
 }
 
@@ -28,6 +29,7 @@ interface PlanExercise {
 }
 
   export interface WorkoutExercise {
+    order: number,
     exercise_id: number;
     reps: number[];
     title: string;
@@ -157,13 +159,14 @@ interface PlanExercise {
         throw new Error('Brak prawidłowych ćwiczeń do zapisania.');
       }
       
-      const insertData: InsertData[] = validWorkouts.flatMap(({ exercise_id, title, reps, breakTimes }) => {
+      const insertData: InsertData[] = validWorkouts.flatMap(({ exercise_id, title, reps, order, breakTimes }) => {
         return reps.map((rep: number, index: number) => ({
           plan_id,
           exercise_id,
           reps: rep,
           exercise_title: title,
           user_id: user.id,
+          order: order,
           breakTime: breakTimes[index]
         }));
       });
@@ -295,8 +298,8 @@ interface PlanExercise {
             reps: rep,
             exercise_title,
             user_id: user.id,
+            order: order,
             breakTime: breakTimes[index],
-            order
           }));
   
           supabase
@@ -442,7 +445,7 @@ interface PlanExercise {
     );
   }  
 
-  async addExerciseToWorkout(exercise: { title: string, reps: number[], exercise_id: number, breakTimes: number[] }) {
+  async addExerciseToWorkout(exercise: { order: number, title: string, reps: number[], exercise_id: number, breakTimes: number[] }) {
     try {
       const existingExerciseIndex = this.workoutExercises.findIndex(
         (e) => e.exercise_id === exercise.exercise_id
@@ -453,6 +456,7 @@ interface PlanExercise {
         this.workoutExercises[existingExerciseIndex].breakTimes = exercise.breakTimes;
       } else {
         this.workoutExercises.push({
+          order: exercise.order,
           exercise_id: exercise.exercise_id,
           reps: exercise.reps,
           title: exercise.title,

@@ -37,6 +37,7 @@ export class WorkoutsBackend implements OnInit, OnDestroy {
   searchSubscription: Subscription = new Subscription();
   searchSubject: Subject<string> = new Subject<string>();
   workoutExercises: WorkoutExercise[] = [];
+  order: number = 0;
 
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
@@ -86,12 +87,14 @@ export class WorkoutsBackend implements OnInit, OnDestroy {
   }
 
   addElement() {
+    this.order++;
     if (this.target) {
       const componentFactory = this.componentFactoryResolver.resolveComponentFactory(WorkoutsExerciseComponent);
       const componentRef = this.target.createComponent(componentFactory);
       this.componentRefs.push(componentRef);
   
       const newExercise: WorkoutExercise = {
+        order: this.order,
         exercise_id: 0,
         reps: [],
         title: "",

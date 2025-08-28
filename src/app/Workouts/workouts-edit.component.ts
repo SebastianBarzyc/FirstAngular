@@ -96,11 +96,9 @@ export class WorkoutEditComponent implements OnInit {
     this.workoutService.editWorkout(id, newTitle, newDescription).subscribe({
       next: response => {
         console.log('Response from server (editWorkout):', response);
-        // Delete existing exercises for the workout
         this.workoutService.editworkout2(this.WorkoutID).subscribe({
           next: response => {
             console.log('Response from server (editWorkout):', response);
-            // Save new exercises for the workout in the correct order
             const saveObservables = this.exercises.map((exercise, index) => 
               this.workoutService.editWorkout3(
                 this.WorkoutID,

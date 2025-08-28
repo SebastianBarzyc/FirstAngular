@@ -1,3 +1,4 @@
+import { WorkoutsBackend } from './workouts-backend.component';
 import { Component, Injectable, OnInit } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatSelectModule } from '@angular/material/select';
@@ -24,8 +25,9 @@ export class WorkoutsExerciseComponent implements OnInit {
   sets: number | null = null;
   repsArray: number[] = [];
   breakTimesArray: number[] = [];
+  
 
-  constructor(private exerciseService: ExerciseService, private workoutService: WorkoutService) { }
+  constructor(private exerciseService: ExerciseService, private workoutService: WorkoutService, private WorkoutsBackend: WorkoutsBackend) { }
 
   ngOnInit(): void {
     this.loadExercises();
@@ -48,6 +50,7 @@ export class WorkoutsExerciseComponent implements OnInit {
     const selectedExerciseData = this.exercises.find(ex => ex.title === this.selectedExercise);
     if (selectedExerciseData) {
       this.workoutService.addExerciseToWorkout({
+        order: this.WorkoutsBackend.order,
         title: this.selectedExercise,
         reps: [...this.repsArray],
         exercise_id: selectedExerciseData.id,
