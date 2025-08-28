@@ -143,33 +143,46 @@ export class CalendarComponent implements OnInit {
 
     return this.sessions
       .filter(session => {
-        const sessionDate = this.parseDate(session.date);
-        return sessionDate >= today;
-      })
-      .sort((a, b) => {
-        const dateA = this.parseDate(a.date);
-        const dateB = this.parseDate(b.date);
+        const sessionDate = new Date(session.date);
+        sessionDate.setHours(0, 0, 0, 0);
+
+        const today = new Date(2025, 7, 28);
+        today.setHours(0, 0, 0, 0);
+
+        return sessionDate.getTime() >= today.getTime();
+            })
+            .sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        dateA.setHours(0, 0, 0, 0);
+        dateB.setHours(0, 0, 0, 0);
         return dateA.getTime() - dateB.getTime();
       });
   }
 
   openSessionEditor(session: Session): void {
+    console.log('Editing session:', session);
     if (session && session.date) {
-      const dateParts = session.date.split('.');
-      const sessionDate = new Date(
-        parseInt(dateParts[2]),
-        parseInt(dateParts[1]) - 1,
-        parseInt(dateParts[0])
-      );
-  
-      const dialogRef = this.dialog.open(CalendarEditComponent, {
-        data: { session, date: sessionDate, refreshNeeded$: this.refreshNeeded$ },
-        panelClass: 'editPanel'
-      });
+      // Expecting date in format yyyy-MM-dd
+      const dateParts = session.date.split('-');
+      if (dateParts.length === 3) {
+        const sessionDate = new Date(
+          parseInt(dateParts[0]), // year
+          parseInt(dateParts[1]) - 1, // month (0-based)
+          parseInt(dateParts[2]) // day
+        );
 
-      dialogRef.afterClosed().subscribe(() => {
-        this.loadSessions();
-      });
+        const dialogRef = this.dialog.open(CalendarEditComponent, {
+          data: { session, date: sessionDate, refreshNeeded$: this.refreshNeeded$ },
+          panelClass: 'editPanel'
+        });
+
+        dialogRef.afterClosed().subscribe(() => {
+          this.loadSessions();
+        });
+      } else {
+        console.error('Session date format is invalid', session.date);
+      }
     } else {
       console.error('Session data is missing or invalid', session);
     }
