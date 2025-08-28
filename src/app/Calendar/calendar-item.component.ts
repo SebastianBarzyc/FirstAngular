@@ -11,17 +11,17 @@ import { ExerciseService } from '../Exercises/exercises.service';
 interface Set {
   reps: number;
   weight: number;
-  breakTime?: number; // Add breakTime property
-  id?: number; // Add id property
+  breakTime?: number;
+  id?: number;
 }
 
 interface Exercise {
-  id: number;
   exercise_id: number;
   exercise_title: string;
   title: string;
   reps?: number[];
   sets: Set[];
+  order: number;
 }
 
 @Component({
@@ -77,11 +77,13 @@ export class CalendarItemComponent {
     await this.loadExercises();
     if (this.exercise.reps && Array.isArray(this.exercise.reps)) {
       this.exercise.sets = this.exercise.reps.map((repsValue, index) => ({
-        reps: repsValue,
-        weight: 0,
-        id: index + 1 // Ensure each set has a unique id
+      reps: repsValue,
+      weight: this.exercise.sets[index]?.weight || 0,
+      breakTime: this.exercise.sets[index]?.breakTime || 0,
+      id: index + 1
       }));
     }
+    console.log("loadexercises: ", this.exercises);
   }
 
   removeExercise(id: number): void {
@@ -106,7 +108,7 @@ export class CalendarItemComponent {
   }
 
   addSet(exercise: any): void {
-    const newSet = { reps: 0, weight: 0, breakTime: 60 }; // Add breakTime with default value
+    const newSet = { reps: 0, weight: 0, breakTime: 0 };
     exercise.sets.push(newSet);
   }
 

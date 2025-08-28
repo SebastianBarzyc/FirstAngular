@@ -30,7 +30,7 @@ interface Workout {
 }
 
 interface Exercise {
-  id: number;
+  order: number;
   exercise_id: number;
   exercise_title: string;
   title: string;
@@ -45,7 +45,7 @@ interface Set {
 }
 
 interface Exercise2 {
-  id: number;
+  order: number;
   exercise_id: number;
   exercise_title: string;
   title: string;
@@ -139,6 +139,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
       .then((response) => {
         if (response && response) {
           this.workouts = response;
+          console.log('Loaded workouts:', this.workouts);
         } else {
           console.error('No data received from getWorkouts.');
           this.workouts = [];
@@ -154,7 +155,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   getSessionOrEmpty(): any {
     const date = this.getDate()
     const session = this.sessions.find(s => s.date === date);
-    console.log("getSessionOrEmpty: ", this.sessions , "date: ", date, "session: ", session);
 
     if (session) {
       return session;
@@ -211,7 +211,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
         this.updateSession(sessionToSave);
       }
       
-      const exercises = this.exercisesList.map((exercise, index) => ({
+      const exercises = this.exercisesList.map((exercise) => ({
         exercise_id: exercise.exercise_id,
         exercise_title: exercise.exercise_title,
         sets: exercise.sets.map((set: Set) => ({
@@ -219,7 +219,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
           weight: set.weight,
           breakTime: set.breakTime || 0
         })),
-        order: index
+        order: exercise.order
       }));
 
       this.calendarService.editSession3(exercises, sessionToSave.session_id).subscribe({
@@ -307,13 +307,13 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   }
 
   removeExercise(ID: number): void {
-    this.exercisesList = this.exercisesList.filter(exercise => exercise.id !== ID);
+    this.exercisesList = this.exercisesList.filter(exercise => exercise.order !== ID);
     console.log('Updated exercises list:', this.exercisesList);
   }
 
   addExercise(): void {
-    const maxId = this.exercisesList.length > 0 
-    ? Math.max(...this.exercisesList.map(exercise => exercise.id))
+    const maxOrder = this.exercisesList.length > 0 
+    ? Math.max(...this.exercisesList.map(exercise => exercise.order))
     : 0;
 
     const newExercise: Exercise = {
@@ -321,9 +321,9 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
       exercise_title: '', 
       title: this.getSessionOrEmpty().title || '',
       sets: [
-        { reps: 0, weight: 0, breakTime: 60 }
+        { reps: 0, weight: 0, breakTime: 0 }
       ],
-      id: maxId + 1
+      order: maxOrder + 1
     };
     this.exercisesList.push(newExercise);
     console.log('Updated exercises list:', this.exercisesList);
@@ -331,26 +331,25 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
 
   loadExercisesList(): void {
     const session = this.getSessionOrEmpty();
-    console.log("session: ", session);
+    console.log("Loading exercises for session:", session);
     if(session.session_id){
       this.calendarService.getExercisesList(session.session_id).subscribe({
         next: (response) => {
-          const maxId = this.exercisesList.length > 0 
-            ? Math.max(...this.exercisesList.map(exercise => exercise.id))
-            : 0;
-    
-          this.exercisesList = response.map((exercise, index) => ({
-            ...exercise,
-            id: maxId + index + 1
+          this.exercisesList = response.map((exercise: any) => ({
+            order: exercise.order,
+            exercise_id: exercise.exercise_id,
+            exercise_title: exercise.exercise_title,
+            title: exercise.title ?? '',
+            sets: exercise.sets ?? []
           }));
-
           setTimeout(() => {
             this.textareas.forEach(textarea => {
-              console.log('Resizing textarea after exercises load:', textarea.nativeElement);
               this.autoResize(textarea.nativeElement);
             });
           }, 0);
-        },
+              console.log("Loaded exercises list:", this.exercisesList);
+
+      },
         error: (error) => {
           console.error('Error during exercise fetch:', error);
           this.exercisesList = [];
@@ -378,11 +377,11 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
           this.exercisesList = response.map((exercise: Exercise2) => ({
             exercise_id: exercise.exercise_id,
             exercise_title: exercise.exercise_title,
-            sets: Array.isArray(exercise.reps) // Ensure reps is an array
-              ? exercise.reps.map(rep => ({ reps: rep, weight: 0 }))
-              : [], // Fallback to an empty array if reps is not valid
+            sets: Array.isArray(exercise.reps)
+              ? exercise.reps.map(rep => ({ reps: rep, weight: exercise.sets[0]?.weight || 0, breakTime: exercise.sets[0]?.breakTime || 0 }))
+              : [],
             id: this.exercisesList.length > 0 
-              ? Math.max(...this.exercisesList.map(ex => ex.id)) + 1 
+              ? Math.max(...this.exercisesList.map(ex => ex.order)) + 1 
               : 1
           }));
   
@@ -391,7 +390,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
           // Call autoResize for each textarea after exercises are loaded
           setTimeout(() => {
             this.textareas.forEach(textarea => {
-              console.log('Resizing textarea after exercises load:', textarea.nativeElement);
               this.autoResize(textarea.nativeElement);
             });
           }, 0);

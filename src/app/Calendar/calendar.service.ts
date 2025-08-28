@@ -5,11 +5,10 @@ import { supabase, getUser } from '../supabase-client';
 
 
 interface Exercise {
-  id: number;
   exercise_id: number;
   exercise_title: string;
-  title: string;
   sets: Set[];
+  order: number;
 }
 
 interface Set {
@@ -315,11 +314,11 @@ export class CalendarService {
     return new Observable(observer => {
       supabase
         .from('session_exercises')
-        .select('exercise_id, exercise_title, reps, weight, breakTime, order') // Include order
+        .select('exercise_id, exercise_title, reps, weight, order, breakTime')
         .eq('session_id', sessionId)
-        .order('order', { ascending: true }) // Order by the 'order' column to ensure correct order
+        .order('order', { ascending: true })
         .then(({ data, error }) => {
-          console.log('Zapytanie wyniki:', { data, error });
+          console.log('Zapytanie wyniki getexerciseslist:', { data, error });
   
           if (error) {
             console.error('Supabase error:', error, "sessionId: ", sessionId);
@@ -344,25 +343,29 @@ export class CalendarService {
   
             if (!exercisesMap[item.exercise_id]) {
               exercisesMap[item.exercise_id] = {
-                id: item.exercise_id,
                 exercise_id: item.exercise_id,
                 exercise_title: item.exercise_title,
-                title: item.exercise_title,
-                sets: []
+                sets: [],
+                order: item.order || 0
               };
             }
   
             exercisesMap[item.exercise_id].sets.push({
               reps: item.reps || 0,
               weight: item.weight || 0,
-              breakTime: item.breakTime || 60 // Include breakTime
+              breakTime: item.breakTime || 0
             });
           });
-  
-          observer.next(Object.values(exercisesMap));
+          
+          const sortedExercises = Object.values(exercisesMap).sort((a, b) => a.order - b.order);
+
+          observer.next(sortedExercises);
+          console.log('Zapytanie wyniki getexerciseslist2:', { sortedExercises });
           observer.complete();
         });
+
     });
+
   }  
 
   getAdvancedGroups(): Observable<string[]> {
@@ -448,7 +451,7 @@ export class CalendarService {
             }
   
             console.log('Session data:', sessionData);
-  
+            console.log('Exercises to insert:', exercises);
             const exercisesToInsert = exercises.map((exercise) => ({
               session_id: sessionData.session_id,
               user_id: user.id,
@@ -456,6 +459,7 @@ export class CalendarService {
               exercise_title: exercise.exercise_title,
               reps: exercise.reps || 0,
               weight: exercise.weight || 0,
+              order: exercise.order || 0,
               breakTime: exercise.breakTime || 60,
             }));
   
