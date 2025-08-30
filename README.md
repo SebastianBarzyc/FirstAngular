@@ -18,7 +18,7 @@ SMTP is configured, password is encrypted.
 <img width="1440" height="820" alt="image" src="https://github.com/user-attachments/assets/60c9dbc8-4175-4738-81e9-a6c702e3a5c2" />
 
 # Profile
-After sign in website directs to the profile page. Here are statistics about done workouts, all time weights lifted, days active in a row. Under that are listed last done workouts, then goals set by a user, where shows how far last to finish goal, there are also badges which user can get after for example lift 100kg.
+After sign in website directs to the profile page. Here are statistics about done workouts, all time weights lifted, days active in a row. Under that are listed last done workouts, then goals set by a user, where shows how far last to finish goal, there are also badges which user can get for example lifting 100kg.
 <img width="1440" height="820" alt="image" src="https://github.com/user-attachments/assets/5c416c42-480f-400b-a438-09562efb98fa" />
 
 # Dashboard
