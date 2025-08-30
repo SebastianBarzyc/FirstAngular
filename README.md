@@ -10,6 +10,7 @@ To acomplish this project I used:
 - PostgreSQL
 - Bootstrap
 - SCSS
+  
 Website is made public on FitBuddy.pl
 
 # Login Form
