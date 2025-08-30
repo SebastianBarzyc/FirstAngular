@@ -24,7 +24,7 @@ After sign in website directs to the profile page. Here are statistics about don
 # Dashboard
 On this page u can see today's workout, start this workout and see a progress of this.
 <img width="1440" height="820" alt="image" src="https://github.com/user-attachments/assets/30c0b072-0d55-4d0c-a274-208aad13e71b" />
-Then are listed next workouts and last received achievements.
+Then future trainings and recent achievements are listed.
 <img width="1440" height="820" alt="image" src="https://github.com/user-attachments/assets/da2dde01-e4db-47cf-9c99-80a2324dcc02" />
 
 # Exercises
