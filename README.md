@@ -10,7 +10,7 @@ To acomplish this project I used:
 - PostgreSQL
 - Bootstrap
 - SCSS
-Website is made public on www.FitBuddy.pl
+Website is made public on FitBuddy.pl
 
 # Login Form
 SMTP is configured, password is encrypted.
