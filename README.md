@@ -13,7 +13,7 @@ To acomplish this project I used:
 Website is made public on www.FitBuddy.pl
 
 # Login Form
-Automatic e-mail is configurated, password is encrypted.
+SMTP is configured, password is encrypted.
 <img width="1440" height="820" alt="image" src="https://github.com/user-attachments/assets/60c9dbc8-4175-4738-81e9-a6c702e3a5c2" />
 
 # Profile
