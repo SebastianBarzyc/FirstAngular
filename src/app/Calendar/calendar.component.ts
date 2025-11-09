@@ -163,13 +163,12 @@ export class CalendarComponent implements OnInit {
   openSessionEditor(session: Session): void {
     console.log('Editing session:', session);
     if (session && session.date) {
-      // Expecting date in format yyyy-MM-dd
       const dateParts = session.date.split('-');
       if (dateParts.length === 3) {
         const sessionDate = new Date(
-          parseInt(dateParts[0]), // year
-          parseInt(dateParts[1]) - 1, // month (0-based)
-          parseInt(dateParts[2]) // day
+          parseInt(dateParts[0]),
+          parseInt(dateParts[1]) - 1,
+          parseInt(dateParts[2])
         );
 
         const dialogRef = this.dialog.open(CalendarEditComponent, {
