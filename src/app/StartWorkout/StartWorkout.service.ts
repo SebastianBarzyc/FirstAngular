@@ -39,19 +39,26 @@ export class StartWorkoutService {
             return;
           }
 
-          const map: Record<number, Exercise[]> = {};
+          // Build a map of exercises for this plan, merging duplicate exercises
+          // and appending sets when the same exercise appears multiple times.
+          const exercisesMap = new Map<string, Exercise>();
           (exercisesData || []).forEach((row: any) => {
-            const planId = row.plan_id;
-            if (!map[planId]) map[planId] = [];
-              map[planId].push({
+            // only process rows for the requested plan
+            if (row.plan_id !== workoutId) return;
+            const key = String(row.exercise_id ?? row.exercise_title);
+            if (!exercisesMap.has(key)) {
+              exercisesMap.set(key, {
                 title: row.exercise_title,
-                sets: [{ reps: row.reps }]
+                sets: []
               });
-            });
+            }
+            const exercise = exercisesMap.get(key)!;
+            exercise.sets.push({ reps: row.reps });
+          });
 
           const selectedWorkout = this.workouts.find(w => w.id === workoutId);
           if (selectedWorkout) {
-            selectedWorkout.exercises = map[workoutId] || [];
+            selectedWorkout.exercises = Array.from(exercisesMap.values());
             observer.next(selectedWorkout);
           } else {
             observer.error('Trening nie znaleziony');
