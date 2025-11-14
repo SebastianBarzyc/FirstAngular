@@ -30,7 +30,7 @@ interface todayWorkout {
 
 @Component({
   selector: 'app-startworkout',
-  templateUrl: './startworkout.component.html',
+  templateUrl: './StartWorkout.component.html',
   standalone: true,
   providers: [StartWorkoutService],
   imports: [MatFormField, MatSelect, MatOption, FormsModule, CommonModule]
