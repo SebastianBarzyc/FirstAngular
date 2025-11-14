@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
 import { AchievementsService } from './achievements.service';
 import { CalendarService } from '../Calendar/calendar.service';
 import { supabase, getUser } from '../supabase-client';
+import { StartWorkoutComponent } from '../StartWorkout/StartWorkout.component';
 
 @Component({
   selector: 'app-dashoard',
@@ -21,10 +23,10 @@ export class DashoardComponent implements OnInit {
   DescAchievementList: string[];
   ScoreAchievementList: string[];
   AchievementsIndexArray: number[];
-
   constructor(
     private achievementService: AchievementsService,
-    private calendarService: CalendarService
+    private calendarService: CalendarService,
+    public dialog: MatDialog
   ) {
     this.DescAchievementList = achievementService.getDescAchievement();
     this.TitleAchievementList = achievementService.getTitleAchievement();
@@ -76,6 +78,12 @@ export class DashoardComponent implements OnInit {
           return dateA.getTime() - dateB.getTime();
         })
         .slice(0, 5);
+    });
+  }
+    startWorkout(): void {
+    this.dialog.open(StartWorkoutComponent, {
+      width: '800px',
+      height: '600px'
     });
   }
 }

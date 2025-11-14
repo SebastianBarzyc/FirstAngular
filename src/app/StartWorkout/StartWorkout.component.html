@@ -1,0 +1,26 @@
+<div>
+  <h2 style="text-align: center;">Start workout</h2>
+  <p style="text-align: center;">Choose your workout</p>
+ <mat-form-field appearance="fill" style="width: 100%;"> 
+  <mat-select [ngModel]="selectedWorkoutId" (ngModelChange)="onWorkoutChange($event)">
+    <mat-option *ngIf="todayWorkout" [value]="todayWorkout.id">{{todayWorkout.title}}</mat-option>
+    <mat-option *ngFor="let workout of workouts" [value]="workout.id">{{workout.title}}</mat-option>
+  </mat-select>
+ </mat-form-field>
+  <h3>Workout details:</h3>
+  <div *ngIf="selectedWorkout">
+    <p><strong>Title:</strong> {{selectedWorkout.title}}</p>
+    <p><strong>Description:</strong> {{selectedWorkout.description}}</p>
+    <p><strong>Exercises:</strong></p>
+    <div *ngFor="let exercise of selectedWorkout.exercises">
+      <strong>{{exercise.title}}</strong>
+      <p *ngFor="let set of exercise.sets">
+        <!--{{set.reps}} x {{set.weight}} kg -->
+        {{set.reps}} x (weight) kg
+      </p>
+    </div>
+  </div>
+  <div style="text-align: center; margin-top: 20px;">
+    <button (click)="startWorkout()" class="RaisedBtn btn">Start Workout</button>
+  </div>
+</div>
