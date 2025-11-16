@@ -23,7 +23,7 @@ interface Sets {
 @Injectable({ providedIn: 'root' })
 export class startWorkoutService {
   constructor() {}
-
+  
   private workouts: Workout[] = [];
 
   workoutData(workoutId: number) {
