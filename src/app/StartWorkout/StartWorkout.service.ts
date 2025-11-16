@@ -1,5 +1,6 @@
 import { supabase, getUser } from '../supabase-client';
 import { Observable } from 'rxjs';
+import { Injectable } from '@angular/core';
 
 interface Workout {
   id: number;
@@ -19,6 +20,7 @@ interface Sets {
   breakTime: number;
 }
 
+@Injectable({ providedIn: 'root' })
 export class startWorkoutService {
   constructor() {}
 
