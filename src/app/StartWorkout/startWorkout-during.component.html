@@ -1,3 +1,33 @@
+<!--<div>
+  <div *ngFor="let exercise of workout?.exercises">
+    <h4>{{ exercise.title }}</h4>
+    <div *ngFor="let set of exercise.sets; let i = index" style="margin-bottom: 15px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+      <h5>Set {{ i + 1 }} / {{ exercise.sets.length }}</h5>
+      <p>Reps: {{ set.reps }}</p>
+      <p>Weight: {{ set.weight }} kg</p>
+      <p>Break Time: {{ set.breakTime }} seconds</p>
+    </div>
+</div> -->
+
 <div>
-  
+    <p style="text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px;">
+      Workout: {{ workout?.title }}
+    </p>
+    <mat-progress-bar mode="determinate" [value]="((progress?.index ?? 1) / (finalProgress?.totalIndex ?? 1)) * 100"></mat-progress-bar>
+    <div *ngIf="progress?.type == 'break'">
+        <p style="text-align: center; font-size: 20px; margin-bottom: 10px;">
+            Break Time Remaining: {{ remainingTime }} seconds
+        </p>
+    </div>
+    <div *ngIf="progress?.type == 'exercise'">
+        <p style="text-align: center; font-size: 20px; margin-bottom: 10px;">
+            Current Exercise: {{ progress?.exerciseTitle }}
+        </p>
+        <mat-form-field appearance="fill" style="width: 100%; max-width: 300px; margin: 0 auto;">
+            <mat-progress-bar mode="determinate" [value]="((progress?.currentSet ?? 1) / (progress?.totalSets ?? 1)) * 100"></mat-progress-bar>
+            <mat-label>Set {{ progress?.currentSet}} of {{ progress?.totalSets }}</mat-label>
+            <input matInput type="number" [value]="progress?.reps">
+            <input matInput type="number" [value]="progress?.weight">
+        </mat-form-field>
+    </div>
 </div>
