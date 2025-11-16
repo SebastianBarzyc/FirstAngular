@@ -4,7 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AchievementsService } from './achievements.service';
 import { CalendarService } from '../Calendar/calendar.service';
 import { supabase, getUser } from '../supabase-client';
-import { StartWorkoutComponent } from '../StartWorkout/StartWorkout.component';
+import { startWorkoutComponent } from '../StartWorkout/StartWorkout.component';
 
 @Component({
   selector: 'app-dashoard',
@@ -81,7 +81,7 @@ export class DashoardComponent implements OnInit {
     });
   }
     startWorkout(): void {
-    this.dialog.open(StartWorkoutComponent, {
+    this.dialog.open(startWorkoutComponent, {
       width: '800px',
       height: '600px'
     });

@@ -18,7 +18,7 @@ interface Sets {
   //weight: number;
 }
 
-export class StartWorkoutService {
+export class startWorkoutService {
   constructor() {}
 
   private workouts: Workout[] = [];
