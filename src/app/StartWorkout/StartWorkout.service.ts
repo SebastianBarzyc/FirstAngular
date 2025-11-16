@@ -15,7 +15,7 @@ interface Exercise {
 
 interface Sets {
   reps: number;
-  //weight: number;
+  weight: number;
 }
 
 export class startWorkoutService {
@@ -49,7 +49,7 @@ export class startWorkoutService {
               });
             }
             const exercise = exercisesMap.get(key)!;
-            exercise.sets.push({ reps: row.reps });
+            exercise.sets.push({ reps: row.reps, weight: row.weight || 0 });
           });
 
           const selectedWorkout = this.workouts.find(w => w.id === workoutId);
@@ -145,7 +145,7 @@ export class startWorkoutService {
                   });
                 }
                 const exercise = exercisesMap.get(key)!;
-                exercise.sets.push({ reps: row.reps });
+                exercise.sets.push({ reps: row.reps, weight: row.weight || 0 });
               });
               sessionWorkout.exercises = Array.from(exercisesMap.values());
               observer.next(sessionWorkout);

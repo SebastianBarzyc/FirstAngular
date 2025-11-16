@@ -14,10 +14,16 @@
     <p><strong>Exercises:</strong></p>
     <div *ngFor="let exercise of selectedWorkout.exercises">
       <strong>{{exercise.title}}</strong>
-      <p *ngFor="let set of exercise.sets">
-        <!--{{set.reps}} x {{set.weight}} kg -->
-        {{set.reps}} x (weight) kg
-      </p>
+      <div *ngFor="let set of exercise.sets" style="display: flex; gap: 10px; margin: 10px 0;">
+        <mat-form-field appearance="fill">
+          <mat-label>Reps</mat-label>
+          <input matInput type="number" [(ngModel)]="set.reps" placeholder="Reps">
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>Weight (kg)</mat-label>
+          <input matInput type="number" [(ngModel)]="set.weight" placeholder="Weight">
+        </mat-form-field>
+      </div>
     </div>
   </div>
   <div style="text-align: center; margin-top: 20px;">

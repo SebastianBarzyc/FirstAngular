@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormField } from '@angular/material/form-field';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelect } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
+import { MatInput } from '@angular/material/input';
 import { startWorkoutDuringComponent } from './startWorkout-during.component';
 import { startWorkoutService } from './startWorkout.service';
 
@@ -22,7 +23,7 @@ interface Exercise {
 
 interface Sets {
   reps: number;
-  //weight: number;
+  weight: number;
 }
 
 interface todayWorkout {
@@ -40,8 +41,10 @@ interface todayWorkout {
     MatOption,
     FormsModule,
     CommonModule,
-    MatDialogModule
-  ],
+    MatDialogModule,
+    MatLabel,
+    MatInput
+],
   providers: [startWorkoutService]
 })
 
