@@ -128,7 +128,7 @@ export class startWorkoutService {
             .from('session_exercises')
             .select('exercise_id, exercise_title, reps, weight, breakTime')
             .eq('session_id', sessionData.session_id)
-            .order('id', { ascending: true })
+            .order('order', { ascending: true })
             .then(({ data: exercisesData, error: exError }) => {
               if (exError) {
                 console.error('Błąd podczas pobierania ćwiczeń sesji:', exError);
