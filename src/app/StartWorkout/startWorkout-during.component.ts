@@ -22,7 +22,7 @@ interface Sets {
   selector: 'app-startworkout-during',
   templateUrl: './startWorkout-during.component.html',
   standalone: true,
-  providers: [startWorkoutService],
+  // service is providedIn: 'root'
   imports: []
 })
 

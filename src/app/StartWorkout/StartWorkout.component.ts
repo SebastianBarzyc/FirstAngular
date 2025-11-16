@@ -46,7 +46,6 @@ interface todayWorkout {
     MatLabel,
     MatInput
 ],
-  providers: [startWorkoutService]
 })
 
 export class startWorkoutComponent implements OnInit {
