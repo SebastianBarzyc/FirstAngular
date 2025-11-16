@@ -1,17 +1,17 @@
-<div>
-  <h2 style="text-align: center;">Start workout</h2>
-  <p style="text-align: center;">Choose your workout</p>
+<div style="width: 80%; margin: auto; margin-bottom: 20px">
+  <h2 mat-dialog-title class="fw-bold"> Start workout</h2>
  <mat-form-field appearance="fill" style="width: 100%;"> 
+  <mat-label>Choose your workout</mat-label>
   <mat-select [ngModel]="selectedWorkoutId" (ngModelChange)="onWorkoutChange($event)">
     <mat-option *ngIf="todayWorkout" [value]="todayWorkout.id">{{todayWorkout.title}}</mat-option>
     <mat-option *ngFor="let workout of workouts" [value]="workout.id">{{workout.title}}</mat-option>
   </mat-select>
  </mat-form-field>
-  <h3>Workout details:</h3>
+ <hr>
   <div *ngIf="selectedWorkout">
-    <p><strong>Title:</strong> {{selectedWorkout.title}}</p>
-    <p><strong>Description:</strong> {{selectedWorkout.description}}</p>
-    <p><strong>Exercises:</strong></p>
+    <p><strong>Description:</strong></p>
+    {{selectedWorkout.description}}
+    <hr>
     <div *ngFor="let exercise of selectedWorkout.exercises">
       <strong>{{exercise.title}}</strong>
       <div *ngFor="let set of exercise.sets" style="display: flex; gap: 10px; margin: 10px 0;">
@@ -30,7 +30,5 @@
       </div>
     </div>
   </div>
-  <div style="text-align: center; margin-top: 20px;">
     <button (click)="startWorkout()" class="RaisedBtn btn">Start Workout</button>
-  </div>
 </div>

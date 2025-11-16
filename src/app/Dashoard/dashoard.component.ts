@@ -82,8 +82,9 @@ export class DashoardComponent implements OnInit {
   }
     startWorkout(): void {
     this.dialog.open(startWorkoutComponent, {
-      width: '800px',
-      height: '600px'
+      width: '50%',
+      height: 'auto',
+      maxHeight: '90vh'
     });
   }
 }

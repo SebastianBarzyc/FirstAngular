@@ -8,47 +8,49 @@
       <p>Break Time: {{ set.breakTime }} seconds</p>
     </div>
 </div> -->
-
-<div *ngIf="this.completed === false">
-    <p style="text-align: center; font-size: 30px; font-weight: bold; margin-bottom: 10px;">
-      Timer: {{ formatTime(timer) }}
-    </p>
-    <p style="text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px;">
-      Workout: {{ workout?.title }}
-    </p>
-    <mat-progress-bar mode="determinate" [value]="((progress?.index ?? 1) / (finalProgress?.totalIndex ?? 1)) * 100"></mat-progress-bar>
-    <div *ngIf="progress?.type == 'break'">
-        <p style="text-align: center; font-size: 20px; margin-bottom: 10px;">
-            Break Time Remaining: {{ remainingTime }} seconds
+<div style="width: 80%; margin: auto; margin-bottom: 20px">
+    <div *ngIf="this.completed === false">
+        <h2 mat-dialog-title class="fw-bold">
+        Workout: {{ workout?.title }}
+        </h2>
+        <p style="text-align: center; font-size: 30px; font-weight: bold; margin-bottom: 10px;">
+        Timer: {{ formatTime(timer) }}
         </p>
-    </div>
-    <div *ngIf="progress && progress.type === 'exercise'">
-        <p class="text-center text-xl mb-3">
-            Current Exercise: {{ progress.exerciseTitle }}
-        </p>            
-        <mat-progress-bar mode="determinate" [value]="getSetProgress()"> </mat-progress-bar>
+        <mat-progress-bar mode="determinate" [value]="((progress?.index ?? 1) / (finalProgress?.totalIndex ?? 1)) * 100"></mat-progress-bar>
+        <div *ngIf="progress?.type == 'break'">
+            <p style="text-align: center; font-size: 20px; margin-bottom: 10px;">
+                Break Time Remaining: {{ remainingTime }} seconds
+            </p>
+        </div>
+        <div *ngIf="progress && progress.type === 'exercise'">
+            <p class="text-center text-xl mb-3">
+                Current Exercise: {{ progress.exerciseTitle }}
+            </p>            
+            <mat-progress-bar mode="determinate" [value]="getSetProgress()"> </mat-progress-bar>
 
-        <p class="text-center text-lg font-semibold mt-2">
-            Set {{ progress.currentSet }} of {{ progress.totalSets }}
-        </p>
+            <p class="text-center text-lg font-semibold mt-2">
+                Set {{ progress.currentSet }} of {{ progress.totalSets }}
+            </p>
+            <div style="width: 100%; float: left">
+                <mat-form-field style="width: 150px;" class="input-number float-start">
+                    <mat-label>Reps</mat-label>
+                    <input matInput type="number" [(ngModel)]="progress.reps">
+                </mat-form-field>
 
-        <mat-form-field appearance="fill" class="w-full">
-            <mat-label>Reps</mat-label>
-            <input matInput type="number" [(ngModel)]="progress.reps">
-        </mat-form-field>
-
-        <mat-form-field appearance="fill" class="w-full">
-            <mat-label>Weight</mat-label>
-            <input matInput type="number" [(ngModel)]="progress.weight">
-        </mat-form-field>
+                <mat-form-field style="width: 150px;" class="input-number float-end">
+                    <mat-label>Weight</mat-label>
+                    <input matInput type="number" [(ngModel)]="progress.weight">
+                </mat-form-field>
+            </div>
+        </div>
+        <div style="width:100%">
+            <button *ngIf="progress?.index !== 1" (click)="previousStep()" class="RaisedBtn btn float-start">Previous Step</button>
+            <button (click)="nextStep()" class="RaisedBtn btn float-end">Next Step</button>
+        </div>
     </div>
-    <div class="mt-4 flex justify-between">
-        <button (click)="previousStep()" class="RaisedBtn btn">Previous Step</button>
-        <button (click)="nextStep()" class="RaisedBtn btn">Next Step</button>
+    <div *ngIf="this.completed === true" style="text-align: center; margin-top: 50px;">
+        <h2>Congratulations!</h2>
+        <p>You have completed the workout: <strong>{{ workout?.title }}</strong></p>
+        <button (click)="closeDialog()" class="RaisedBtn btn" style="margin-top: 20px;">Close</button>
     </div>
-</div>
-<div *ngIf="this.completed === true" style="text-align: center; margin-top: 50px;">
-    <h2>Congratulations!</h2>
-    <p>You have completed the workout: <strong>{{ workout?.title }}</strong></p>
-    <button (click)="closeDialog()" class="RaisedBtn btn" style="margin-top: 20px;">Close</button>
 </div>
