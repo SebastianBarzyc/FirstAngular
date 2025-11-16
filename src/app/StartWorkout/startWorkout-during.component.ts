@@ -60,7 +60,8 @@ export class startWorkoutDuringComponent implements OnInit {
   finalProgress: FinalProgress | null = null;
   remainingTime: number = 0;
   intervalId: any = null;
-
+  timerId: any = null;
+  timer: any = 0;
   constructor(
     private startWorkoutService: startWorkoutService,
     @Inject(MAT_DIALOG_DATA) public data: { workout: Workout }
@@ -70,9 +71,7 @@ export class startWorkoutDuringComponent implements OnInit {
     this.workout = this.data.workout;
     this.finalProgress = this.generateFinalProgress(this.workout);
     this.progress = this.finalProgress.progress[0];
-    console.log("startWorkoutDuringComponent initialized with workout:", this.workout);
-    console.log('Final Progress:', this.finalProgress);
-    console.log('Initial Progress Step:', this.progress);
+    this.startTimer();
   }
 
 generateFinalProgress(workout: Workout): FinalProgress {
@@ -119,6 +118,7 @@ generateFinalProgress(workout: Workout): FinalProgress {
         this.progress = this.finalProgress.progress[currentIndex];
       } else {
         console.log('Workout complete!');
+        this.stopTimer();
       }
       if (this.progress.type === 'break') {
         this.remainingTime = this.progress.reps;
@@ -148,5 +148,30 @@ generateFinalProgress(workout: Workout): FinalProgress {
   getSetProgress(): number {
     if (!this.progress) return 0;
      return (this.progress.currentSet / this.progress.totalSets) * 100;
+  }
+
+  startTimer() {
+    if (this.timerId) clearInterval(this.timerId);
+
+    this.timerId = setInterval(() => {
+      this.timer++;
+    }, 1000);
+  }
+
+  stopTimer() {
+    if (this.timerId) {
+      clearInterval(this.timerId);
+      this.timerId = null;
+    }
+  }
+
+  formatTime(totalSeconds: number): string {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${hours.toString().padStart(2,'0')}:` +
+          `${minutes.toString().padStart(2,'0')}:` +
+          `${seconds.toString().padStart(2,'0')}`;
   }
 }

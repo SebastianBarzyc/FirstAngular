@@ -10,6 +10,9 @@
 </div> -->
 
 <div>
+    <p style="text-align: center; font-size: 30px; font-weight: bold; margin-bottom: 10px;">
+      Timer: {{ formatTime(timer) }}
+    </p>
     <p style="text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px;">
       Workout: {{ workout?.title }}
     </p>
@@ -23,10 +26,7 @@
         <p class="text-center text-xl mb-3">
             Current Exercise: {{ progress.exerciseTitle }}
         </p>            
-        <mat-progress-bar
-            mode="determinate"
-            [value]="getSetProgress()">
-        </mat-progress-bar>
+        <mat-progress-bar mode="determinate" [value]="getSetProgress()"> </mat-progress-bar>
 
         <p class="text-center text-lg font-semibold mt-2">
             Set {{ progress.currentSet }} of {{ progress.totalSets }}
