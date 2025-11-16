@@ -53,6 +53,7 @@ export class startWorkoutComponent implements OnInit {
   workouts: Workout[] = [];
   selectedWorkout: Workout | null = null;
   selectedWorkoutId: number = 0;
+  workoutSessionData: Workout | null = null;
 
   constructor(private startWorkoutService: startWorkoutService, private dialog: MatDialog) {
   }
@@ -93,5 +94,23 @@ export class startWorkoutComponent implements OnInit {
         this.todayWorkout = null;
       }
     });
+  }
+  updateSet(title: string, set: Sets) {
+      console.log('Updated set:', set);
+
+    if (this.selectedWorkout) {
+      const exercise = this.selectedWorkout.exercises.find(ex => ex.title === title);
+      if (exercise) {
+        const setToUpdate = exercise.sets.find(s => s === set);
+
+        this.selectedWorkout.exercises = this.selectedWorkout.exercises.map(ex => {
+          if (ex.title === title) {
+            return exercise;
+          }
+          return ex;
+        });
+      }
+      console.log('Updated workout:', this.selectedWorkout);
+    }
   }
 }
