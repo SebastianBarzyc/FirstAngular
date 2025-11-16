@@ -1,7 +1,7 @@
 import { Component, Inject, Input, OnInit } from '@angular/core';
 import { startWorkoutService } from './StartWorkout.service';
 import { CommonModule } from '@angular/common';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatFormFieldModule, MatLabel } from "@angular/material/form-field";
 import { MatInput, MatInputModule } from "@angular/material/input";
 import {MatProgressBarModule} from '@angular/material/progress-bar';
@@ -62,8 +62,11 @@ export class startWorkoutDuringComponent implements OnInit {
   intervalId: any = null;
   timerId: any = null;
   timer: any = 0;
+  completed: boolean = false;
+
   constructor(
     private startWorkoutService: startWorkoutService,
+    private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: { workout: Workout }
   ) {}
 
@@ -118,6 +121,7 @@ generateFinalProgress(workout: Workout): FinalProgress {
         this.progress = this.finalProgress.progress[currentIndex];
       } else {
         console.log('Workout complete!');
+        this.completed = true;
         this.stopTimer();
       }
       if (this.progress.type === 'break') {
@@ -173,5 +177,9 @@ generateFinalProgress(workout: Workout): FinalProgress {
     return `${hours.toString().padStart(2,'0')}:` +
           `${minutes.toString().padStart(2,'0')}:` +
           `${seconds.toString().padStart(2,'0')}`;
+  }
+
+  closeDialog() {
+    this.dialog.closeAll();
   }
 }

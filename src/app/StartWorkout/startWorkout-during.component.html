@@ -9,7 +9,7 @@
     </div>
 </div> -->
 
-<div>
+<div *ngIf="this.completed === false">
     <p style="text-align: center; font-size: 30px; font-weight: bold; margin-bottom: 10px;">
       Timer: {{ formatTime(timer) }}
     </p>
@@ -46,4 +46,9 @@
         <button (click)="previousStep()" class="RaisedBtn btn">Previous Step</button>
         <button (click)="nextStep()" class="RaisedBtn btn">Next Step</button>
     </div>
+</div>
+<div *ngIf="this.completed === true" style="text-align: center; margin-top: 50px;">
+    <h2>Congratulations!</h2>
+    <p>You have completed the workout: <strong>{{ workout?.title }}</strong></p>
+    <button (click)="closeDialog()" class="RaisedBtn btn" style="margin-top: 20px;">Close</button>
 </div>
