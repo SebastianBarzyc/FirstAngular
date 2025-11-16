@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { startWorkoutService } from './startWorkout.service';
+import { startWorkoutService } from './StartWorkout.service';
 
 interface Workout {
   id: number;

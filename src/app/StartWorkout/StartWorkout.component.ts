@@ -6,8 +6,8 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelect } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { MatInput } from '@angular/material/input';
-import { startWorkoutDuringComponent } from './startWorkout-during.component';
-import { startWorkoutService } from './startWorkout.service';
+import { startWorkoutDuringComponent } from './StartWorkout-during.component';
+import { startWorkoutService } from './StartWorkout.service';
 
 interface Workout {
   id: number;
