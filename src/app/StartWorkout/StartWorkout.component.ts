@@ -24,6 +24,7 @@ interface Exercise {
 interface Sets {
   reps: number;
   weight: number;
+  breakTime: number;
 }
 
 interface todayWorkout {

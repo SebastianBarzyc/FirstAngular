@@ -16,6 +16,7 @@ interface Exercise {
 interface Sets {
   reps: number;
   weight: number;
+  breakTime: number;
 }
 
 export class startWorkoutService {
@@ -49,7 +50,7 @@ export class startWorkoutService {
               });
             }
             const exercise = exercisesMap.get(key)!;
-            exercise.sets.push({ reps: row.reps, weight: row.weight || 0 });
+            exercise.sets.push({ reps: row.reps, weight: row.weight || 0, breakTime: row.breakTime || 0});
           });
 
           const selectedWorkout = this.workouts.find(w => w.id === workoutId);
@@ -125,7 +126,7 @@ export class startWorkoutService {
 
           supabase
             .from('session_exercises')
-            .select('exercise_id, exercise_title, reps, weight')
+            .select('exercise_id, exercise_title, reps, weight, breakTime')
             .eq('session_id', sessionData.session_id)
             .order('id', { ascending: true })
             .then(({ data: exercisesData, error: exError }) => {
@@ -145,7 +146,7 @@ export class startWorkoutService {
                   });
                 }
                 const exercise = exercisesMap.get(key)!;
-                exercise.sets.push({ reps: row.reps, weight: row.weight || 0 });
+                exercise.sets.push({ reps: row.reps, weight: row.weight || 0, breakTime: row.breakTime || 0 });
               });
               sessionWorkout.exercises = Array.from(exercisesMap.values());
               observer.next(sessionWorkout);
