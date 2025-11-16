@@ -79,7 +79,7 @@ export class startWorkoutComponent implements OnInit {
 
   startWorkout() {
     this.dialog.open(startWorkoutDuringComponent, {
-      width: '400px',
+      width: '800px',
       data: { workout: this.selectedWorkout }
     });
   }
@@ -95,9 +95,7 @@ export class startWorkoutComponent implements OnInit {
       }
     });
   }
-  updateSet(title: string, set: Sets) {
-      console.log('Updated set:', set);
-
+  updateSet(title: string) {
     if (this.selectedWorkout) {
       const exercise = this.selectedWorkout.exercises.find(ex => ex.title === title);
       if (exercise) {
@@ -108,7 +106,6 @@ export class startWorkoutComponent implements OnInit {
           return ex;
         });
       }
-      console.log('Updated workout:', this.selectedWorkout);
     }
   }
 }

@@ -19,15 +19,31 @@
             Break Time Remaining: {{ remainingTime }} seconds
         </p>
     </div>
-    <div *ngIf="progress?.type == 'exercise'">
-        <p style="text-align: center; font-size: 20px; margin-bottom: 10px;">
-            Current Exercise: {{ progress?.exerciseTitle }}
+    <div *ngIf="progress && progress.type === 'exercise'">
+        <p class="text-center text-xl mb-3">
+            Current Exercise: {{ progress.exerciseTitle }}
+        </p>            
+        <mat-progress-bar
+            mode="determinate"
+            [value]="getSetProgress()">
+        </mat-progress-bar>
+
+        <p class="text-center text-lg font-semibold mt-2">
+            Set {{ progress.currentSet }} of {{ progress.totalSets }}
         </p>
-        <mat-form-field appearance="fill" style="width: 100%; max-width: 300px; margin: 0 auto;">
-            <mat-progress-bar mode="determinate" [value]="((progress?.currentSet ?? 1) / (progress?.totalSets ?? 1)) * 100"></mat-progress-bar>
-            <mat-label>Set {{ progress?.currentSet}} of {{ progress?.totalSets }}</mat-label>
-            <input matInput type="number" [value]="progress?.reps">
-            <input matInput type="number" [value]="progress?.weight">
+
+        <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Reps</mat-label>
+            <input matInput type="number" [(ngModel)]="progress.reps">
         </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Weight</mat-label>
+            <input matInput type="number" [(ngModel)]="progress.weight">
+        </mat-form-field>
+    </div>
+    <div class="mt-4 flex justify-between">
+        <button (click)="previousStep()" class="RaisedBtn btn">Previous Step</button>
+        <button (click)="nextStep()" class="RaisedBtn btn">Next Step</button>
     </div>
 </div>
