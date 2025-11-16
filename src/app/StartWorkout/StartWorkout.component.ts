@@ -6,7 +6,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelect } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { MatInput } from '@angular/material/input';
-import { startWorkoutDuringComponent } from './StartWorkout-during.component';
+import { startWorkoutDuringComponent } from './startWorkout-during.component';
 import { startWorkoutService } from './StartWorkout.service';
 
 interface Workout {
@@ -34,7 +34,7 @@ interface todayWorkout {
 
 @Component({
   selector: 'app-startworkout',
-  templateUrl: './startWorkout.component.html',
+  templateUrl: './StartWorkout.component.html',
   standalone: true,
   imports: [
     MatFormField,
