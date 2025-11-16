@@ -4,7 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AchievementsService } from './achievements.service';
 import { CalendarService } from '../Calendar/calendar.service';
 import { supabase, getUser } from '../supabase-client';
-import { startWorkoutComponent } from '../StartWorkout/startWorkout.component';
+import { startWorkoutComponent } from '../StartWorkout/StartWorkout.component';
 
 @Component({
   selector: 'app-dashoard',
