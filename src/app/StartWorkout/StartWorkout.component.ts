@@ -101,8 +101,6 @@ export class startWorkoutComponent implements OnInit {
     if (this.selectedWorkout) {
       const exercise = this.selectedWorkout.exercises.find(ex => ex.title === title);
       if (exercise) {
-        const setToUpdate = exercise.sets.find(s => s === set);
-
         this.selectedWorkout.exercises = this.selectedWorkout.exercises.map(ex => {
           if (ex.title === title) {
             return exercise;
