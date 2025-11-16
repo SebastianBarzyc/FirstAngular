@@ -24,7 +24,6 @@ export class startWorkoutService {
   private workouts: Workout[] = [];
 
   workoutData(workoutId: number) {
-    console.log("Fetching workout data for workoutId:", workoutId);
     return new Observable<Workout>(observer => {
       supabase
         .from('plan_exercises')
@@ -39,11 +38,8 @@ export class startWorkoutService {
             return;
           }
 
-          // Build a map of exercises for this plan, merging duplicate exercises
-          // and appending sets when the same exercise appears multiple times.
           const exercisesMap = new Map<string, Exercise>();
           (exercisesData || []).forEach((row: any) => {
-            // only process rows for the requested plan
             if (row.plan_id !== workoutId) return;
             const key = String(row.exercise_id ?? row.exercise_title);
             if (!exercisesMap.has(key)) {
@@ -93,4 +89,69 @@ export class startWorkoutService {
         });
     });
   }
-}
+
+  todayWorkout(): Observable<Workout> {
+    return new Observable<Workout>(observer => {
+      const user = getUser();
+      if (!user) {
+        observer.error('Użytkownik nie jest zalogowany.');
+        return;
+      }
+      supabase
+        .from('sessions')
+        .select('session_id, title, description')
+        .eq('user_id', user.id)
+        .eq('date', new Date().toISOString().split('T')[0])
+        .order('session_id', { ascending: true })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Błąd podczas pobierania sesji treningowej:', error);
+            observer.error('Wystąpił błąd podczas pobierania sesji treningowej.');
+            observer.complete();
+            return;
+          }
+          if (!data || data.length === 0) {
+            observer.error('Brak sesji treningowej na dzisiaj.');
+            observer.complete();
+            return;
+          }
+          const sessionData = data[0];
+          const sessionWorkout: Workout = {
+            id: sessionData.session_id,
+            title: sessionData.title,
+            description: sessionData.description,
+            exercises: []
+          };
+
+          supabase
+            .from('session_exercises')
+            .select('exercise_id, exercise_title, reps, weight')
+            .eq('session_id', sessionData.session_id)
+            .order('id', { ascending: true })
+            .then(({ data: exercisesData, error: exError }) => {
+              if (exError) {
+                console.error('Błąd podczas pobierania ćwiczeń sesji:', exError);
+                observer.error('Wystąpił błąd podczas pobierania ćwiczeń sesji.');
+                observer.complete();
+                return;
+              }
+              const exercisesMap = new Map<string, Exercise>();
+              (exercisesData || []).forEach((row: any) => {
+                const key = String(row.exercise_id);
+                if (!exercisesMap.has(key)) {
+                  exercisesMap.set(key, {
+                    title: row.exercise_title,
+                    sets: []
+                  });
+                }
+                const exercise = exercisesMap.get(key)!;
+                exercise.sets.push({ reps: row.reps });
+              });
+              sessionWorkout.exercises = Array.from(exercisesMap.values());
+              observer.next(sessionWorkout);
+              observer.complete();
+            });
+        });
+      });
+    }
+  }

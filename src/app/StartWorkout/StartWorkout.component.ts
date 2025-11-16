@@ -56,26 +56,39 @@ export class startWorkoutComponent implements OnInit {
   
 
   ngOnInit(): void {
-    this.todayWorkout = { id: 1, title: 'Chest Day' };
-    if (this.todayWorkout) {
-      this.selectedWorkoutId = this.todayWorkout.id;
-    }
     this.startWorkoutService.getWorkouts().subscribe(workouts => {
       this.workouts = workouts;
     });
+    this.getTodayWorkout();
     this.onWorkoutChange(this.selectedWorkoutId);
   }
   onWorkoutChange(selectedId: number) {
-    this.selectedWorkoutId = selectedId;
-    console.log('Selected workout ID changed to:', this.selectedWorkoutId);
-    this.startWorkoutService.workoutData(this.selectedWorkoutId).subscribe(workout => {
-      this.selectedWorkout = workout;
-    });
+    if (selectedId === this.todayWorkout?.id) {
+      this.getTodayWorkout();
+    }else{ 
+      this.selectedWorkoutId = selectedId;
+      this.startWorkoutService.workoutData(this.selectedWorkoutId).subscribe(workout => {
+        this.selectedWorkout = workout;
+      });
+    }
   }
+
   startWorkout() {
     this.dialog.open(startWorkoutDuringComponent, {
       width: '400px',
       data: { workout: this.selectedWorkout }
+    });
+  }
+
+  getTodayWorkout() {
+    this.startWorkoutService.todayWorkout().subscribe(workout => {
+      if (workout) {
+        this.todayWorkout = { id: workout.id, title: workout.title };
+        this.selectedWorkoutId = this.todayWorkout.id;
+        this.selectedWorkout = workout;
+      } else {
+        this.todayWorkout = null;
+      }
     });
   }
 }
