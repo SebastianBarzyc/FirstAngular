@@ -30,9 +30,9 @@ export class startWorkoutService {
     return new Observable<Workout>(observer => {
       supabase
         .from('plan_exercises')
-        .select('plan_id, exercise_id, exercise_title, reps')
+        .select('plan_id, exercise_id, exercise_title, reps, breakTime')
         .eq('plan_id', workoutId)
-        .order('id', { ascending: true })
+        .order('order', { ascending: true })
         .then(({ data: exercisesData, error: exError }) => {
           if (exError) {
             console.error('Błąd podczas pobierania ćwiczeń dla planów treningowych:', exError);
@@ -157,4 +157,38 @@ export class startWorkoutService {
         });
       });
     }
+  createNewWorkoutFromProgress(workout: any, finalProgress: any) {
+    const exercises: any[] = [];
+    let lastBreakTime = 0;
+
+    finalProgress.progress.forEach((item: any) => {
+
+      if (item.type === 'break') {
+        lastBreakTime = item.breakTime ?? 60;
+      }
+
+      if (item.type === 'exercise') {
+        exercises.push({
+          title: item.exerciseTitle,
+          sets: [
+            {
+              reps: item.reps ?? 0,
+              weight: item.weight ?? 0,
+              breakTime: lastBreakTime
+            }
+          ]
+        });
+
+        lastBreakTime = 0;
+      }
+    });
+
+    return {
+      id: workout.id,
+      title: workout.title,
+      description: workout.description,
+      exercises: exercises
+    };
   }
+
+}

@@ -63,6 +63,7 @@ export class startWorkoutDuringComponent implements OnInit {
   timerId: any = null;
   timer: any = 0;
   completed: boolean = false;
+  newWorkout: Workout | null = null;
 
   constructor(
     private startWorkoutService: startWorkoutService,
@@ -120,8 +121,8 @@ generateFinalProgress(workout: Workout): FinalProgress {
       if (currentIndex < this.finalProgress.totalIndex) {
         this.progress = this.finalProgress.progress[currentIndex];
       } else {
-        console.log('Workout complete!');
         this.completed = true;
+        this.newWorkout = this.startWorkoutService.createNewWorkoutFromProgress(this.workout, this.finalProgress);
         this.stopTimer();
       }
       if (this.progress.type === 'break') {
@@ -137,6 +138,7 @@ generateFinalProgress(workout: Workout): FinalProgress {
       }
     }
   }
+
   previousStep() {
     if (this.progress && this.finalProgress) {
       const currentIndex = this.progress.index;
