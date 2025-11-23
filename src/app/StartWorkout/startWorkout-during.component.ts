@@ -40,6 +40,13 @@ interface FinalProgress {
   progress: WorkoutStep[];
 }
 
+interface Stats {
+  totalTime: number;
+  totalExercises: number;
+  totalReps: number;
+  totalWeight: number;
+}
+
 @Component({
   selector: 'app-startworkout-during',
   templateUrl: './startWorkout-during.component.html',
@@ -64,6 +71,7 @@ export class startWorkoutDuringComponent implements OnInit {
   timer: any = 0;
   completed: boolean = false;
   newWorkout: Workout | null = null;
+  stats: Stats | null = null; 
 
   constructor(
     private startWorkoutService: startWorkoutService,
@@ -124,6 +132,7 @@ generateFinalProgress(workout: Workout): FinalProgress {
         this.completed = true;
         this.newWorkout = this.startWorkoutService.createNewWorkoutFromProgress(this.workout, this.finalProgress);
         this.stopTimer();
+        this.getStats();
       }
       if (this.progress.type === 'break') {
         this.remainingTime = this.progress.reps;
@@ -179,6 +188,26 @@ generateFinalProgress(workout: Workout): FinalProgress {
     return `${hours.toString().padStart(2,'0')}:` +
           `${minutes.toString().padStart(2,'0')}:` +
           `${seconds.toString().padStart(2,'0')}`;
+  }
+
+  getStats() {
+    if (!this.finalProgress) return;
+    let totalExercises = 0;
+    let totalReps = 0;
+    let totalWeight = 0;
+    this.finalProgress.progress.forEach(step => {
+      if (step.type === 'exercise') {
+        totalExercises++;
+        totalReps += step.reps;
+        totalWeight += step.reps * step.weight;
+      }
+    });
+    this.stats = {
+      totalTime: this.timer,
+      totalExercises: totalExercises,
+      totalReps: totalReps,
+      totalWeight: totalWeight
+    };
   }
 
   closeDialog() {
