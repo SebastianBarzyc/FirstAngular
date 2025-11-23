@@ -33,6 +33,7 @@ interface WorkoutStep {
   totalSets: number;
   reps: number;
   weight: number;
+  completed: boolean;
 }
 
 interface FinalProgress {
@@ -69,9 +70,10 @@ export class startWorkoutDuringComponent implements OnInit {
   intervalId: any = null;
   timerId: any = null;
   timer: any = 0;
-  completed: boolean = false;
+  completedWorkout: boolean = false;
   newWorkout: Workout | null = null;
   stats: Stats | null = null; 
+  exercisesShowMenu: boolean = false;
 
   constructor(
     private startWorkoutService: startWorkoutService,
@@ -102,7 +104,8 @@ generateFinalProgress(workout: Workout): FinalProgress {
         currentSet: setIndex + 1,
         totalSets: totalSets,
         reps: set.reps ?? 0,
-        weight: set.weight ?? 0
+        weight: set.weight ?? 0,
+        completed: false
       });
 
       steps.push({
@@ -112,7 +115,8 @@ generateFinalProgress(workout: Workout): FinalProgress {
         currentSet: 0,
         totalSets: 0,
         reps: set.breakTime ?? 0,
-        weight: 0
+        weight: 0,
+        completed: false
       });
     });
   });
@@ -126,10 +130,12 @@ generateFinalProgress(workout: Workout): FinalProgress {
   nextStep() {
     if (this.progress && this.finalProgress) {
       const currentIndex = this.progress.index;
+      console.log("currentIndex", currentIndex);
       if (currentIndex < this.finalProgress.totalIndex) {
         this.progress = this.finalProgress.progress[currentIndex];
+        this.finalProgress.progress[currentIndex-1].completed = true;
       } else {
-        this.completed = true;
+        this.completedWorkout = true;
         this.newWorkout = this.startWorkoutService.createNewWorkoutFromProgress(this.workout, this.finalProgress);
         this.stopTimer();
         this.getStats();
@@ -151,11 +157,18 @@ generateFinalProgress(workout: Workout): FinalProgress {
   previousStep() {
     if (this.progress && this.finalProgress) {
       const currentIndex = this.progress.index;
-      if (currentIndex > 1) {
-        this.progress = this.finalProgress.progress[currentIndex - 2];
-      }
       if (this.progress.type === 'break') {
+        if (currentIndex > 2) {
+          this.progress = this.finalProgress.progress[currentIndex - 2];
+          this.finalProgress.progress[currentIndex-2].completed = false;
+        }else{
+          this.progress = this.finalProgress.progress[0];
+          this.finalProgress.progress[0].completed = false;
+        }
+      }
+      else if (currentIndex > 2 && this.progress.type === 'exercise') {
         this.progress = this.finalProgress.progress[currentIndex - 3];
+        this.finalProgress.progress[currentIndex-3].completed = false;
       }
     }
   }
@@ -209,6 +222,19 @@ generateFinalProgress(workout: Workout): FinalProgress {
       totalWeight: totalWeight
     };
   }
+
+  getCompleted(exerciseTitle: string, setIndex: number): boolean {
+  if (!this.finalProgress || !this.finalProgress.progress) {
+    return false;
+  }
+
+  const item = this.finalProgress.progress.find(p =>
+    p.exerciseTitle === exerciseTitle &&
+    p.currentSet === setIndex + 1
+  );
+
+  return item?.completed ?? false;
+}
 
   closeDialog() {
     this.dialog.closeAll();

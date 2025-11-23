@@ -30,5 +30,5 @@
       </div>
     </div>
   </div>
-    <button (click)="startWorkout()" class="RaisedBtn btn">Start Workout</button>
+    <button (click)="startWorkout()" class="RaisedBtn btn" [disabled]="!selectedWorkoutId">Start Workout</button>
 </div>

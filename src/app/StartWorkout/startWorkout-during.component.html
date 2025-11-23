@@ -1,18 +1,18 @@
-<!--<div>
-  <div *ngFor="let exercise of workout?.exercises">
-    <h4>{{ exercise.title }}</h4>
-    <div *ngFor="let set of exercise.sets; let i = index" style="margin-bottom: 15px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
-      <h5>Set {{ i + 1 }} / {{ exercise.sets.length }}</h5>
-      <p>Reps: {{ set.reps }}</p>
-      <p>Weight: {{ set.weight }} kg</p>
-      <p>Break Time: {{ set.breakTime }} seconds</p>
+<div *ngIf="exercisesShowMenu == true" class="exerciseMenu">
+    <div *ngFor="let exercise of workout?.exercises">
+        <h4>{{ exercise.title }}</h4>
+        <div *ngFor="let set of exercise.sets; let i = index" class="exerciseMenuItems">
+            <p>Done? {{ getCompleted(exercise.title, i) }}</p>
+            <h5>Set {{ i + 1 }} / {{ exercise.sets.length }}</h5>
+            <p>Reps: {{ set.reps }}</p>
+            <p>Weight: {{ set.weight }} kg</p>
+            <p>Break Time: {{ set.breakTime }} seconds</p>
+        </div>
     </div>
-</div> -->
+</div>
 <div style="width: 80%; margin: auto; margin-bottom: 20px">
-    <div *ngIf="this.completed === false">
-        <h2 mat-dialog-title class="fw-bold">
-        Workout: {{ workout?.title }}
-        </h2>
+    <div *ngIf="this.completedWorkout === false">
+        <h2 mat-dialog-title class="fw-bold">{{ workout?.title }}</h2>
         <p style="text-align: center; font-size: 30px; font-weight: bold; margin-bottom: 10px;">
         Timer: {{ formatTime(timer) }}
         </p>
@@ -43,12 +43,13 @@
                 </mat-form-field>
             </div>
         </div>
-        <div style="width:100%">
-            <button *ngIf="progress?.index !== 1" (click)="previousStep()" class="RaisedBtn btn float-start">Previous Step</button>
-            <button (click)="nextStep()" class="RaisedBtn btn float-end">Next Step</button>
+        <div class="d-flex justify-content-around" style="width:100%">
+            <button *ngIf="progress?.index !== 1" (click)="previousStep()" class="RaisedBtn btn">Previous Step</button>
+            <button class="RaisedBtn btn" (click)="exercisesShowMenu = !exercisesShowMenu">Menu</button>
+            <button (click)="nextStep()" class="RaisedBtn btn">Next Step</button>
         </div>
     </div>
-    <div *ngIf="this.completed === true" style="text-align: center; margin-top: 50px;">
+    <div *ngIf="this.completedWorkout === true" style="text-align: center; margin-top: 50px;">
         <h2>Congratulations!</h2>
         <p>You have completed the workout: <strong>{{ workout?.title }}</strong></p>
         <div *ngIf="stats">
