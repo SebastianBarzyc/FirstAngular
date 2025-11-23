@@ -17,6 +17,7 @@ interface Workout {
 }
 
 interface Exercise {
+  id: number;
   title: string;
   sets: Sets[];
 }

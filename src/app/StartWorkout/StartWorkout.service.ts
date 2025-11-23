@@ -7,14 +7,17 @@ interface Workout {
   title: string;
   description: string;
   exercises: Exercise[];
+  duration?: number;
 }
 
 interface Exercise {
+  id: number;
   title: string;
   sets: Sets[];
 }
 
 interface Sets {
+  order: number;
   reps: number;
   weight: number;
   breakTime: number;
@@ -30,7 +33,7 @@ export class startWorkoutService {
     return new Observable<Workout>(observer => {
       supabase
         .from('plan_exercises')
-        .select('plan_id, exercise_id, exercise_title, reps, breakTime')
+        .select('plan_id, exercise_id, exercise_title, reps, breakTime, order')
         .eq('plan_id', workoutId)
         .order('order', { ascending: true })
         .then(({ data: exercisesData, error: exError }) => {
@@ -47,12 +50,13 @@ export class startWorkoutService {
             const key = String(row.exercise_id ?? row.exercise_title);
             if (!exercisesMap.has(key)) {
               exercisesMap.set(key, {
+                id: row.exercise_id,
                 title: row.exercise_title,
                 sets: []
               });
             }
             const exercise = exercisesMap.get(key)!;
-            exercise.sets.push({ reps: row.reps, weight: row.weight || 0, breakTime: row.breakTime || 0});
+            exercise.sets.push({ order: row.order, reps: row.reps, weight: row.weight || 0, breakTime: row.breakTime || 0});
           });
 
           const selectedWorkout = this.workouts.find(w => w.id === workoutId);
@@ -143,12 +147,13 @@ export class startWorkoutService {
                 const key = String(row.exercise_id);
                 if (!exercisesMap.has(key)) {
                   exercisesMap.set(key, {
+                    id: row.exercise_id,
                     title: row.exercise_title,
                     sets: []
                   });
                 }
                 const exercise = exercisesMap.get(key)!;
-                exercise.sets.push({ reps: row.reps, weight: row.weight || 0, breakTime: row.breakTime || 0 });
+                exercise.sets.push({ order: row.order, reps: row.reps, weight: row.weight || 0, breakTime: row.breakTime || 0 });
               });
               sessionWorkout.exercises = Array.from(exercisesMap.values());
               observer.next(sessionWorkout);
@@ -160,7 +165,7 @@ export class startWorkoutService {
   createNewWorkoutFromProgress(workout: any, finalProgress: any) {
     const exercises: any[] = [];
     let lastBreakTime = 0;
-
+    console.log("finalProgress", finalProgress);
     finalProgress.progress.forEach((item: any) => {
 
       if (item.type === 'break') {
@@ -169,9 +174,11 @@ export class startWorkoutService {
 
       if (item.type === 'exercise') {
         exercises.push({
+          id: item.exerciseId,
           title: item.exerciseTitle,
           sets: [
             {
+              order: item.order,
               reps: item.reps ?? 0,
               weight: item.weight ?? 0,
               breakTime: lastBreakTime
@@ -190,5 +197,48 @@ export class startWorkoutService {
       exercises: exercises
     };
   }
+  async saveCompletedWorkout(workout: Workout): Promise<void> {
+    const user = getUser();
+    if (!user) throw new Error('Użytkownik nie jest zalogowany.');
 
+    const { data, error } = await supabase
+      .from('sessions')
+      .insert([{
+        date: new Date().toISOString().split('T')[0],
+        title: workout.title,
+        description: workout.description,
+        user_id: user.id,
+        duration: workout.duration
+      }])
+      .select();
+
+    if (error) {
+      console.error('Błąd podczas zapisywania sesji:', error);
+      throw new Error('Nie udało się zapisać sesji.');
+    }
+
+    const sessionId = data[0].session_id;
+
+    const { error: exercisesError } = await supabase
+      .from('session_exercises')
+      .insert(
+        workout.exercises.flatMap(exercise =>
+          exercise.sets.map(set => ({
+            exercise_id: exercise.id,
+            reps: set.reps,
+            weight: set.weight,
+            session_id: sessionId,
+            user_id: user.id,
+            exercise_title: exercise.title,
+            breakTime: set.breakTime,
+            order: set.order
+          }))
+        )
+      );
+
+    if (exercisesError) {
+      console.error('Błąd podczas zapisywania ćwiczeń:', exercisesError);
+      throw new Error('Nie udało się zapisać ćwiczeń.');
+    }
+  }
 }

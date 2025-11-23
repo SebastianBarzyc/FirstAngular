@@ -12,14 +12,17 @@ interface Workout {
   title: string;
   description: string;
   exercises: Exercise[];
+  duration?: number;
 }
 
 interface Exercise {
+  id: number;
   title: string;
   sets: Sets[];
 }
 
 interface Sets {
+  order: number;
   reps: number;
   weight: number;
   breakTime: number;
@@ -27,6 +30,8 @@ interface Sets {
 
 interface WorkoutStep {
   index: number;
+  order: number;
+  exerciseId?: number;
   exerciseTitle: string;
   type: 'exercise' | 'break';
   currentSet: number;
@@ -99,6 +104,8 @@ generateFinalProgress(workout: Workout): FinalProgress {
       
       steps.push({
         index: index++,
+        order: set.order,
+        exerciseId: exercise.id,
         exerciseTitle: exercise.title,
         type: 'exercise',
         currentSet: setIndex + 1,
@@ -110,6 +117,7 @@ generateFinalProgress(workout: Workout): FinalProgress {
 
       steps.push({
         index: index++,
+        order: set.order,
         exerciseTitle: 'break',
         type: 'break',
         currentSet: 0,
@@ -236,7 +244,12 @@ generateFinalProgress(workout: Workout): FinalProgress {
   return item?.completed ?? false;
 }
 
-  closeDialog() {
+  Save() {
     this.dialog.closeAll();
+    if (this.newWorkout) {
+      this.newWorkout.duration = this.timer;
+      console.log("Saving workout session:", this.newWorkout);
+      this.startWorkoutService.saveCompletedWorkout(this.newWorkout);
+    }
   }
 }
