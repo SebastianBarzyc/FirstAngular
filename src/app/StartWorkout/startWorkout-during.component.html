@@ -34,12 +34,12 @@
             <div style="width: 100%; float: left">
                 <mat-form-field style="width: 150px;" class="input-number float-start">
                     <mat-label>Reps</mat-label>
-                    <input matInput type="number" [(ngModel)]="progress.reps">
+                    <input matInput type="number" min="0" [(ngModel)]="progress.reps">
                 </mat-form-field>
 
                 <mat-form-field style="width: 150px;" class="input-number float-end">
                     <mat-label>Weight</mat-label>
-                    <input matInput type="number" [(ngModel)]="progress.weight">
+                    <input matInput type="number" min="0" [(ngModel)]="progress.weight">
                 </mat-form-field>
             </div>
         </div>

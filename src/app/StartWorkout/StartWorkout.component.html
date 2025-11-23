@@ -17,15 +17,15 @@
       <div *ngFor="let set of exercise.sets" style="display: flex; gap: 10px; margin: 10px 0;">
         <mat-form-field appearance="fill">
           <mat-label>Reps</mat-label>
-          <input matInput type="number" [(ngModel)]="set.reps" placeholder="Reps" (ngModelChange)="updateSet(exercise.title)">
+          <input matInput type="number" [(ngModel)]="set.reps" min="0" placeholder="Reps" (ngModelChange)="updateSet(exercise.title)">
         </mat-form-field>
         <mat-form-field appearance="fill">
           <mat-label>Weight (kg)</mat-label>
-          <input matInput type="number" [(ngModel)]="set.weight" placeholder="Weight" (ngModelChange)="updateSet(exercise.title)">
+          <input matInput type="number" [(ngModel)]="set.weight" min="0" placeholder="Weight" (ngModelChange)="updateSet(exercise.title)">
         </mat-form-field>
         <mat-form-field appearance="fill">
           <mat-label>BreakTime</mat-label>
-          <input matInput type="number" [(ngModel)]="set.breakTime" placeholder="BreakTime" (ngModelChange)="updateSet(exercise.title)">
+          <input matInput type="number" [(ngModel)]="set.breakTime" min="0" placeholder="BreakTime" (ngModelChange)="updateSet(exercise.title)">
         </mat-form-field>
       </div>
     </div>
