@@ -49,8 +49,9 @@ interface Exercise2 {
   exercise_id: number;
   exercise_title: string;
   title: string;
-  sets: Set[];
-  reps: []
+  sets: number;
+  reps: [];
+  breakTimes: [];
 }
 
 @Component({
@@ -217,7 +218,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
         sets: exercise.sets.map((set: Set) => ({
           reps: set.reps,
           weight: set.weight,
-          breakTime: set.breakTime || 0
+          breakTime: set.breakTime
         })),
         order: exercise.order
       }));
@@ -378,7 +379,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
             exercise_id: exercise.exercise_id,
             exercise_title: exercise.exercise_title,
             sets: Array.isArray(exercise.reps)
-              ? exercise.reps.map(rep => ({ reps: rep, weight: exercise.sets[0]?.weight || 0, breakTime: exercise.sets[0]?.breakTime || 0 }))
+              ? exercise.reps.map((rep, index) => ({ reps: rep, weight: 0, breakTime: exercise.breakTimes[index] || 0 }))
               : [],
             id: this.exercisesList.length > 0 
               ? Math.max(...this.exercisesList.map(ex => ex.order)) + 1 
@@ -387,7 +388,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   
           console.log('Transformed exercises list:', this.exercisesList);
           resolve();
-          // Call autoResize for each textarea after exercises are loaded
           setTimeout(() => {
             this.textareas.forEach(textarea => {
               this.autoResize(textarea.nativeElement);
