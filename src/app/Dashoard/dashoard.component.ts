@@ -59,7 +59,6 @@ export class DashoardComponent implements OnInit {
       console.warn("User or user_metadata is null. Setting default displayName.");
       this.displayName = 'User';
     }
-    console.log("DashoardComponent - displayName:", this.displayName);
   }
 
   loadUpcomingSessions(): void {
@@ -70,7 +69,6 @@ export class DashoardComponent implements OnInit {
       const todaysSessions = sessions.filter(session => {
         const sessionDate = new Date(session.date.split('.').reverse().join('-'));
         sessionDate.setHours(0, 0, 0, 0);
-        console.log("sessionDate.getTime(): ", sessionDate.getTime(), "today.getTime(): ", today.getTime());
         return sessionDate.getTime() === today.getTime();
       });
 

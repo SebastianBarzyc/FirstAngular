@@ -1,6 +1,8 @@
+import { WorkoutService } from './../Workouts/workouts.service';
 import { supabase, getUser } from '../supabase-client';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
+import { ExerciseService } from '../Exercises/exercises.service';
 
 interface Workout {
   id: number;
@@ -25,7 +27,10 @@ interface Sets {
 
 @Injectable({ providedIn: 'root' })
 export class startWorkoutService {
-  constructor() {}
+  constructor(
+    private WorkoutService: WorkoutService,
+    private exercisesService: ExerciseService
+  ) {}
   
   private workouts: Workout[] = [];
 
@@ -97,6 +102,10 @@ export class startWorkoutService {
     });
   }
 
+  getExercises(): Observable<any[]> {
+    return this.exercisesService.getData();
+  }
+
   todayWorkout(): Observable<Workout> {
     return new Observable<Workout>(observer => {
       const user = getUser();
@@ -162,6 +171,7 @@ export class startWorkoutService {
         });
       });
     }
+    
   createNewWorkoutFromProgress(workout: any, finalProgress: any) {
     const exercises: any[] = [];
     let lastBreakTime = 0;
@@ -240,5 +250,44 @@ export class startWorkoutService {
       console.error('Błąd podczas zapisywania ćwiczeń:', exercisesError);
       throw new Error('Nie udało się zapisać ćwiczeń.');
     }
+  }
+  getLastWeights(exerciseId: number) {
+    return new Observable<any[]>(observer => {
+      const run = async () => {
+        const user = getUser();
+        if (!user) {
+          observer.error('Użytkownik nie jest zalogowany.');
+          return;
+        }
+
+        const { data: lastSession, error } = await supabase
+          .from('session_exercises')
+          .select('session_id')
+          .eq('user_id', user.id)
+          .eq('exercise_id', exerciseId)
+          .order('session_id', { ascending: false })
+          .limit(1);
+
+        if (!lastSession || lastSession.length === 0) {
+          observer.next([]);
+          observer.complete();
+          return;
+        }
+
+        const sessionId = lastSession[0].session_id;
+
+        const { data: lastSets } = await supabase
+          .from('session_exercises')
+          .select('*')
+          .eq('session_id', sessionId)
+          .eq('exercise_id', exerciseId)
+          .order('order', { ascending: true });
+
+        observer.next(lastSets || []);
+        observer.complete();
+      };
+
+      run();
+    });
   }
 }

@@ -67,6 +67,7 @@ export class startWorkoutComponent implements OnInit {
     this.getTodayWorkout();
     this.onWorkoutChange(this.selectedWorkoutId);
   }
+
   onWorkoutChange(selectedId: number) {
     if (selectedId === this.todayWorkout?.id) {
       this.getTodayWorkout();
@@ -74,6 +75,7 @@ export class startWorkoutComponent implements OnInit {
       this.selectedWorkoutId = selectedId;
       this.startWorkoutService.workoutData(this.selectedWorkoutId).subscribe(workout => {
         this.selectedWorkout = workout;
+        this.getLastWeights();
       });
     }
   }
@@ -98,6 +100,7 @@ export class startWorkoutComponent implements OnInit {
       }
     });
   }
+
   updateSet(title: string) {
     if (this.selectedWorkout) {
       const exercise = this.selectedWorkout.exercises.find(ex => ex.title === title);
@@ -110,5 +113,23 @@ export class startWorkoutComponent implements OnInit {
         });
       }
     }
+  }
+
+  getLastWeights() {
+    if (this.selectedWorkout?.exercises.some(exercise => exercise.sets.some(set => set.weight === 0))) return;
+    console.log("Getting last weights for workout:", this.selectedWorkout);
+    
+    this.selectedWorkout?.exercises.forEach(exercise => {
+      this.startWorkoutService.getLastWeights(exercise.id).subscribe(lastSets => {
+
+        if (!lastSets || lastSets.length === 0) return;
+
+        exercise.sets.forEach((set, index) => {
+          const lastSet = lastSets[index] || lastSets[lastSets.length - 1];
+          set.weight = lastSet.weight;
+        });
+      });
+    });
+    console.log("Updated exercises with last weights:", this.selectedWorkout?.exercises);
   }
 }
