@@ -23,7 +23,7 @@
     <div class="WhatsNextContener">
         <label class="fs-5 fw-bold">What's next</label> 
         <div *ngFor="let session of upcomingSessions">
-            <button class="btn text-start WhatsNext">
+            <button class="btn text-start WhatsNext" (click)="openSessionEditor(session.date)">
                 <p class="mb-0 fw-bolder">{{ session.date }}</p>
                 <p>{{ session.title }}</p>
             </button>

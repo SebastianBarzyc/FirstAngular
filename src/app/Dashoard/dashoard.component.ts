@@ -1,10 +1,21 @@
+import { CalendarComponent } from './../Calendar/calendar.component';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { AchievementsService } from './achievements.service';
 import { CalendarService } from '../Calendar/calendar.service';
-import { supabase, getUser } from '../supabase-client';
+import { getUser } from '../supabase-client';
 import { startWorkoutComponent } from '../StartWorkout/StartWorkout.component';
+import { CalendarEditComponent } from '../Calendar/calendar-edit.component';
+import { Observable } from 'rxjs/internal/Observable';
+import { Subject, tap } from 'rxjs';
+
+interface Session {
+  session_id: number;
+  date: string;
+  title: string,
+  description: string
+}
 
 @Component({
   selector: 'app-dashoard',
@@ -12,12 +23,14 @@ import { startWorkoutComponent } from '../StartWorkout/StartWorkout.component';
   imports: [CommonModule],
   templateUrl: './dashoard.component.html',
 })
+
 export class DashoardComponent implements OnInit {
 [x: string]: any;
   sessions: any;
   upcomingSessions: any[] = [];
   todaysWorkout: string = '';
   displayName: string = '';
+  refreshNeeded$: Subject<void> = new Subject<void>();
 
   TitleAchievementList: string[];
   DescAchievementList: string[];
@@ -28,6 +41,7 @@ export class DashoardComponent implements OnInit {
     private calendarService: CalendarService,
     public dialog: MatDialog
   ) {
+
     this.DescAchievementList = achievementService.getDescAchievement();
     this.TitleAchievementList = achievementService.getTitleAchievement();
     this.ScoreAchievementList = achievementService.getScoreAchievement();
@@ -78,6 +92,8 @@ export class DashoardComponent implements OnInit {
           return dateA.getTime() - dateB.getTime();
         })
         .slice(0, 5);
+            console.log("Upcoming Sessions: ", this.upcomingSessions);
+
     });
   }
     startWorkout(): void {
@@ -87,4 +103,30 @@ export class DashoardComponent implements OnInit {
       maxHeight: '90vh'
     });
   }
+
+  openSessionEditor(session: any): void {
+    console.log('Editing session:', session);
+        const realDate = new Date(session);
+        console.log("SESSION RAW DATE:", session);
+        console.log("SESSION AS DATE():", realDate);
+        console.log("TYPE:", typeof realDate);
+        console.log('Editing session:', realDate, 'refresh', this.refreshNeeded$);
+        const dialogRef = this.dialog.open(CalendarEditComponent, {
+          
+          data: { date: realDate},
+          panelClass: 'editPanel'
+        });
+
+        dialogRef.afterClosed().subscribe(() => {
+          this.loadSessions();
+        });
+  }
+
+    loadSessions(): Observable<Session[]> {
+      return this.calendarService.getSessions().pipe(
+        tap((data: Session[]) => {
+          this.sessions = data;
+        })
+      );
+    } 
 }

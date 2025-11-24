@@ -100,6 +100,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   @ViewChildren('textarea') textareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
 
   async ngOnInit(): Promise<void> {
+    console.log("CalendarEditComponent - data received:", this.data);
     await this.loadSessions().toPromise();
     await this.loadWorkouts();
     await this.loadExercisesList();
