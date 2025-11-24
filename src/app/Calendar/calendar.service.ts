@@ -214,7 +214,7 @@ export class CalendarService {
               exercise_title: exercise.exercise_title || 'Unknown',
               reps: Number(set.reps) || 0,
               weight: Number(set.weight) || 0,
-              breakTime: Number(set.breakTime) || 60,
+              breakTime: Number(set.breakTime) || 0,
               order: index
             }))
           );
@@ -460,7 +460,7 @@ export class CalendarService {
               reps: exercise.reps || 0,
               weight: exercise.weight || 0,
               order: exercise.order || 0,
-              breakTime: exercise.breakTime || 60,
+              breakTime: exercise.breakTime || 0,
             }));
   
             if (exercisesToInsert.length > 0) {
