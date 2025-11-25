@@ -84,7 +84,7 @@ export class startWorkoutComponent implements OnInit {
     this.dialog.closeAll();
     this.dialog.open(startWorkoutDuringComponent, {
       width: '50%',
-      height: '37vh',
+      height: '45vh',
       data: { workout: this.selectedWorkout }
     });
   }

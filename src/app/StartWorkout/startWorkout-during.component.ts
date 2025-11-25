@@ -1,9 +1,9 @@
 import { Component, Inject, Input, OnInit } from '@angular/core';
 import { startWorkoutService } from './StartWorkout.service';
 import { CommonModule } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
-import { MatFormField, MatFormFieldModule, MatLabel } from "@angular/material/form-field";
-import { MatInput, MatInputModule } from "@angular/material/input";
+import { MAT_DIALOG_DATA, MatDialog, MatDialogContent } from '@angular/material/dialog';
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import { FormsModule } from '@angular/forms';
 
@@ -56,11 +56,12 @@ interface Stats {
   templateUrl: './startWorkout-during.component.html',
   standalone: true,
 imports: [
-  CommonModule,
-  MatFormFieldModule,
-  MatInputModule,
-  MatProgressBarModule,
-  FormsModule
+    CommonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressBarModule,
+    FormsModule,
+    MatDialogContent
 ]
 })
 

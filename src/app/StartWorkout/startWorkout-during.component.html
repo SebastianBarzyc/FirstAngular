@@ -10,47 +10,52 @@
         </div>
     </div>
 </div>
-<div >
-    <div *ngIf="this.completedWorkout === false">
+<div>
+    <div *ngIf="this.completedWorkout === false" style="width: 100%; margin: auto; margin-bottom: 20px">
         <h2 mat-dialog-title class="fw-bold">{{ workout?.title }} <br> Timer: {{ formatTime(timer) }}</h2>
-        <mat-progress-bar mode="determinate" [value]="((progress?.index ?? 1) / (finalProgress?.totalIndex ?? 1)) * 100"></mat-progress-bar>
-        <div *ngIf="progress?.type == 'break'">
-            <h3 class="text-center text-xl m-3">Break Time Remaining: {{ remainingTime }} seconds</h3>
-        </div>
-        <div *ngIf="progress && progress.type === 'exercise'">
-            <h3 class="text-center text-xl m-3">{{ progress.exerciseTitle }}</h3>            
-            <mat-progress-bar mode="determinate" [value]="getSetProgress()"> </mat-progress-bar>
-
-            <p class="text-center text-lg font-semibold mt-2">
-                Set {{ progress.currentSet }} of {{ progress.totalSets }}
-            </p>
-            <div style="width: 100%" class="d-flex justify-content-around mt-3 mb-3">
-                <mat-form-field style="width: 150px;" class="input-number float-start">
-                    <mat-label>Reps</mat-label>
-                    <input matInput type="number" min="0" [(ngModel)]="progress.reps">
-                </mat-form-field>
-
-                <mat-form-field style="width: 150px;" class="input-number float-end">
-                    <mat-label>Weight</mat-label>
-                    <input matInput type="number" min="0" [(ngModel)]="progress.weight">
-                </mat-form-field>
+        <mat-dialog-content>
+            <mat-progress-bar mode="determinate" [value]="((progress?.index ?? 1) / (finalProgress?.totalIndex ?? 1)) * 100"></mat-progress-bar>
+            <div *ngIf="progress?.type == 'break'">
+                <h3 class="text-center text-xl m-3">Break Time Remaining: {{ remainingTime }} seconds</h3>
             </div>
-        </div>
-        <div class="d-flex justify-content-around" style="width:100%; position: absolute; bottom: 20px;">
-            <button [disabled]="progress?.index === 1" (click)="previousStep()" class="RaisedBtn btn">Previous Step</button>
-            <button class="RaisedBtn btn" (click)="exercisesShowMenu = !exercisesShowMenu">Menu</button>
-            <button (click)="nextStep()" class="RaisedBtn btn">Next Step</button>
-        </div>
+            <div *ngIf="progress && progress.type === 'exercise'">
+                <h3 class="text-center text-xl m-3">{{ progress.exerciseTitle }}</h3>            
+                <mat-progress-bar mode="determinate" [value]="getSetProgress()"> </mat-progress-bar>
+
+                <p class="text-center text-lg font-semibold mt-2">
+                    Set {{ progress.currentSet }} of {{ progress.totalSets }}
+                </p>
+                <div style="width: 100%" class="d-flex justify-content-around mt-3 mb-3">
+                    <mat-form-field style="width: 150px;" class="input-number float-start">
+                        <mat-label>Reps</mat-label>
+                        <input matInput type="number" min="0" [(ngModel)]="progress.reps">
+                    </mat-form-field>
+
+                    <mat-form-field style="width: 150px;" class="input-number float-end">
+                        <mat-label>Weight</mat-label>
+                        <input matInput type="number" min="0" [(ngModel)]="progress.weight">
+                    </mat-form-field>
+                </div>
+            </div>
+        </mat-dialog-content>
+            <div class="d-flex justify-content-around" style="width:100%; position: absolute; bottom: 20px;">
+                <button [disabled]="progress?.index === 1" (click)="previousStep()" class="RaisedBtn btn">Previous Step</button>
+                <button class="RaisedBtn btn" (click)="exercisesShowMenu = !exercisesShowMenu">Menu</button>
+                <button (click)="nextStep()" class="RaisedBtn btn">Next Step</button>
+            </div>
     </div>
-    <div *ngIf="this.completedWorkout === true" style="text-align: center; margin-top: 50px;">
+    <div *ngIf="completedWorkout" style="margin-top: 50px; display: flex; flex-direction: column; align-items: center;">
         <h2>Congratulations!</h2>
         <p>You have completed the workout: <strong>{{ workout?.title }}</strong></p>
-        <div *ngIf="stats">
-          <h3>Your Workout Stats:</h3>
-          <p>Total Time: {{ formatTime(stats.totalTime) }}</p>
-          <p>Total Exercises: {{ stats.totalExercises }}</p>
-          <p>Total Reps: {{ stats.totalReps }}</p>
-          <p>Total Weight Lifted: {{ stats.totalWeight }} kg</p>
-        <button (click)="Save()" class="RaisedBtn btn" style="margin-top: 20px;">Save</button>
+
+        <div *ngIf="stats" style="display: flex; flex-direction: column; align-items: center;">
+            <h3>Your Workout Stats:</h3>
+            <p>Total Time: {{ formatTime(stats.totalTime) }}</p>
+            <p>Total Exercises: {{ stats.totalExercises }}</p>
+            <p>Total Reps: {{ stats.totalReps }}</p>
+            <p>Total Weight Lifted: {{ stats.totalWeight }} kg</p>
+
+            <button (click)="Save()" class="RaisedBtn btn" style="margin-top: 20px;">Save</button>
+        </div>
     </div>
 </div>
