@@ -65,12 +65,12 @@ export class startWorkoutComponent implements OnInit {
       this.workouts = workouts;
     });
     this.getTodayWorkout();
-    this.onWorkoutChange(this.selectedWorkoutId);
   }
 
   onWorkoutChange(selectedId: number) {
     if (selectedId === this.todayWorkout?.id) {
       this.getTodayWorkout();
+      return;
     }else{ 
       this.selectedWorkoutId = selectedId;
       this.startWorkoutService.workoutData(this.selectedWorkoutId).subscribe(workout => {
@@ -95,11 +95,14 @@ export class startWorkoutComponent implements OnInit {
         this.todayWorkout = { id: workout.id, title: workout.title };
         this.selectedWorkoutId = this.todayWorkout.id;
         this.selectedWorkout = workout;
+
+        this.getLastWeights();
       } else {
         this.todayWorkout = null;
       }
     });
   }
+
 
   updateSet(title: string) {
     if (this.selectedWorkout) {
@@ -115,21 +118,25 @@ export class startWorkoutComponent implements OnInit {
     }
   }
 
-  getLastWeights() {
-    if (this.selectedWorkout?.exercises.some(exercise => exercise.sets.some(set => set.weight === 0))) return;
-    console.log("Getting last weights for workout:", this.selectedWorkout);
-    
-    this.selectedWorkout?.exercises.forEach(exercise => {
-      this.startWorkoutService.getLastWeights(exercise.id).subscribe(lastSets => {
+getLastWeights() {
+  console.log("Getting last weights for workout:", this.selectedWorkout);
+  
+  this.selectedWorkout?.exercises.forEach(exercise => {
+    this.startWorkoutService.getLastWeights(exercise.id).subscribe(lastSets => {
 
-        if (!lastSets || lastSets.length === 0) return;
+      if (!lastSets || lastSets.length === 0) return;
 
-        exercise.sets.forEach((set, index) => {
-          const lastSet = lastSets[index] || lastSets[lastSets.length - 1];
+      exercise.sets.forEach((set, index) => {
+
+        const lastSet = lastSets[index] || lastSets[lastSets.length - 1];
+
+        if (set.weight === 0) {
           set.weight = lastSet.weight;
-        });
+        }
       });
     });
-    console.log("Updated exercises with last weights:", this.selectedWorkout?.exercises);
+  });
+
+  console.log("Updated exercises with last weights:", this.selectedWorkout?.exercises);
   }
 }
