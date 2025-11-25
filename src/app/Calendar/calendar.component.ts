@@ -146,9 +146,6 @@ export class CalendarComponent implements OnInit {
         const sessionDate = new Date(session.date);
         sessionDate.setHours(0, 0, 0, 0);
 
-        const today = new Date(2025, 7, 28);
-        today.setHours(0, 0, 0, 0);
-
         return sessionDate.getTime() >= today.getTime();
             })
             .sort((a, b) => {
