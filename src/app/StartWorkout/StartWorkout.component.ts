@@ -123,7 +123,7 @@ getLastWeights() {
   
   this.selectedWorkout?.exercises.forEach(exercise => {
     this.startWorkoutService.getLastWeights(exercise.id).subscribe(lastSets => {
-
+      console.log("Last sets for exercise", exercise.id, ":", lastSets);
       if (!lastSets || lastSets.length === 0) return;
 
       exercise.sets.forEach((set, index) => {

@@ -22,7 +22,6 @@ interface Exercise {
 }
 
 interface Sets {
-  order: number;
   reps: number;
   weight: number;
   breakTime: number;
@@ -30,7 +29,6 @@ interface Sets {
 
 interface WorkoutStep {
   index: number;
-  order: number;
   exerciseId?: number;
   exerciseTitle: string;
   type: 'exercise' | 'break';
@@ -104,7 +102,6 @@ generateFinalProgress(workout: Workout): FinalProgress {
       
       steps.push({
         index: index++,
-        order: set.order,
         exerciseId: exercise.id,
         exerciseTitle: exercise.title,
         type: 'exercise',
@@ -117,7 +114,6 @@ generateFinalProgress(workout: Workout): FinalProgress {
 
       steps.push({
         index: index++,
-        order: set.order,
         exerciseTitle: 'break',
         type: 'break',
         currentSet: 0,
@@ -144,6 +140,8 @@ generateFinalProgress(workout: Workout): FinalProgress {
         this.finalProgress.progress[currentIndex-1].completed = true;
       } else {
         this.completedWorkout = true;
+        console.log("workout:", this.workout);
+        console.log("finalProgress:", this.finalProgress);
         this.newWorkout = this.startWorkoutService.createNewWorkoutFromProgress(this.workout, this.finalProgress);
         this.stopTimer();
         this.getStats();
@@ -249,7 +247,7 @@ generateFinalProgress(workout: Workout): FinalProgress {
     if (this.newWorkout) {
       this.newWorkout.duration = this.timer;
       console.log("Saving workout session:", this.newWorkout);
-      this.startWorkoutService.saveCompletedWorkout(this.newWorkout);
+      this.startWorkoutService.saveCompletedWorkout(this.newWorkout, );
     }
   }
 }

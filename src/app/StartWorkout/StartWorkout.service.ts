@@ -19,7 +19,6 @@ interface Exercise {
 }
 
 interface Sets {
-  order: number;
   reps: number;
   weight: number;
   breakTime: number;
@@ -61,7 +60,7 @@ export class startWorkoutService {
               });
             }
             const exercise = exercisesMap.get(key)!;
-            exercise.sets.push({ order: row.order, reps: row.reps, weight: row.weight || 0, breakTime: row.breakTime || 0});
+            exercise.sets.push({ reps: row.reps, weight: row.weight || 0, breakTime: row.breakTime || 0});
           });
 
           const selectedWorkout = this.workouts.find(w => w.id === workoutId);
@@ -162,7 +161,7 @@ export class startWorkoutService {
                   });
                 }
                 const exercise = exercisesMap.get(key)!;
-                exercise.sets.push({ order: row.order, reps: row.reps, weight: row.weight || 0, breakTime: row.breakTime || 0 });
+                exercise.sets.push({ reps: row.reps, weight: row.weight || 0, breakTime: row.breakTime || 0 });
               });
               sessionWorkout.exercises = Array.from(exercisesMap.values());
               observer.next(sessionWorkout);
@@ -172,63 +171,77 @@ export class startWorkoutService {
       });
     }
     
-  createNewWorkoutFromProgress(workout: any, finalProgress: any) {
-    const exercises: any[] = [];
-    let lastBreakTime = 0;
-    console.log("finalProgress", finalProgress);
-    finalProgress.progress.forEach((item: any) => {
+createNewWorkoutFromProgress(workout: any, finalProgress: any) {
+  const exercises: any[] = [];
 
-      if (item.type === 'break') {
-        lastBreakTime = item.breakTime ?? 60;
-      }
+  finalProgress.progress.forEach((item: any, index: number) => {
+    if (item.type === 'exercise') {
+      
+      const next = finalProgress.progress[index + 1];
+      const breakTime =
+        next && next.type === 'break'
+          ? next.reps ?? 0
+          : 0;
 
-      if (item.type === 'exercise') {
-        exercises.push({
-          id: item.exerciseId,
-          title: item.exerciseTitle,
-          sets: [
-            {
-              order: item.order,
-              reps: item.reps ?? 0,
-              weight: item.weight ?? 0,
-              breakTime: lastBreakTime
-            }
-          ]
-        });
+      exercises.push({
+        id: item.exerciseId,
+        title: item.exerciseTitle,
+        sets: [
+          {
+            reps: item.reps ?? 0,
+            weight: item.weight ?? 0,
+            breakTime: breakTime
+          }
+        ]
+      });
+    }
+  });
 
-        lastBreakTime = 0;
-      }
-    });
+  return {
+    id: workout.id,
+    title: workout.title,
+    description: workout.description,
+    exercises: exercises
+  };
+}
 
-    return {
-      id: workout.id,
-      title: workout.title,
-      description: workout.description,
-      exercises: exercises
-    };
-  }
   async saveCompletedWorkout(workout: Workout): Promise<void> {
     const user = getUser();
     if (!user) throw new Error('Użytkownik nie jest zalogowany.');
 
-    const { data, error } = await supabase
+    const { data} = await supabase
       .from('sessions')
-      .insert([{
-        date: new Date().toISOString().split('T')[0],
-        title: workout.title,
-        description: workout.description,
-        user_id: user.id,
-        duration: workout.duration
-      }])
-      .select();
+      .select('session_id')
+      .eq('user_id', user.id)
+      .eq('date', new Date().toISOString().split('T')[0]);
+    if (data && data.length > 0) {
+      console.log('Dzisiaj był trening, usuwam: ', data);
+      const sessionId: number = data[0].session_id;
+      const {} = await supabase
+        .from('session_exercises')
+        .delete()
+        .eq('session_id', sessionId)
+        .eq('user_id', user.id);
+    }else{
+      const { error } = await supabase
+        .from('sessions')
+        .insert([{
+          date: new Date().toISOString().split('T')[0],
+          title: workout.title,
+          description: workout.description,
+          user_id: user.id,
+          duration: workout.duration
+        }])
+        .select();
 
-    if (error) {
-      console.error('Błąd podczas zapisywania sesji:', error);
-      throw new Error('Nie udało się zapisać sesji.');
+      if (error) {
+        console.error('Błąd podczas zapisywania sesji:', error);
+        throw new Error('Nie udało się zapisać sesji.');
+      }
     }
 
-    const sessionId = data[0].session_id;
-
+    const sessionId = data![0].session_id;
+    console.log("workout.exercises", workout.exercises);
     const { error: exercisesError } = await supabase
       .from('session_exercises')
       .insert(
@@ -241,7 +254,7 @@ export class startWorkoutService {
             user_id: user.id,
             exercise_title: exercise.title,
             breakTime: set.breakTime,
-            order: set.order
+            order: workout.exercises.indexOf(exercise)
           }))
         )
       );
@@ -260,28 +273,66 @@ export class startWorkoutService {
           return;
         }
 
-        const { data: lastSession, error } = await supabase
+        const today = new Date().toISOString().split('T')[0];
+
+        const { data: sessionEx, error: err1 } = await supabase
           .from('session_exercises')
           .select('session_id')
           .eq('user_id', user.id)
-          .eq('exercise_id', exerciseId)
-          .order('session_id', { ascending: false })
-          .limit(1);
+          .eq('exercise_id', exerciseId);
 
-        if (!lastSession || lastSession.length === 0) {
+        if (err1) {
+          observer.error(err1);
+          return;
+        }
+
+        if (!sessionEx || sessionEx.length === 0) {
           observer.next([]);
           observer.complete();
           return;
         }
 
-        const sessionId = lastSession[0].session_id;
+        const sessionIds = sessionEx.map(s => s.session_id);
 
-        const { data: lastSets } = await supabase
+        const { data: sessions, error: err2 } = await supabase
+          .from('sessions')
+          .select('session_id, date')
+          .in('session_id', sessionIds);
+
+        if (err2) {
+          observer.error(err2);
+          return;
+        }
+
+        if (!sessions || sessions.length === 0) {
+          observer.next([]);
+          observer.complete();
+          return;
+        }
+
+        const filtered = sessions
+          .filter(s => s.date && s.date <= today)
+          .sort((a, b) => b.date.localeCompare(a.date));
+
+        if (filtered.length === 0) {
+          observer.next([]);
+          observer.complete();
+          return;
+        }
+
+        const lastSessionId = filtered[0].session_id;
+
+        const { data: lastSets, error: err3 } = await supabase
           .from('session_exercises')
           .select('*')
-          .eq('session_id', sessionId)
+          .eq('session_id', lastSessionId)
           .eq('exercise_id', exerciseId)
           .order('order', { ascending: true });
+
+        if (err3) {
+          observer.error(err3);
+          return;
+        }
 
         observer.next(lastSets || []);
         observer.complete();
