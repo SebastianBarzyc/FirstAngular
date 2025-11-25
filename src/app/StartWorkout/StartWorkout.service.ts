@@ -209,38 +209,45 @@ createNewWorkoutFromProgress(workout: any, finalProgress: any) {
     const user = getUser();
     if (!user) throw new Error('Użytkownik nie jest zalogowany.');
 
-    const { data} = await supabase
-      .from('sessions')
-      .select('session_id')
-      .eq('user_id', user.id)
-      .eq('date', new Date().toISOString().split('T')[0]);
-    if (data && data.length > 0) {
-      console.log('Dzisiaj był trening, usuwam: ', data);
-      const sessionId: number = data[0].session_id;
-      const {} = await supabase
-        .from('session_exercises')
-        .delete()
-        .eq('session_id', sessionId)
-        .eq('user_id', user.id);
-    }else{
-      const { error } = await supabase
-        .from('sessions')
-        .insert([{
-          date: new Date().toISOString().split('T')[0],
-          title: workout.title,
-          description: workout.description,
-          user_id: user.id,
-          duration: workout.duration
-        }])
-        .select();
+  const today = new Date().toISOString().split('T')[0];
 
-      if (error) {
-        console.error('Błąd podczas zapisywania sesji:', error);
-        throw new Error('Nie udało się zapisać sesji.');
-      }
+  const { data: existingSessions } = await supabase
+    .from('sessions')
+    .select('session_id')
+    .eq('user_id', user.id)
+    .eq('date', today);
+
+  let sessionId: number;
+
+  if (existingSessions && existingSessions.length > 0) {
+    console.log('Dzisiaj był trening, usuwam: ', existingSessions);
+    sessionId = existingSessions[0].session_id;
+
+    await supabase
+      .from('session_exercises')
+      .delete()
+      .eq('session_id', sessionId)
+      .eq('user_id', user.id);
+
+  } else {
+    const { data: newSession, error } = await supabase
+      .from('sessions')
+      .insert([{
+        date: today,
+        title: workout.title,
+        description: workout.description,
+        user_id: user.id,
+        duration: workout.duration
+      }])
+      .select('*');
+
+    if (error) {
+      console.error('Błąd podczas zapisywania sesji:', error);
+      throw new Error('Nie udało się zapisać sesji.');
     }
 
-    const sessionId = data![0].session_id;
+    sessionId = newSession[0].session_id;
+  }
     console.log("workout.exercises", workout.exercises);
     const { error: exercisesError } = await supabase
       .from('session_exercises')
