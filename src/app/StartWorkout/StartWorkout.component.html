@@ -1,5 +1,6 @@
-<div style="width: 80%; margin: auto; margin-bottom: 20px">
+<div style="width: 100%; margin: auto; margin-bottom: 20px">
   <h2 mat-dialog-title class="fw-bold"> Start workout</h2>
+  <mat-dialog-content>
  <mat-form-field appearance="fill" style="width: 100%;"> 
   <mat-label>Choose your workout</mat-label>
   <mat-select [ngModel]="selectedWorkoutId" (ngModelChange)="onWorkoutChange($event)">
@@ -31,4 +32,5 @@
     </div>
   </div>
     <button (click)="startWorkout()" class="RaisedBtn btn" [disabled]="!selectedWorkoutId">Start Workout</button>
+  </mat-dialog-content>
 </div>
