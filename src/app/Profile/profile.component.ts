@@ -3,7 +3,6 @@ import { LoginComponent } from './login.component';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { getUser, supabase } from '../supabase-client';
-import { BehaviorSubject } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -34,7 +33,7 @@ export class ProfileComponent implements OnInit {
   session: any = null;
   totalSessions: number | null = null;
   totalWeights: number | null = null;
-  consecutiveSessions: number | null = null;
+  activeSessions: number | null = null;
   userId: any;
   user: any = null;
   displayName: string | null = null;
@@ -71,7 +70,7 @@ export class ProfileComponent implements OnInit {
     this.doneSessionsList = await this.doneSessions(this.userId);
     this.getTotalSessions();
     this.getTotalWeights();
-    this.getConsecutiveSessions();
+    this.getActiveSessions();
     this.getRecentWorkouts();
     this.getUserExercises();
     this.cdr.detectChanges();
@@ -152,14 +151,14 @@ export class ProfileComponent implements OnInit {
     this.totalWeights = weights.reduce((sum, row) => sum + (row.weight || 0), 0);
   }
 
-  getConsecutiveSessions() {
+  getActiveSessions() {
     const sessionIds = this.doneSessionsList.map(session => session);
 
     supabase
       .from('sessions')
       .select('session_id, date')
+      .gte('date', new Date().toISOString().split('T')[0])
       .in('session_id', sessionIds)
-      .lte('date', new Date().toISOString().split('T')[0])
       .then(({ data, error }) => {
         if (error) {
           console.error('Error fetching sessions:', error.message);
@@ -174,24 +173,47 @@ export class ProfileComponent implements OnInit {
         const formattedDates = data
           .map(session => new Date(session.date))
           .sort((a, b) => a.getTime() - b.getTime());
-  
-        let maxStreak = 0;
-        let currentStreak = 0;
-  
-        for (let i = 1; i < formattedDates.length; i++) {
-          const prevDate = formattedDates[i - 1];
-          const currDate = formattedDates[i];
-  
-          if ((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24) === 1) {
-            currentStreak++;
-          } else {
-            maxStreak = Math.max(maxStreak, currentStreak);
-            currentStreak = 0;
-          }
+        this.activeSessions = formattedDates.length;
+      });
+
+      supabase
+      .from('users_goals')
+      .select('goal')
+      .eq('user_id', this.userId)
+      .eq('title', 'maxActiveDays')
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error fetching user goals:', error.message);
+          return;
         }
-  
-        maxStreak = Math.max(maxStreak, currentStreak);
-        this.consecutiveSessions = maxStreak;
+        
+        if (data && data.length > 0) {
+          if (this.activeSessions !== null && this.activeSessions > data[0].goal) {
+            supabase
+              .from('users_goals')
+              .update({ goal: this.activeSessions })
+              .eq('user_id', this.userId)
+              .eq('title', 'maxActiveDays')
+              .then(({ error: updateError }) => {
+                if (updateError) {
+                  console.error('Error updating maxActiveDays goal:', updateError.message);
+                } else {
+                  console.log('maxActiveDays goal updated successfully');
+                }
+              });
+          }
+        }else {
+          supabase
+            .from('users_goals')
+            .insert([{ user_id: this.userId, goal: this.activeSessions, title: 'maxActiveDays' }])
+            .then(({ error: insertError }) => {
+              if (insertError) {
+                console.error('Error inserting maxActiveDays goal:', insertError.message);
+              } else {
+                console.log('maxActiveDays goal inserted successfully');
+              }
+            });
+        };
       });
   }
 
@@ -243,8 +265,6 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    console.log('Exercises Data:', exercisesData);
-  
     const highestWeights: { [key: string]: number } = exercisesData.reduce((acc: { [key: string]: number }, exercise: any) => {
       if (!acc[exercise.exercise_title] || acc[exercise.exercise_title] < exercise.weight) {
         acc[exercise.exercise_title] = exercise.weight;
@@ -252,8 +272,6 @@ export class ProfileComponent implements OnInit {
       return acc;
     }, {});
   
-    console.log('Goals highestWeights:', highestWeights);
-
     const { data: goalsData, error: goalsError } = await supabase
       .from('users_goals')
       .select('title, goal')
@@ -263,7 +281,6 @@ export class ProfileComponent implements OnInit {
       console.error('Error fetching goals:', goalsError.message);
       return;
     }
-    console.log('Goals Data:', goalsData);
   
     const goalsMap = new Map(goalsData.map(goal => [goal.title, goal.goal]));
   
@@ -272,13 +289,8 @@ export class ProfileComponent implements OnInit {
       highestWeight: highestWeights[exerciseTitle],
       goalWeight: goalsMap.get(exerciseTitle) || 0
     }));
-
-    console.log('User Exercises:', this.userExercises);
   
     this.userExercisesSelected = this.userExercises.filter(exercise => goalsMap.has(exercise.title));
-  
-    console.log('User Exercises Selected:', this.userExercisesSelected);
-
     this.cdr.detectChanges();
   }
 
