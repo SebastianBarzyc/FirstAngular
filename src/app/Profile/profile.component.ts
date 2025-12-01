@@ -70,7 +70,7 @@ export class ProfileComponent implements OnInit {
     this.doneSessionsList = await this.doneSessions(this.userId);
     this.getTotalSessions();
     this.getTotalWeights();
-    this.getActiveSessions();
+    await this.getActiveSessions();
     this.getRecentWorkouts();
     this.getUserExercises();
     this.cdr.detectChanges();
@@ -151,14 +151,13 @@ export class ProfileComponent implements OnInit {
     this.totalWeights = weights.reduce((sum, row) => sum + (row.weight || 0), 0);
   }
 
-  getActiveSessions() {
+  async getActiveSessions() {
     const sessionIds = this.doneSessionsList.map(session => session);
 
-    supabase
+    await supabase
       .from('sessions')
       .select('session_id, date')
-      .gte('date', new Date().toISOString().split('T')[0])
-      .in('session_id', sessionIds)
+      .lte('date', new Date().toISOString().split('T')[0])
       .then(({ data, error }) => {
         if (error) {
           console.error('Error fetching sessions:', error.message);
@@ -170,11 +169,30 @@ export class ProfileComponent implements OnInit {
           return;
         }
   
-        const formattedDates = data
-          .map(session => new Date(session.date))
-          .sort((a, b) => a.getTime() - b.getTime());
-        this.activeSessions = formattedDates.length;
+        const todayStr = new Date().toISOString().split('T')[0];  
+
+        const dates = data
+          .map(s => new Date(s.date).toISOString().split('T')[0])
+          .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+        const result: string[] = [];
+        let current = todayStr;
+
+        for (let i = 0; i < dates.length; i++) {
+          if (dates.includes(current)) {
+            result.push(current);
+
+            const prev = new Date(current);
+            prev.setDate(prev.getDate() - 1);
+            current = prev.toISOString().split('T')[0];
+          } else {
+            break;
+          }
+        }
+
+        this.activeSessions = result.length;
       });
+
 
       supabase
       .from('users_goals')
