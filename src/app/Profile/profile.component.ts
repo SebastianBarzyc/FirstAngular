@@ -73,6 +73,7 @@ export class ProfileComponent implements OnInit {
     this.getTotalWeights();
     this.getConsecutiveSessions();
     this.getRecentWorkouts();
+    this.getUserExercises();
     this.cdr.detectChanges();
   }
 
@@ -231,15 +232,6 @@ export class ProfileComponent implements OnInit {
   }
 
   async getUserExercises() {
-    if (!this.user) {
-      console.error('No active session');
-      return;
-    }
-  
-    if (!this.userId) {
-      console.error('Failed to get userId from session');
-      return;
-    }
   
     const { data: exercisesData, error: exercisesError } = await supabase
       .from('session_exercises')
@@ -250,6 +242,8 @@ export class ProfileComponent implements OnInit {
       console.error('Error fetching exercises:', exercisesError.message);
       return;
     }
+
+    console.log('Exercises Data:', exercisesData);
   
     const highestWeights: { [key: string]: number } = exercisesData.reduce((acc: { [key: string]: number }, exercise: any) => {
       if (!acc[exercise.exercise_title] || acc[exercise.exercise_title] < exercise.weight) {
@@ -258,6 +252,8 @@ export class ProfileComponent implements OnInit {
       return acc;
     }, {});
   
+    console.log('Goals highestWeights:', highestWeights);
+
     const { data: goalsData, error: goalsError } = await supabase
       .from('users_goals')
       .select('title, goal')
@@ -267,6 +263,7 @@ export class ProfileComponent implements OnInit {
       console.error('Error fetching goals:', goalsError.message);
       return;
     }
+    console.log('Goals Data:', goalsData);
   
     const goalsMap = new Map(goalsData.map(goal => [goal.title, goal.goal]));
   
@@ -275,9 +272,13 @@ export class ProfileComponent implements OnInit {
       highestWeight: highestWeights[exerciseTitle],
       goalWeight: goalsMap.get(exerciseTitle) || 0
     }));
+
+    console.log('User Exercises:', this.userExercises);
   
     this.userExercisesSelected = this.userExercises.filter(exercise => goalsMap.has(exercise.title));
   
+    console.log('User Exercises Selected:', this.userExercisesSelected);
+
     this.cdr.detectChanges();
   }
 

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
@@ -19,6 +19,11 @@ export class ExerciseDialogComponent {
     public dialogRef: MatDialogRef<ExerciseDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
+
+  ngOnInit(){
+    console.log('Available Exercises:', this.data.availableExercises);
+    console.log('Selected Exercises:', this.data.selectedExercises);
+  }
 
   toggleExerciseSelection(exercise: any) {
     if (this.isExerciseSelected(exercise.title)) {
