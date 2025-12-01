@@ -1,6 +1,5 @@
-import { CalendarComponent } from './calendar.component';
 import { WorkoutService } from './../Workouts/workouts.service';
-import { Component, ElementRef, Inject, Input, OnInit, QueryList, ViewChildren, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, Inject, OnInit, QueryList, ViewChildren, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -178,25 +177,20 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   }
   
 
-  Delete(id: number) {
+  async Delete(id: number): Promise<void>  {
     console.log("deleteid: ",id);
-    this.calendarService.deleteSession(id).subscribe({
-      next: response => {
-        console.log("Session deleted: ", response);
-        this.refreshNeeded$.next();
-        this.dialogRef.close();
-      },
-      error: error => {
-        console.error('Error from server:', error);
-      }
-    });
+    const response = await this.calendarService.deleteSession(id);
+    console.log("Session deleted: ", response);
+    this.refreshNeeded$.next();
+    this.dialogRef.close();
   }
 
-  Save(session: any): void {
+  async Save(session: any): Promise<void> {
     if (getUser() === null) {
       console.error('User ID is null, cannot add exercise.');
       this.dialogRef.close();
       this.router.navigate(['/Profile']);
+      return;
     } else {
       const newSessionId = this.getMaxSessionId() + 1;
       const sessionToSave = {
@@ -224,51 +218,29 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
         order: exercise.order
       }));
 
-      this.calendarService.editSession3(exercises, sessionToSave.session_id).subscribe({
-        next: response => {
-          this.refreshNeeded$.next();
-          console.log('Session saved:', response);
-        },
-        error: error => {
-          console.error('Error during saving session:', error);
-        }
-      });
-
+      const responseEditSession3 = await this.calendarService.editSession3(exercises, sessionToSave.session_id);
       this.refreshNeeded$.next();
+      console.log('Session saved:', responseEditSession3);
       this.dialogRef.close();
     }
   }
 
-  createSession(session: any) {
+  async createSession(session: any) {
     console.log("create: ",session);
-    this.calendarService.addSession(session).pipe(
-      tap(response => {
-        this.refreshNeeded$.next();
-        console.log('Session added successfully:', response);
-      })
-    ).subscribe(
-      response => {
-        console.log('Session created:', 'Date: ', session.date, 'Title: ', session.title, 'Description: ', session.description);
-      },
-      error => {
-          console.error('Error adding session:', error);
-      }
-    );
+    try {
+      const response = await this.calendarService.addSession(session);
+          this.refreshNeeded$.next();
+          console.log('Session created:', 'Date: ', session.date, 'Title: ', session.title, 'Description: ', session.description);
+    } catch (error) {
+      console.error('Unexpected error during session creation:', error);
+    }
   }
 
-  updateSession(session: any) {
-    
-    this.calendarService.editSession(session.session_id, session.title, session.description).subscribe({
-      next: response => {
-        this.refreshNeeded$.next();
-        console.log('Response from server (updateSession):', response);
-        this.dialogRef.close();
-      },
-      error: error => {
-        console.error('Error from server (updateSession):', error);
-      }
-    });
-
+  async updateSession(session: any) {
+    const response = await this.calendarService.editSession(session.session_id, session.title, session.description);
+    this.refreshNeeded$.next();
+    console.log('Response from server (updateSession):', response);
+    this.dialogRef.close();
   }
 
   updateExerciseTitle(): void {

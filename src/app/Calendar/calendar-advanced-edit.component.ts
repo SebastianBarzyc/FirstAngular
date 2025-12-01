@@ -8,7 +8,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CalendarService } from './calendar.service';
 import { MatOption } from '@angular/material/core';
-import { MatSelectChange } from '@angular/material/select';
 import { WorkoutService } from '../Workouts/workouts.service';
 import { DatePipe } from '@angular/common';
 
@@ -59,23 +58,23 @@ export class CalendarAdvancedEditComponent {
   days: string[] = [];
   newGroupTitle: string = '';
   exercisesList: Exercise[] = [];
-  isEditMode: boolean = false; // Flag to determine if it's edit mode
-  workoutPlanName: string = ''; // Variable to store the workout plan name
+  isEditMode: boolean = false;
+  workoutPlanName: string = '';
 
   constructor(
     private calendarService: CalendarService,
     private workoutService: WorkoutService,
     private datePipe: DatePipe,
     public dialogRef: MatDialogRef<CalendarAdvancedEditComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { group?: string } // Inject the group data
+    @Inject(MAT_DIALOG_DATA) public data: { group?: string }
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.isEditMode = !!this.data.group; // Set edit mode if group is not null
+    this.isEditMode = !!this.data.group;
     if (this.isEditMode) {
-      this.newGroupTitle = this.data.group || ''; // Pre-fill group title for editing
-      await this.loadDaysForGroup(); // Load days for the selected group
-      await this.loadWorkoutPlanName(); // Load the workout plan name
+      this.newGroupTitle = this.data.group || '';
+      await this.loadDaysForGroup();
+      await this.loadWorkoutPlanName();
     }
     await this.loadWorkouts();
   }
@@ -86,11 +85,11 @@ export class CalendarAdvancedEditComponent {
         next: (sessions) => {
           const groupSession = sessions.find(session => session.Advanced_group === this.data.group);
           if (groupSession) {
-            this.workoutPlanName = groupSession.title; // Set the workout plan name
+            this.workoutPlanName = groupSession.title;
           } else {
-            this.workoutPlanName = 'Unknown Plan'; // Fallback if no session is found
+            this.workoutPlanName = 'Unknown Plan';
           }
-          console.log('Loaded workout plan name:', this.workoutPlanName); // Debug log
+          console.log('Loaded workout plan name:', this.workoutPlanName);
           resolve();
         },
         error: (err) => {
@@ -106,8 +105,8 @@ export class CalendarAdvancedEditComponent {
       this.calendarService.getSessions().subscribe({
         next: (sessions) => {
           const groupSessions = sessions.filter(session => session.Advanced_group === this.data.group);
-          this.days = groupSessions.map(session => session.date); // Pre-fill days
-          console.log('Loaded days for group:', this.days); // Debug log
+          this.days = groupSessions.map(session => session.date);
+          console.log('Loaded days for group:', this.days);
           resolve();
         },
         error: (err) => {
@@ -135,7 +134,7 @@ export class CalendarAdvancedEditComponent {
   }
 
   loadExercisesForPlan(planID: number ): Promise<void> {
-    console.log('Loading exercises for planID:', planID); // Debug log
+    console.log('Loading exercises for planID:', planID);
     return new Promise((resolve, reject) => {
       this.workoutService.getExercisesForPlan(planID).subscribe({
         next: (response: Exercise2[]) => {
@@ -172,52 +171,32 @@ export class CalendarAdvancedEditComponent {
     }
   }
 
-  saveNewSeries(): Promise<void> { 
-    const workoutTitle = this.selectedWorkoutTitle.title; // Extract the title
-    console.log('Workout Title:', workoutTitle); // Debug log
+  async saveNewSeries(): Promise<void> { 
+    const workoutTitle = this.selectedWorkoutTitle.title;
+    console.log('Workout Title:', workoutTitle);
 
-    return new Promise((resolve, reject) => {
-      console.log(`${this.isEditMode ? 'Editing' : 'Saving new'} series with data:`, {
-        title: workoutTitle,
-        days: this.days,
-        exercises: this.exercisesList,
-        group: this.newGroupTitle,
-      });
-
-      this.calendarService
-        .saveSessionAndExercises(workoutTitle, this.days, this.exercisesList, this.newGroupTitle)
-        .subscribe({
-          next: () => {
-            console.log(`${this.isEditMode ? 'Edited' : 'New'} series saved successfully.`);
-            this.calendarService.triggerRefresh(); // Notify calendar to refresh
-            this.dialogRef.close(); // Close the dialog
-            resolve();
-          },
-          error: (err) => {
-            console.error(`Error ${this.isEditMode ? 'editing' : 'adding new'} series:`, err);
-            this.calendarService.triggerRefresh(); // Notify calendar to refresh
-            reject(err);
-          },
-        });
+    console.log(`${this.isEditMode ? 'Editing' : 'Saving new'} series with data:`, {
+      title: workoutTitle,
+      days: this.days,
+      exercises: this.exercisesList,
+      group: this.newGroupTitle,
     });
+
+    await this.calendarService.saveSessionAndExercises(workoutTitle, this.days, this.exercisesList, this.newGroupTitle);
+    console.log(`${this.isEditMode ? 'Edited' : 'New'} series saved successfully.`);
+    this.calendarService.triggerRefresh();
+    this.dialogRef.close();
   }
 
-  deleteGroup(): void {
+  async deleteGroup(): Promise<void> {
     if (!this.data.group) {
       console.error('No group specified for deletion.');
       return;
     }
-  
-      this.calendarService.deleteAdvancedGroup(this.data.group).subscribe({
-        next: () => {
-          console.log('Advanced group deleted successfully.');
-          this.calendarService.triggerRefresh(); // Notify calendar to refresh
-          this.dialogRef.close(); // Close the dialog
-        },
-        error: (err) => {
-          console.error('Error deleting advanced group:', err);
-        },
-      });
+    await this.calendarService.deleteAdvancedGroup(this.data.group);
+    console.log('Advanced group deleted successfully.');
+    this.calendarService.triggerRefresh();
+    this.dialogRef.close();
   }
 
   closeDialog(): void {

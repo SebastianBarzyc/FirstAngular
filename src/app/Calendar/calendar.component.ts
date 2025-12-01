@@ -4,8 +4,7 @@ import { CalendarEditComponent } from './calendar-edit.component';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CalendarService } from './calendar.service';
 import { Subject } from 'rxjs';
-import { CalendarAdvancedComponent } from './calendar-advanced.component'; // Import the advanced component
-import { getUser } from '../supabase-client';
+import { CalendarAdvancedComponent } from './calendar-advanced.component';
 
 interface Session {
   session_id: number;
@@ -37,13 +36,12 @@ export class CalendarComponent implements OnInit {
     this.subscribeToRefresh();
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.calendarService.refreshNeeded$.subscribe(() => {
       this.loadSessions();
     });
-    const user = getUser();
     this.loadSessions();
-    this.calendarService.cleanAdvancedGroupSessions();
+    await this.calendarService.cleanAdvancedGroupSessions();
   }
 
   subscribeToRefresh(): void {
@@ -114,7 +112,7 @@ export class CalendarComponent implements OnInit {
     this.calendarService.getSessions().subscribe({
       next: (sessions) => {
         this.sessions = sessions;
-        this.generateCalendar(this.currentDate); // Regenerate calendar
+        this.generateCalendar(this.currentDate);
       },
       error: (err) => {
         console.error('Error loading sessions:', err);

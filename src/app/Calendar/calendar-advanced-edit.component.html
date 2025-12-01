@@ -9,7 +9,7 @@
     <input matInput [(ngModel)]="newGroupTitle" [ngModelOptions]="{ standalone: true }" style="text-align: center;">
   </mat-form-field>
   <p class="fw-bold">Workout:</p>
-  <p *ngIf="isEditMode" class="fw-bold">{{ workoutPlanName }}</p> <!-- Display the workout plan name -->
+  <p *ngIf="isEditMode" class="fw-bold">{{ workoutPlanName }}</p>
   <mat-form-field *ngIf="!isEditMode" appearance="fill" style="width:100%;">
     <mat-label>Workouts</mat-label>
     <mat-select [(ngModel)]="selectedWorkoutTitle" name="workouts" (selectionChange)="loadExercisesForPlan($event.value.id)">

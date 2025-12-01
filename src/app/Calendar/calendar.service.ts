@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, } from '@angular/common/http';
 import { Observable, Subject} from 'rxjs';
 import { supabase, getUser } from '../supabase-client';
-
 
 interface Exercise {
   exercise_id: number;
@@ -22,26 +20,24 @@ interface Set {
 })
 export class CalendarService {
   refreshNeeded$ = new Subject<void>();
-  user: any;
+  user: any = null;
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    this.user = getUser();
+  }
 
   triggerRefresh(): void {
     this.refreshNeeded$.next();
   }
 
+//Observables
+
   getSessions(): Observable<any[]> {
     return new Observable(observer => {
-      const user = getUser();
-      if (!user) {
-        observer.error('Użytkownik nie jest zalogowany.');
-        return;
-      }
-
       supabase
         .from('sessions')
         .select('session_id, date, title, description, Advanced_group')
-        .eq('user_id', user.id)
+        .eq('user_id', this.user.id)
         .order('session_id', { ascending: true })
         .then(({ data, error }) => {
           if (error) {
@@ -57,17 +53,11 @@ export class CalendarService {
 
   getWorkouts(): Observable<any[]> {
     return new Observable((observer) => {
-      const user = getUser();
-  
-      if (!user) {
-        observer.error('Użytkownik nie jest zalogowany.');
-        return;
-      }
   
       supabase
         .from('training_plans')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', this.user.id)
         .order('id', { ascending: true })
         .then(({ data, error }) => {
           if (error) {
@@ -81,218 +71,12 @@ export class CalendarService {
     });
   }  
 
-  addSession(session: { date: string; title: string; description: string }): Observable<any> {
-    return new Observable((observer) => {
-      const user = getUser();
-
-      if (!user) {
-        observer.error('Użytkownik nie jest zalogowany.');
-        return;
-      }
-
-      supabase
-        .from('sessions')
-        .insert({
-          date: session.date,
-          title: session.title,
-          description: session.description,
-          user_id: user.id,
-        })
-        .select('*')
-        .then(({ data, error }) => {
-          if (error) {
-            console.error('Błąd Supabase:', error);
-            observer.error('Wystąpił błąd podczas dodawania sesji.');
-          } else {
-            observer.next({ message: 'Sesja dodana pomyślnie', session: data[0] });
-          }
-          observer.complete();
-        })
-    });
-  }
-
-  getDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  async cleanAdvancedGroupSessions() {
-    const user = getUser();
-    if (!user) {
-      console.error('No active session');
-      return;
-    }
-  
-    const today = this.getDate(new Date());
-  
-    try {
-      const { data, error } = await supabase
-        .from('sessions')
-        .select('session_id, date, Advanced_group')
-        .eq('user_id', user.id)
-        .lt('date', today);
-  
-      if (error) {
-        console.error('Error fetching sessions:', error.message);
-        return;
-      }
-      console.log("CLEARING: ", data, ", day ", today);
-
-  
-      const sessionsToUpdate = data.filter(session => session.Advanced_group !== null);
-  
-      for (const session of sessionsToUpdate) {
-        const { error: updateError } = await supabase
-          .from('sessions')
-          .update({ Advanced_group: null })
-          .eq('session_id', session.session_id);
-  
-        if (updateError) {
-          console.error(`Error updating session ${session.session_id}:`, updateError.message);
-        } else {
-          console.log(`Session ${session.session_id} updated successfully.`);
-        }
-      }
-    } catch (error) {
-      console.error('Unexpected error during session cleanup:', error);
-    }
-  }
-
-  editSession(id: number, newTitle: string, newDescription: string): Observable<any> {
-    return new Observable(observer => {
-      supabase
-        .from('sessions')
-        .update({ title: newTitle, description: newDescription })
-        .eq('session_id', id)
-        .select('*')
-        .then(({ data, error }) => {
-          if (error) {
-            console.error('Błąd edytowania sesji:', error);
-            observer.error('Błąd edytowania sesji: ' + error.message);
-          } else {
-            if (data) {
-              observer.next(data);
-              observer.complete();
-            } else {
-              observer.error('No data returned after update');
-            }
-          }
-        })
-    });
-  }
-  
-  editSession3(exercises: any[], session_id: number): Observable<any> {
-    const user = getUser();
-    if (!user) {
-      console.error('User ID is missing');
-      return new Observable(observer => {
-        observer.error('User ID is missing');
-      });
-    }
-  
-    return new Observable(observer => {
-      supabase
-        .from('session_exercises')
-        .delete()
-        .eq('session_id', session_id)
-        .then(({ error: deleteError }) => {
-          if (deleteError) {
-            console.error('Error deleting existing exercises:', deleteError.message);
-            observer.error('Error deleting existing exercises: ' + deleteError.message);
-            return;
-          }
-  
-          console.log('Deleted existing exercises for session_id:', session_id);
-
-          const exercisesData = exercises.flatMap((exercise, index) => 
-            exercise.sets.map((set: Set) => ({
-              session_id: session_id,
-              user_id: user.id,
-              exercise_id: exercise.exercise_id || 0,
-              exercise_title: exercise.exercise_title || 'Unknown',
-              reps: Number(set.reps) || 0,
-              weight: Number(set.weight) || 0,
-              breakTime: Number(set.breakTime) || 0,
-              order: index
-            }))
-          );
-  
-          console.log('Prepared exercises for insertion:', exercisesData);
-  
-          supabase
-            .from('session_exercises')
-            .insert(exercisesData)
-            .select('*')
-            .then(({ data, error }) => {
-              if (error) {
-                console.error('Error inserting new exercises:', error.message);
-                observer.error('Error inserting new exercises: ' + error.message);
-                return;
-              }
-  
-              console.log('Inserted exercises:', data); // Debug log
-              observer.next(data);
-              observer.complete();
-            });
-        });
-    });
-  }  
-
-  deleteSession(id: number): Observable<any> {  
-    const user = getUser();
-    if (!user) {
-      return new Observable(observer => {
-        observer.error('User ID is missing');
-      });
-    }
-  
-    return new Observable(observer => {
-      supabase
-        .from('session_exercises')
-        .delete()
-        .eq('session_id', id)
-        .then(({ data: sessionExercisesData, error: sessionExercisesError }) => {
-          if (sessionExercisesError) {
-            console.error('Error deleting from session_exercises:', sessionExercisesError);
-            observer.error(sessionExercisesError.message);
-            return;
-          }
-  
-          supabase
-            .from('sessions')
-            .delete()
-            .eq('session_id', id)
-            .then(({ data: sessionData, error: sessionError }) => {
-              if (sessionError) {
-                console.error('Error deleting from sessions:', sessionError);
-                observer.error(sessionError.message);
-                return;
-              }
-  
-              if (sessionData || sessionExercisesData) {
-                console.log('Session deleted successfully');
-                observer.next({ message: 'Session deleted successfully' });
-                observer.complete();
-              } else {
-                console.log('Session not found');
-                observer.next({ message: 'Session not found' });
-                observer.complete();
-              }
-            })
-        })
-    });
-  }
-  
   getExercises(): Observable<any> {
-    const user = getUser();
-  
     return new Observable(observer => {
       supabase
         .from('exercises')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', this.user.id)
         .order('id', { ascending: true })
         .then(({ data, error }) => {
           if (error) {
@@ -369,16 +153,11 @@ export class CalendarService {
   }  
 
   getAdvancedGroups(): Observable<string[]> {
-    const user = getUser();
-    if (!user) {
-      throw new Error('User is not logged in.');
-    }
-  
     return new Observable((observer) => {
       supabase
         .from('sessions')
         .select('Advanced_group')
-        .eq('user_id', user.id)
+        .eq('user_id', this.user.id)
         .not('Advanced_group', 'is', null)
         .then(({ data, error }) => {
           if (error) {
@@ -387,10 +166,9 @@ export class CalendarService {
             return;
           }
   
-          console.log('Fetched Advanced_group values:', data); // Debug log
+          console.log('Fetched Advanced_group values:', data);
   
           if (data) {
-            // Extract unique values
             const uniqueGroups = Array.from(
               new Set(data.map((row) => row.Advanced_group))
             );
@@ -404,153 +182,284 @@ export class CalendarService {
     });
   }
 
-  convertDateToDatabaseFormat(date: string): string {
-    const [day, month, year] = date.split('.');
-    return `${year}-${month}-${day}`; // Convert DD.MM.YYYY to YYYY-MM-DD
+//Promises
+
+  async addSession(session: { date: string; title: string; description: string }): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .insert({
+          date: session.date,
+          title: session.title,
+          description: session.description,
+          user_id: this.user.id,
+        })
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Błąd Supabase:', error);
+        throw error;
+      }
+
+      return { message: 'Sesja dodana pomyślnie', session: data };
+    } catch (error) {
+      console.error('Nieoczekiwany błąd:', error);
+      throw error;
+    }
   }
 
-  saveSessionAndExercises(
+  async cleanAdvancedGroupSessions(): Promise<any> {
+    const today = this.getDate(new Date());
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('session_id, date, Advanced_group')
+        .eq('user_id', this.user.id)
+        .lt('date', today);
+  
+      if (error) {
+        console.error('Error fetching sessions:', error.message);
+        return;
+      }
+      console.log("CLEARING: ", data, ", day ", today);
+
+      const sessionsToUpdate = data.filter(session => session.Advanced_group !== null);
+  
+      for (const session of sessionsToUpdate) {
+        const { error: updateError } = await supabase
+          .from('sessions')
+          .update({ Advanced_group: null })
+          .eq('session_id', session.session_id);
+  
+        if (updateError) {
+          console.error(`Error updating session ${session.session_id}:`, updateError.message);
+        } else {
+          console.log(`Session ${session.session_id} updated successfully.`);
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error during session cleanup:', error);
+    }
+  }
+
+  async editSession(id: number, newTitle: string, newDescription: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .update({ title: newTitle, description: newDescription })
+        .eq('session_id', id)
+        .select('*')
+        if (error) {
+          console.error('Błąd edytowania sesji:', error);
+        }else {
+          return data;
+        }
+    }catch (error) {
+      console.error('Nieoczekiwany błąd podczas edytowania sesji:', error);
+      throw error;
+    }
+  }
+  
+  async editSession3(exercises: any[], session_id: number): Promise<any> {
+    try {
+      const { error: deleteError } = await supabase
+        .from('session_exercises')
+        .delete()
+        .eq('session_id', session_id)
+        if (deleteError) {
+          console.error('Error deleting existing exercises:', deleteError.message);
+        }else {
+          console.log('Deleted existing exercises for session_id:', session_id);
+
+          const exercisesData = exercises.flatMap((exercise, index) => 
+            exercise.sets.map((set: Set) => ({
+              session_id: session_id,
+              user_id: this.user.id,
+              exercise_id: exercise.exercise_id || 0,
+              exercise_title: exercise.exercise_title || 'Unknown',
+              reps: Number(set.reps) || 0,
+              weight: Number(set.weight) || 0,
+              breakTime: Number(set.breakTime) || 0,
+              order: index
+            }))
+          );
+  
+          console.log('Prepared exercises for insertion:', exercisesData);
+            const { data: insertData, error: insertError } = await supabase
+              .from('session_exercises')
+              .insert(exercisesData)
+              .select('*')
+              if (insertError) {
+                console.error('Error inserting new exercises:', insertError.message);
+                return;
+              }
+              console.log('Inserted exercises:', insertData);
+              return insertData;
+        } 
+    }catch (deleteError) {
+      console.error('Unexpected error during editing session exercises:', deleteError);
+      throw deleteError;
+    }
+  }
+
+  async deleteSession(id: number): Promise<any> {  
+    try {      
+      const { data: sessionExercisesData, error: sessionExercisesError } = await supabase
+        .from('session_exercises')
+        .delete()
+        .eq('session_id', id)
+        if (sessionExercisesError) {
+          console.error('Error deleting from session_exercises:', sessionExercisesError);
+          return;
+        }else{
+          const { data: sessionData, error: sessionError } = await supabase
+            .from('sessions')
+            .delete()
+            .eq('session_id', id)
+              if (sessionError) {
+                console.error('Error deleting from sessions:', sessionError);
+                return;
+              }else{
+              if (sessionData || sessionExercisesData) {
+                console.log('Session deleted successfully');
+                return { message: 'Session deleted successfully' };
+              } else {
+                console.log('Session not found');
+                return { message: 'Session not found' };
+              }
+            }
+        }
+    } catch (error) {
+      console.error('Unexpected error during session deletion:', error);
+      throw error;
+    }
+  }
+
+  async saveSessionAndExercises(
     title: string,
     days: string[],
     exercises: any[],
     group: string
-  ): Observable<void> {
-    const user = getUser();
-    if (!user) {
-      throw new Error('User is not logged in.');
-    }
+  ): Promise<void> {
+    try {
+      for (const day of days) {
+        const formattedDate = this.convertDateToDatabaseFormat(day);
+        const { data: sessionData, error: sessionError } = await supabase
+          .from('sessions')
+          .insert({
+            user_id: this.user.id,
+            title: title,
+            date: formattedDate,
+            description: `Advanced group: ${group}`,
+            Advanced_group: group,
+          })
+          .select('*')
+          .single();
   
-    return new Observable((observer) => {
-      (async () => {
-        try {
-          for (const day of days) {
-            const formattedDate = this.convertDateToDatabaseFormat(day); // Convert date format for database
-  
-            const { data: sessionData, error: sessionError } = await supabase
-              .from('sessions')
-              .insert({
-                user_id: user.id,
-                title: title,
-                date: formattedDate, // Use the converted date format
-                description: `Advanced group: ${group}`,
-                Advanced_group: group,
-              })
-              .select('*')
-              .single();
-  
-            if (sessionError) {
-              console.error('Error inserting session:', sessionError.message);
-              observer.error(sessionError);
-              return;
-            }
-  
-            if (!sessionData || !sessionData.session_id) {
-              console.error('Session data is invalid or missing:', sessionData);
-              observer.error('Session data is invalid or missing.');
-              return;
-            }
-  
-            console.log('Session data:', sessionData);
-            console.log('Exercises to insert:', exercises);
-            const exercisesToInsert = exercises.map((exercise) => ({
-              session_id: sessionData.session_id,
-              user_id: user.id,
-              exercise_id: exercise.exercise_id,
-              exercise_title: exercise.exercise_title,
-              reps: exercise.reps || 0,
-              weight: exercise.weight || 0,
-              order: exercise.order || 0,
-              breakTime: exercise.breakTime || 0,
-            }));
-  
-            if (exercisesToInsert.length > 0) {
-              const { error: exercisesError } = await supabase
-                .from('session_exercises')
-                .insert(exercisesToInsert);
-            
-              if (exercisesError) {
-                console.error('Error inserting into session_exercises:', exercisesError.message);
-                observer.error(exercisesError);
-                return;
-              } else {
-                console.log('Inserted exercises for session:', sessionData.session_id);
-              }
-            } else {
-              console.log('No exercises to insert for session:', sessionData.session_id);
-            }
-          }
-  
-          console.log('All changes saved successfully.');
-          observer.next();
-          observer.complete();
-        } catch (error) {
-          console.error('Error saving changes:', error);
-          observer.error(error);
+        if (sessionError) {
+          console.error('Error inserting session:', sessionError.message);
+          return;
         }
-      })();
-    });
+  
+        if (!sessionData || !sessionData.session_id) {
+          console.error('Session data is invalid or missing:', sessionData);
+          return;
+        }
+  
+        console.log('Session data:', sessionData);
+        console.log('Exercises to insert:', exercises);
+        const exercisesToInsert = exercises.map((exercise) => ({
+          session_id: sessionData.session_id,
+          user_id: this.user.id,
+          exercise_id: exercise.exercise_id,
+          exercise_title: exercise.exercise_title,
+          reps: exercise.reps || 0,
+          weight: exercise.weight || 0,
+          order: exercise.order || 0,
+          breakTime: exercise.breakTime || 0,
+        }));
+  
+        if (exercisesToInsert.length > 0) {
+          const { error: exercisesError } = await supabase
+            .from('session_exercises')
+            .insert(exercisesToInsert);
+            
+          if (exercisesError) {
+            console.error('Error inserting into session_exercises:', exercisesError.message);
+            return;
+          } else {
+            console.log('Inserted exercises for session:', sessionData.session_id);
+          }
+        } else {
+          console.log('No exercises to insert for session:', sessionData.session_id);
+        }
+      }
+  
+      console.log('All changes saved successfully.');
+    } catch (error) {
+      console.error('Unexpected error during saving session and exercises:', error);
+      throw error;
+    }
   }
 
-  deleteAdvancedGroup(group: string): Observable<void> {
-    const user = getUser();
-    if (!user.id) {
-      throw new Error('User is not logged in.');
+  async deleteAdvancedGroup(group: string): Promise<void> {
+    try {
+      const { data: sessions, error: fetchError } = await supabase
+        .from('sessions')
+        .select('session_id')
+        .eq('user_id', this.user.id)
+        .eq('Advanced_group', group);
+  
+      if (fetchError) {
+        console.error('Error fetching sessions for advanced group:', fetchError.message);
+        return;
+      }
+  
+      if (!sessions || sessions.length === 0) {
+        console.warn('No sessions found for the advanced group:', group);
+        return;
+      }
+  
+      const sessionIds = sessions.map((session) => session.session_id);
+      const { error: deleteExercisesError } = await supabase
+        .from('session_exercises')
+        .delete()
+        .in('session_id', sessionIds);
+  
+      if (deleteExercisesError) {
+        console.error('Error deleting exercises for advanced group:', deleteExercisesError.message);
+        return;
+      }
+  
+      const { error: deleteSessionsError } = await supabase
+        .from('sessions')
+        .delete()
+        .in('session_id', sessionIds);
+  
+      if (deleteSessionsError) {
+        console.error('Error deleting sessions for advanced group:', deleteSessionsError.message);
+        return;
+      }
+  
+      console.log('Advanced group deleted successfully:', group);
+    } catch (error) {
+      console.error('Error deleting advanced group:', error);
     }
-  
-    return new Observable((observer) => {
-      (async () => {
-        try {
-          const { data: sessions, error: fetchError } = await supabase
-            .from('sessions')
-            .select('session_id')
-            .eq('user_id', user.id)
-            .eq('Advanced_group', group);
-  
-          if (fetchError) {
-            console.error('Error fetching sessions for advanced group:', fetchError.message);
-            observer.error(fetchError);
-            return;
-          }
-  
-          if (!sessions || sessions.length === 0) {
-            console.warn('No sessions found for the advanced group:', group);
-            observer.next();
-            observer.complete();
-            return;
-          }
-  
-          const sessionIds = sessions.map((session) => session.session_id);
-  
-          const { error: deleteExercisesError } = await supabase
-            .from('session_exercises')
-            .delete()
-            .in('session_id', sessionIds);
-  
-          if (deleteExercisesError) {
-            console.error('Error deleting exercises for advanced group:', deleteExercisesError.message);
-            observer.error(deleteExercisesError);
-            return;
-          }
-  
-          const { error: deleteSessionsError } = await supabase
-            .from('sessions')
-            .delete()
-            .in('session_id', sessionIds);
-  
-          if (deleteSessionsError) {
-            console.error('Error deleting sessions for advanced group:', deleteSessionsError.message);
-            observer.error(deleteSessionsError);
-            return;
-          }
-  
-          console.log('Advanced group deleted successfully:', group);
-          observer.next();
-          observer.complete();
-        } catch (error) {
-          console.error('Error deleting advanced group:', error);
-          observer.error(error);
-        }
-      })();
-    });
   }
+
+  //Other methods
+
+  getDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  convertDateToDatabaseFormat(date: string): string {
+    const [day, month, year] = date.split('.');
+    return `${year}-${month}-${day}`;
+  }
+
 }
