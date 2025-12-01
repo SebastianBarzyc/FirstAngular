@@ -42,6 +42,7 @@ export class ProfileComponent implements OnInit {
   userExercises: any[] = [];
   userExercisesSelected: any[] = [];
   showExerciseSelection = false;
+  doneSessionsList: any[] = [];
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef, public dialog: MatDialog, private router: Router) {
     supabase.auth.onAuthStateChange((event, session) => {
@@ -66,7 +67,8 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  loadUserProfile() {
+  async loadUserProfile() {
+    this.doneSessionsList = await this.doneSessions(this.userId);
     this.getTotalSessions();
     this.getTotalWeights();
     this.getConsecutiveSessions();
@@ -78,7 +80,7 @@ export class ProfileComponent implements OnInit {
     supabase.auth.signOut().then(() => {
       this.session = null;
       localStorage.removeItem('session');
-      window.location.reload(); // Refresh the page after logout
+      window.location.reload();
     });
   }
 
@@ -94,20 +96,11 @@ export class ProfileComponent implements OnInit {
   }
 
   getTotalSessions() {
-    if (!this.user) {
-      console.error('No active session');
-      return;
-    }
-  
-    if (!this.userId) {
-      console.error('Failed to get userId from session');
-      return;
-    }
-  
+    const sessionIds = this.doneSessionsList.map(session => session);
     supabase
       .from('sessions')
       .select('date', { count: 'exact', head: true })
-      .eq('user_id', this.userId)
+      .in('session_id', sessionIds)
       .then(({ count, error }) => {
         if (error) {
           console.error('Error fetching sessions:', error.message);
@@ -117,53 +110,54 @@ export class ProfileComponent implements OnInit {
         this.cdr.detectChanges();
       });
   }
-  
-  getTotalWeights() {
-    if (!this.user) {
-      console.error('No active session');
-      return;
+
+  async doneSessions(userId: string): Promise<any[]>{
+    const { data, error} = await supabase
+      .from('sessions')
+      .select('session_id')
+      .eq('user_id', userId)
+      .gt('duration', 0);
+
+    if (error) {
+      console.error('Error fetching sessions:', error.message);
+      return [];
     }
-  
-    if (!this.userId) {
-      console.error('Failed to get userId from session');
-      return;
+
+    if (!data || data.length === 0) {
+      console.error('No sessions found');
+      return [];
     }
+    console.log('Done sessions fetched:', data);
+    return data.map(session => session.session_id);
+  }
   
-    supabase
+  async getTotalWeights() {
+    const sessionIds = this.doneSessionsList.map(session => session);
+    const { data: weights, error: weightError } = await supabase
       .from('session_exercises')
       .select('weight')
-      .eq('user_id', this.userId)
-      .then(({ data, error }) => {
-        if (error) {
-          console.error('Error fetching weight data:', error.message);
-          return;
-        }
-  
-        if (!data || data.length === 0) {
-          console.error('No session data for this user');
-          return;
-        }
-  
-        const totalWeights = data.reduce((sum, row) => sum + (row.weight || 0), 0);
-        this.totalWeights = totalWeights;
-      });
+      .in('session_id', sessionIds);
+
+    if (weightError) {
+      console.error('Error fetching weight data:', weightError.message);
+      return;
+    }
+
+    if (!weights || weights.length === 0) {
+      console.error('No weight entries for these sessions');
+      return;
+    }
+
+    this.totalWeights = weights.reduce((sum, row) => sum + (row.weight || 0), 0);
   }
 
   getConsecutiveSessions() {
-    if (!this.user) {
-      console.error('No active session');
-      return;
-    }
-  
-    if (!this.userId) {
-      console.error('Failed to get userId from session');
-      return;
-    }
-  
+    const sessionIds = this.doneSessionsList.map(session => session);
+
     supabase
       .from('sessions')
       .select('session_id, date')
-      .eq('user_id', this.userId)
+      .in('session_id', sessionIds)
       .lte('date', new Date().toISOString().split('T')[0])
       .then(({ data, error }) => {
         if (error) {
@@ -201,20 +195,11 @@ export class ProfileComponent implements OnInit {
   }
 
   getRecentWorkouts() {    
-    if (!this.user) {
-      console.error('No active session');
-      return;
-    }
-
-    if (!this.userId) {
-      console.error('Failed to get userId from session');
-      return;
-    }
-
+    const sessionIds = this.doneSessionsList.map(session => session);
     supabase
       .from('sessions')
       .select('title, date')
-      .eq('user_id', this.userId)
+      .in('session_id', sessionIds)
       .order('date', { ascending: false })
       .then(({ data, error }) => {
         if (error) {

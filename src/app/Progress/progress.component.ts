@@ -2,15 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { NgxChartsModule, TooltipModule } from '@swimlane/ngx-charts';
 import { FormsModule } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core'; // For native date adapter
-import { MatInputModule } from '@angular/material/input'; // Import MatInputModule
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
 import { supabase, getUser } from '../supabase-client';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { Router } from '@angular/router';
+import { ProfileComponent } from '../Profile/profile.component';
 
-// Define interfaces outside the component
 interface ChartDetails {
-  [key: string]: number[]; // e.g., "reps10": [100, 110, 120]
+  [key: string]: number[];
 }
 
 interface ChartSeries {
@@ -36,23 +35,29 @@ interface ChartData {
     MatInputModule,
   ],
   templateUrl: './progress.component.html',
+  providers: [ProfileComponent],
 })
+
 export class ProgressComponent implements OnInit {
   chartData: ChartData[] = [];
   startDate: Date | null = null;
   endDate: Date | null = null;
+  doneSessionsList: any[] = [];
 
   constructor(
-    private router: Router
+    private router: Router,
+    private profileComponent: ProfileComponent,
   ) {}
 
   async ngOnInit() {
     const user = await getUser();
-    await this.fetchChartData(user.id);
     if (getUser() === null) {
       console.error('User ID is null, cannot add exercise.');
       this.router.navigate(['/Profile']);
     }
+    this.doneSessionsList = await this.profileComponent.doneSessions(user?.id);
+    console.log('Done Sessions List:', this.doneSessionsList);
+    await this.fetchChartData();
   }
 
   get filteredChartData(): ChartData[] {
@@ -72,12 +77,13 @@ export class ProgressComponent implements OnInit {
     }));
   }
 
-  async fetchChartData(userId: string) {
+  async fetchChartData() {
     try {
+      const sessionIds = this.doneSessionsList.map(session => session);
       const { data: sessions, error: sessionsError } = await supabase
         .from('sessions')
         .select('session_id, date')
-        .eq('user_id', userId);
+        .in('session_id', sessionIds);
 
       if (sessionsError) throw sessionsError;
 
