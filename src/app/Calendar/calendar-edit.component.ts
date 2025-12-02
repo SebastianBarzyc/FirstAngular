@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CalendarService} from './calendar.service';
 import { MatOptionModule } from '@angular/material/core';
-import { Subject, Subscription} from 'rxjs';
+import { Subscription} from 'rxjs';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { CalendarItemComponent } from "./calendar-item.component";
@@ -31,7 +31,6 @@ interface Exercise {
   order: number;
   exercise_id: number;
   exercise_title: string;
-  title: string;
   sets: Set[];
 }
 
@@ -46,7 +45,6 @@ interface Exercise2 {
   order: number;
   exercise_id: number;
   exercise_title: string;
-  title: string;
   sets: number;
   reps: [];
   breakTimes: [];
@@ -71,21 +69,21 @@ interface Exercise2 {
 })
 
 export class CalendarEditComponent implements OnInit, AfterViewInit {
-  refreshNeeded$!: Subject<void>;
   exercises: Exercise[] = [];
   exercisesList: Exercise[] = [];
   workouts: Workout[] = [];
   sessions: Session[] = [];
   selectedWorkoutTitle: string = '';
-  currentSession: Session | null = null; // Cache current session
+  currentSession: Session | null = null;
   newSession = {
     date: this.getDate(),
     title: '',
     description: ''
   };
+  maxIdSession: number = 0;
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { date: Date, refreshNeeded$: Subject<void> },
+    @Inject(MAT_DIALOG_DATA) public data: { date: Date},
     private calendarService: CalendarService,
     public dialogRef: MatDialogRef<CalendarEditComponent>,
     private workoutService: WorkoutService,
@@ -97,6 +95,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   @ViewChildren('textarea') textareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
 
   async ngOnInit(): Promise<void> {
+    this.getMaxSessionId();
     console.log("CalendarEditComponent - data received:", this.data);
     await this.loadSessionsAsync();
     this.currentSession = this.getSessionOrEmpty();
@@ -186,21 +185,17 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     }
   }
 
-  getMaxSessionId(): number {
-    if (this.sessions.length === 0) {
-      return 0;
-    }
-    const maxId = Math.max(...this.sessions.map(session => session.session_id));
-    console.log("Max Session ID:", maxId);
-    return maxId;
-  }
+  async Delete(id: number): Promise<void> {
+    try {
+      console.log("deleteid: ", id);
 
-  async Delete(id: number): Promise<void>  {
-    console.log("deleteid: ",id);
-    const response = await this.calendarService.deleteSession(id);
-    console.log("Session deleted: ", response);
-    this.refreshNeeded$.next();
-    this.dialogRef.close();
+      const response = await this.calendarService.deleteSession(id);
+      console.log("Session deleted: ", response);
+      this.dialogRef.close();
+
+    } catch (error) {
+      console.error('Error deleting session:', error);
+    }
   }
 
   async Save(session: any): Promise<void> {
@@ -210,13 +205,13 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
       this.router.navigate(['/Profile']);
       return;
     } else {
-      const newSessionId = this.getMaxSessionId() + 1;
+      const newSessionId = this.maxIdSession + 1;
       const sessionToSave = {
         ...session,
         title: this.newSession.title || session.title,
         description: this.newSession.description || session.description,
         date: this.newSession.date || session.date,
-        session_id: newSessionId
+        session_id: this.currentSession?.session_id || newSessionId
       };
     
       if (sessionToSave.session_id == newSessionId) {
@@ -243,11 +238,16 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     }
   }
 
+  getMaxSessionId(){
+    this.calendarService.getMaxSessionId().subscribe(maxId => {
+      this.maxIdSession = maxId;
+    });
+  }
+
   async createSession(session: any): Promise<void> {
     console.log("create: ",session);
     try {
       const response = await this.calendarService.addSession(session);
-          this.refreshNeeded$.next();
           console.log('Session created:', 'Date: ', session.date, 'Title: ', session.title, 'Description: ', session.description);
     } catch (error) {
       console.error('Unexpected error during session creation:', error);
@@ -256,23 +256,11 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
 
   async updateSession(session: any): Promise<void> {
     const response = await this.calendarService.editSession(session.session_id, session.title, session.description);
-    this.refreshNeeded$.next();
     console.log('Response from server (updateSession):', response);
     this.dialogRef.close();
   }
 
-  updateExerciseTitle(): void {
-    this.exercisesList.forEach(ex => {
-      if (ex.exercise_id === 0) {
-        const matchingExercise = this.exercises.find(exercise => exercise.title === ex.exercise_title);
-        if (matchingExercise) {
-          ex.exercise_id = matchingExercise.exercise_id;
-        }
-      }
-    });
-  
-    console.log("Updated exercises list:", this.exercisesList);
-  }
+ 
   
   autoResize(textarea: HTMLTextAreaElement) {
     textarea.style.height = 'auto';
@@ -305,7 +293,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     const newExercise: Exercise = {
       exercise_id: 0,
       exercise_title: '', 
-      title: this.currentSession?.title || '',
       sets: [
         { reps: 0, weight: 0, breakTime: 0 }
       ],
@@ -321,11 +308,10 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     if(session.session_id){
       this.calendarService.getExercisesList(session.session_id).subscribe({
         next: (response) => {
-          this.exercisesList = response.map((exercise: any) => ({
+          this.exercisesList = response.map((exercise: Exercise) => ({
             order: exercise.order,
             exercise_id: exercise.exercise_id,
             exercise_title: exercise.exercise_title,
-            title: exercise.title ?? '',
             sets: exercise.sets ?? []
           }));
           setTimeout(() => {
@@ -370,15 +356,17 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
         next: (response) => {
           console.log('Received raw exercises for planID:', planID, response);
   
-          this.exercisesList = response.map((exercise: Exercise2) => ({
+          this.exercisesList = response.map((exercise: Exercise2, index: number) => ({
             exercise_id: exercise.exercise_id,
             exercise_title: exercise.exercise_title,
             sets: Array.isArray(exercise.reps)
-              ? exercise.reps.map((rep, index) => ({ reps: rep, weight: 0, breakTime: exercise.breakTimes[index] || 0 }))
+              ? exercise.reps.map((rep, i) => ({
+                  reps: rep,
+                  weight: 0,
+                  breakTime: exercise.breakTimes[i] || 0
+                }))
               : [],
-            id: this.exercisesList.length > 0 
-              ? Math.max(...this.exercisesList.map(ex => ex.order)) + 1 
-              : 1
+            order: index
           }));
   
           console.log('Transformed exercises list:', this.exercisesList);

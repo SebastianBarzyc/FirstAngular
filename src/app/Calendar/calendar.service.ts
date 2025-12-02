@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { catchError, from, map, Observable, Subject, throwError} from 'rxjs';
+import { catchError, from, map, firstValueFrom, Observable, Subject, throwError} from 'rxjs';
 import { supabase, getUser } from '../supabase-client';
+
 
 interface Exercise {
   exercise_id: number;
@@ -32,24 +33,24 @@ export class CalendarService {
 
 //Observables
 
-getSessions(): Observable<any[]> {
-  return from(
-    supabase
-      .from('sessions')
-      .select('session_id, date, title, description, Advanced_group')
-      .eq('user_id', this.user.id)
-      .order('session_id', { ascending: true })
-  ).pipe(
-    map(({ data, error }) => {
-      if (error) throw error;
-      return data || [];
-    }),
-    catchError(error => {
-      console.error("Error fetching sessions:", error);
-      return throwError(() => new Error("Wystąpił błąd podczas pobierania sesji."));
-    })
-  );
-}
+  getSessions(): Observable<any[]> {
+    return from(
+      supabase
+        .from('sessions')
+        .select('session_id, date, title, description, Advanced_group')
+        .eq('user_id', this.user.id)
+        .order('session_id', { ascending: true })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return data || [];
+      }),
+      catchError(error => {
+        console.error("Error fetching sessions:", error);
+        return throwError(() => new Error("Wystąpił błąd podczas pobierania sesji."));
+      })
+    );
+  }
 
   getWorkouts(): Observable<any[]> {
     return from(
@@ -293,33 +294,31 @@ getSessions(): Observable<any[]> {
     }
   }
 
-  async deleteSession(id: number): Promise<any> {  
-    try {      
-      const { data: sessionExercisesData, error: sessionExercisesError } = await supabase
+  async deleteSession(id: number): Promise<{ message: string }> {
+    try {
+      const { error: sessionExercisesError } = await supabase
         .from('session_exercises')
         .delete()
-        .eq('session_id', id)
-        if (sessionExercisesError) {
-          console.error('Error deleting from session_exercises:', sessionExercisesError);
-          return;
-        }else{
-          const { data: sessionData, error: sessionError } = await supabase
-            .from('sessions')
-            .delete()
-            .eq('session_id', id)
-              if (sessionError) {
-                console.error('Error deleting from sessions:', sessionError);
-                return;
-              }else{
-              if (sessionData || sessionExercisesData) {
-                console.log('Session deleted successfully');
-                return { message: 'Session deleted successfully' };
-              } else {
-                console.log('Session not found');
-                return { message: 'Session not found' };
-              }
-            }
-        }
+        .eq('session_id', id);
+
+      if (sessionExercisesError) {
+        console.error('Error deleting from session_exercises:', sessionExercisesError);
+        return { message: 'Failed to delete session exercises' };
+      }
+
+      const { error: sessionError } = await supabase
+        .from('sessions')
+        .delete()
+        .eq('session_id', id);
+
+      if (sessionError) {
+        console.error('Error deleting from sessions:', sessionError);
+        return { message: 'Failed to delete session' };
+      }
+
+      console.log('Session deleted successfully');
+      return { message: 'Session deleted successfully' };
+
     } catch (error) {
       console.error('Unexpected error during session deletion:', error);
       throw error;
@@ -333,11 +332,14 @@ getSessions(): Observable<any[]> {
     group: string
   ): Promise<void> {
     try {
-      for (const day of days) {
+      const maxIdSession = await firstValueFrom(this.getMaxSessionId());
+
+      for (const [index, day] of days.entries()) {
         const formattedDate = this.convertDateToDatabaseFormat(day);
         const { data: sessionData, error: sessionError } = await supabase
           .from('sessions')
           .insert({
+            session_id: maxIdSession + index + 1,
             user_id: this.user.id,
             title: title,
             date: formattedDate,
@@ -359,16 +361,17 @@ getSessions(): Observable<any[]> {
   
         console.log('Session data:', sessionData);
         console.log('Exercises to insert:', exercises);
-        const exercisesToInsert = exercises.map((exercise) => ({
+        const exercisesToInsert = exercises.flatMap((exercise) => 
+          exercise.sets.map((set: Set) => ({
           session_id: sessionData.session_id,
           user_id: this.user.id,
           exercise_id: exercise.exercise_id,
           exercise_title: exercise.exercise_title,
-          reps: exercise.reps || 0,
-          weight: exercise.weight || 0,
+          reps: set.reps || 0,
+          weight: set.weight || 0,
           order: exercise.order || 0,
-          breakTime: exercise.breakTime || 0,
-        }));
+          breakTime: set.breakTime || 0,
+        })));
   
         if (exercisesToInsert.length > 0) {
           const { error: exercisesError } = await supabase
@@ -450,6 +453,15 @@ getSessions(): Observable<any[]> {
   convertDateToDatabaseFormat(date: string): string {
     const [day, month, year] = date.split('.');
     return `${year}-${month}-${day}`;
+  }
+
+  getMaxSessionId(): Observable<number> {
+    return this.getSessions().pipe(
+      map(sessions => {
+        if (sessions.length === 0) return 0;
+        return Math.max(...sessions.map(s => s.session_id));
+      })
+    );
   }
 
 }

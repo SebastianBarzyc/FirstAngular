@@ -18,7 +18,6 @@ interface Set {
 interface Exercise {
   exercise_id: number;
   exercise_title: string;
-  title: string;
   reps?: number[];
   sets: Set[];
   order: number;
@@ -46,11 +45,11 @@ export class CalendarItemComponent implements OnInit{
   ) {}
   @Output() removeExerciseEvent = new EventEmitter<number>();
   @Input() exercise!: Exercise;
-  @Input() index: number = 0;
   allExercises: any[] = [];
 
   async ngOnInit(): Promise<void> {
     await this.loadExercises();
+    console.log("Initialized exercise item:", this.exercise);
   }
 
   private processExerciseSets(): void {

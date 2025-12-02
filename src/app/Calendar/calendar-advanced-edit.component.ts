@@ -13,12 +13,12 @@ import { DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 
 interface Exercise2 {
-  id: number;
+  order: number;
   exercise_id: number;
   exercise_title: string;
-  title: string;
-  sets: Set[];
-  reps: []
+  sets: number;
+  reps: [];
+  breakTimes: [];
 }
 
 interface Set {
@@ -29,10 +29,9 @@ interface Set {
 }
 
 interface Exercise {
-  id: number;
+  order: number;
   exercise_id: number;
   exercise_title: string;
-  title: string;
   sets: Set[];
 }
 
@@ -51,6 +50,7 @@ interface Exercise {
     FormsModule,
     MatOption,
   ],
+  providers: [DatePipe],
 })
 export class CalendarAdvancedEditComponent {
   workouts: any[] = [];
@@ -60,6 +60,7 @@ export class CalendarAdvancedEditComponent {
   exercisesList: Exercise[] = [];
   isEditMode: boolean = false;
   workoutPlanName: string = '';
+  maxIdSession: number = 0;
 
   constructor(
     private calendarService: CalendarService,
@@ -127,16 +128,19 @@ export class CalendarAdvancedEditComponent {
         next: (response: Exercise2[]) => {
           console.log('Received raw exercises for planID:', planID, response);
   
-          this.exercisesList = response.map((exercise: Exercise2) => ({
+          this.exercisesList = response.map((exercise: Exercise2, index: number) => ({
             exercise_id: exercise.exercise_id,
             exercise_title: exercise.exercise_title,
-            title: exercise.title,
-            sets: exercise.reps.map(rep => ({ reps: rep, weight: 0 })),
-            id: this.exercisesList.length > 0 
-              ? Math.max(...this.exercisesList.map(ex => ex.id)) + 1 
-              : 1
+            sets: exercise.reps.map((rep, repIndex) => ({ reps: rep, weight: 0, breakTime: exercise.breakTimes[repIndex] || 0 })),
+            order: this.maxIdSession + index + 1
           }));    
       }});
+  }
+
+  getMaxSessionId(){
+    this.calendarService.getMaxSessionId().subscribe(maxId => {
+      this.maxIdSession = maxId;
+    });
   }
 
   getDays(choosenDay: number): void {

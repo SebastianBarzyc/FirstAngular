@@ -33,8 +33,7 @@
   <div *ngFor="let exercise of exercisesList">
     <calendar-item
       [exercise]="exercise"
-      (removeExerciseEvent)="removeExercise($event)"
-      (updateExercise)="updateExerciseTitle()">
+      (removeExerciseEvent)="removeExercise($event)">
     </calendar-item>
   </div>
 </mat-dialog-content>
