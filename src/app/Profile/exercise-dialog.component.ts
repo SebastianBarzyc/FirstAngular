@@ -21,8 +21,7 @@ export class ExerciseDialogComponent {
   ) {}
 
   ngOnInit(){
-    console.log('Available Exercises:', this.data.availableExercises);
-    console.log('Selected Exercises:', this.data.selectedExercises);
+    console.log("data: ", this.data);
   }
 
   toggleExerciseSelection(exercise: any) {

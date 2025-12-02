@@ -55,7 +55,10 @@ export class ProgressComponent implements OnInit {
       console.error('User ID is null, cannot add exercise.');
       this.router.navigate(['/Profile']);
     }
-    this.doneSessionsList = await this.profileComponent.doneSessions(user?.id);
+    this.profileComponent.doneSessions(user?.id).subscribe({
+      next: data => this.doneSessionsList = data,
+      error: err => console.error(err)
+    });
     console.log('Done Sessions List:', this.doneSessionsList);
     await this.fetchChartData();
   }
