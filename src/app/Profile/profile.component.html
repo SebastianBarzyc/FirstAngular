@@ -1,11 +1,10 @@
 <div class="mainContent text-center">
   <div class="profile-page" *ngIf="isLoggedIn; else loginTemplate">
-    <!-- Profile Header -->
+
     <div class="profile-header" *ngIf="displayName">
       <h1>Welcome, {{ displayName }}!</h1>
     </div>
   
-    <!-- Statistics -->
     <div class="stats">
       <div class="stat-card">
         <h2>Workouts</h2>
@@ -21,7 +20,6 @@
       </div>
     </div>
   
-    <!-- Activity History -->
     <div class="activity-history">
       <h2>Recent Workouts</h2>
       <ul>
@@ -32,7 +30,6 @@
       </ul>
     </div>
   
-    <!-- Goals -->
     <div class="goals">
       <h2>Goals</h2>
       <div *ngIf="showExerciseSelection">
@@ -71,7 +68,6 @@
       </div>
     </div>
   
-    <!-- Settings -->
     <div class="settings">
       <button class="btn" [ngClass]="{'btn-primary': showExerciseSelection, 'btn-secondary': !showExerciseSelection}" (click)="editProfile()">
         Edit Profile
