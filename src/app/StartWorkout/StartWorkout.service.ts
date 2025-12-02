@@ -102,7 +102,7 @@ export class startWorkoutService {
   }
 
   getExercises(): Observable<any[]> {
-    return this.exercisesService.getData();
+    return this.exercisesService.getExercises();
   }
 
   todayWorkout(): Observable<Workout> {

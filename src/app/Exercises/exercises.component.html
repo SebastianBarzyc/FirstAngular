@@ -10,7 +10,7 @@
       type="checkbox"
       id="toggleSwitch"
       [(ngModel)]="isToggled"
-      (change)="onToggleChange($event)"
+      (change)="onToggleChange()"
     />
     <label class="ms-2" for="toggleSwitch">
       {{ isToggled ? "Only user's Exercises" : 'Default Exercises' }}

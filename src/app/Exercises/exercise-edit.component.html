@@ -14,8 +14,8 @@
     </mat-dialog-content>
     <mat-dialog-actions>
       <div style="width:100%; margin-bottom: 2%">
-        <button mat-button (click)="handleDelete(exercise)" cdkFocusInitial class="RaisedBtn DeleteBtn float-start">Delete exercise</button>
-        <button mat-button (click)="handleSave(exercise)" cdkFocusInitial class="RaisedBtn float-end">Save changes</button>
+        <button mat-button (click)="Delete(exercise.id)" cdkFocusInitial class="RaisedBtn DeleteBtn float-start">Delete exercise</button>
+        <button mat-button (click)="Save(exercise.id, exercise.title, exercise.description)" cdkFocusInitial class="RaisedBtn float-end">Save changes</button>
       </div>
     </mat-dialog-actions>
   </div>

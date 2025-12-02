@@ -1,4 +1,3 @@
-// exercise-edit.component.ts
 import { CommonModule } from '@angular/common';
 import { ExerciseService } from './exercises.service';
 import { Component, ElementRef, Inject, inject, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
@@ -44,7 +43,7 @@ export class ExerciseEditComponent implements AfterViewInit {
 
   getId(): void{
     return this.data.id;
- }
+  }
 
   ngAfterViewInit(): void {
     this.textareas.changes.subscribe(() => {
@@ -56,67 +55,39 @@ export class ExerciseEditComponent implements AfterViewInit {
     });
   }
 
-loadExercises(): void {
-  this.exerciseService.getData()
-    .subscribe(data => {
-      if (Array.isArray(data)) {
-        this.exercises = data;
-      } else {
-        console.error('Expected an array but got:', data);
-      }
-    });
-}
-
-Save(id: number, newTitle: string, newDescription: string): void {
-  this.exerciseService.editExercise(id, newTitle, newDescription).subscribe({
-      next: response => {
-          console.log('Exercise updated:', response);
-          this.loadExercises();
-          this.dialogRef.close(true);
-      },
-      error: err => {
-          console.error('Error editing exercise:', err);
-      },
-      complete: () => {
-          console.log('Edit exercise observable completed');
-      }
-  });
-}
-
-  Delete(id: number): void {
-    this.exerciseService.deleteExercise(id).subscribe({
-        next: response => {
-            console.log('Exercise deleted:', response);
-            this.loadExercises();
-            this.dialogRef.close(true);
-        },
-        error: err => {
-            console.error('Error deleting exercise:', err);
-        },
-        complete: () => {
-            console.log('Delete exercise observable completed');
+  loadExercises(): void {
+    this.exerciseService.getExercises().subscribe(data => {
+        if (Array.isArray(data)) {
+          this.exercises = data;
+        } else {
+          console.error('Expected an array but got:', data);
         }
-    });
-}
+      });
+  }
 
-  autoResize(textarea: HTMLTextAreaElement) {
+  async Save(id: number, newTitle: string, newDescription: string): Promise<any> {
+    try {
+      const response = await this.exerciseService.editExercise(id, newTitle, newDescription);
+      console.log('Exercise updated:', response);
+      this.dialogRef.close(true);
+    }catch (error) {
+      console.error('Unexpected error during session creation:', error);
+    }
+  }
+
+  async Delete(id: number): Promise<any> {
+    try {
+      const response = await this.exerciseService.deleteExercise(id);
+      console.log('Exercise deleted:', response);
+      this.dialogRef.close(true);
+    }catch (error) {
+      console.error('Unexpected error during session creation:', error);
+    }
+  }
+
+  autoResize(textarea: HTMLTextAreaElement): void {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
   }
 
-  handleDelete(exercise: any): void {
-    if (exercise.isDefault) {
-      console.log('Default exercise delete clicked, no action taken.');
-      return;
-    }
-    this.Delete(exercise.id);
-  }
-
-  handleSave(exercise: any): void {
-    if (exercise.isDefault) {
-      console.log('Default exercise save clicked, no action taken.');
-      return;
-    }
-    this.Save(exercise.id, exercise.title, exercise.description);
-  }
 }

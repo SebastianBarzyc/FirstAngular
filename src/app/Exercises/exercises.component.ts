@@ -1,7 +1,7 @@
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Component, ViewChild, OnInit, AfterViewInit, inject } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -17,40 +17,34 @@ import { ProfileComponent } from '../Profile/profile.component';
   providers: [ProfileComponent],
   imports: [MatFormFieldModule, MatInputModule, FormsModule, MatButtonModule, FormsModule, MatExpansionModule, CommonModule, ExercisesBackend],
 })
-export class ExercisesComponent implements OnInit, AfterViewInit {
+export class ExercisesComponent implements OnInit {
   @ViewChild(ExercisesBackend) exercisesBackend!: ExercisesBackend;
   isLoggedIn: boolean = false;
   searchQuery: string = '';
   isToggled: boolean = false;
+  user: any = null;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) {
+    this.user = getUser();
+  }
 
   ngOnInit() {
-    const user = getUser();
-    if(user){
+    if(this.user){
       this.isLoggedIn = true;
     }
     const storedToggleState = localStorage.getItem('isToggled');
     this.isToggled = storedToggleState ? JSON.parse(storedToggleState) : this.isLoggedIn;
   }
 
-  ngAfterViewInit() {
-    this.loadExercises(this.isToggled);
-  }
-
-  loadExercises(includeUserExercises: boolean) {
-    if (this.exercisesBackend) {
-      this.exercisesBackend.loadExercises(includeUserExercises);
-    }
+  loadExercises(includeUserExercises: boolean): void {
+    this.exercisesBackend.loadExercises(includeUserExercises);
   }
 
   togglePanel() {
-    if (this.exercisesBackend) {
       this.exercisesBackend.togglePanel();
-    }
   }
 
-  onToggleChange(event: any) {
+  onToggleChange() {
     console.log('Toggle switch changed:', this.isToggled);
     localStorage.setItem('isToggled', JSON.stringify(this.isToggled));
     if (!this.isLoggedIn && this.isToggled) {

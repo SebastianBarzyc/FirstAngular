@@ -34,7 +34,7 @@ export class WorkoutsExerciseComponent implements OnInit {
   }
 
   loadExercises(): void {
-    this.exerciseService.getData().subscribe(data => {
+    this.exerciseService.getExercises().subscribe(data => {
       this.exercises = data;
     });
   }

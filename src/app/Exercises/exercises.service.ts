@@ -1,128 +1,83 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { from, map, Observable} from 'rxjs';
 import { supabase, getUser } from '../supabase-client';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExerciseService {
-  private refreshNeeded$ = new Subject<void>();
+  user: any = null;
 
-  constructor() {}
+  constructor() {
+      this.user = getUser();
+  }
 
-  getData(includeUserExercises: boolean = false): Observable<any[]> {
-    return new Observable(observer => {
-      const user = getUser();
-      if (!user) {
-        observer.error('Nie znaleziono identyfikatora użytkownika.');
-        return;
-      }
-      let query = supabase
-        .from('exercises')
-        .select('*')
-        .order('id', { ascending: true });
+  getExercises(includeUserExercises: boolean = false): Observable<any[]> {
+    let query = supabase
+      .from('exercises')
+      .select('*')
+      .order('id', { ascending: true });
 
-      if (!includeUserExercises) {
-        query = query.or(`user_id.eq.${user.id},user_id.eq.5d3ab3e6-e980-4df6-af92-e0063728a5fc`);
-      } else {
-        query = query.eq('user_id', user.id);
-      }
+    if (!includeUserExercises) {
+      query = query.or(`user_id.eq.${this.user.id},user_id.eq.5d3ab3e6-e980-4df6-af92-e0063728a5fc`);
+    } else {
+      query = query.eq('user_id', this.user.id);
+    }
 
-      query.then(({ data, error }: { data: any[] | null; error: any }) => {
-        if (error) {
-          console.error('Błąd pobierania ćwiczeń:', error);
-          observer.error('Wystąpił błąd podczas pobierania ćwiczeń.');
-        } else {
-          observer.next(data || []);
-        }
-        observer.complete();
-      });
-    });
+    return from(query).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return data || [];
+      })
+    );
   }
   
-  addExercise(exercise: any): Observable<any> {
-    return new Observable(observer => {
-      const user = getUser();
-      if (!user) {
-        observer.error('Nie znaleziono identyfikatora użytkownika.');
-        return;
-      }
-  
-      supabase
+  async addExercise(exercise: any): Promise<any> {
+    try {
+      const { error } = await supabase
         .from('exercises')
-        .insert([{ ...exercise, user_id: user.id }])
-        .select()
-        .then(({ data, error }: { data: any | null; error: any }) => {
-          if (error) {
-            observer.error('Błąd dodawania ćwiczenia: ' + error.message);
-            return;
-          }
-          this.refreshNeeded$.next();
+        .insert([{ ...exercise, user_id: this.user.id }])
 
-          if (data && data.length > 0) {
-            observer.next({ message: 'Ćwiczenie dodane pomyślnie', data: data[0] });
-          } else {
-            observer.error('Brak zwróconych danych po dodaniu ćwiczenia.');
-          }
-  
-          observer.complete();
-        })
-    });
-  }  
+      if (error) {
+        console.error('Supabase error:', error.message);
+      }
 
-  editExercise(id: number, newTitle: string, newDescription: string): Observable<any> {
-    return new Observable(observer => {
-      const query = supabase
+    } catch (err) {
+      console.error('Unexpected error:', err);
+    }
+  }
+
+  async editExercise(id: number, newTitle: string, newDescription: string): Promise<any> {
+    try {
+      const { error } = await supabase
         .from('exercises')
         .update({
           title: newTitle,
           description: newDescription
         })
-        .eq('id', id);
+        .eq('id', id)
 
-        query.then(({ data, error }: { data: any[] | null; error: any }) => {
-          if (error) {
-            observer.error('Error editing exercise: ' + error.message);
-            return;
-          }
-          this.refreshNeeded$.next();
-
-          if (data && data.length > 0) {
-            observer.next({ message: 'Exercise editing successfully' });
-          } else {
-            observer.next({ message: 'Exercise not found' });
-          }
-          observer.complete();
-        })
-    });
+      if (error) {
+        console.error('Supabase error:', error.message);
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+    }
   }
 
-  deleteExercise(id: number): Observable<any> {
-    this.refreshNeeded$.next();
-    return new Observable(observer => {
-      const query = supabase
+  async deleteExercise(id: number): Promise<any> {
+    try {
+      const { error } = await supabase
         .from('exercises')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+      if (error) {
+        console.error('Supabase error:', error.message);
+      }
 
-      query.then(({ data, error }: { data: any[] | null; error: any }) => {
-          if (error) {
-            observer.error('Error deleting exercise: ' + error.message);
-            return;
-          }
-          this.refreshNeeded$.next();
+    } catch (err) {
+      console.error('Unexpected error:', err);
+    }
+  }
 
-          if (data && data.length > 0) {
-            observer.next({ message: 'Exercise deleted successfully' });
-          } else {
-            observer.next({ message: 'Exercise not found' });
-          }
-          observer.complete();
-        })
-    });
-  }
-  
-  onRefreshNeeded(): Observable<void> {
-    return this.refreshNeeded$.asObservable();
-  }
 }

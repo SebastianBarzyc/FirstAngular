@@ -55,7 +55,7 @@ export class WorkoutsItemComponent implements OnInit {
 
   loadExercises(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.exerciseService.getData().subscribe({
+      this.exerciseService.getExercises().subscribe({
         next: (data) => {
           this.exercises = data;
           resolve();
