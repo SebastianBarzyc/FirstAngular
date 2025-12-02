@@ -32,21 +32,24 @@ export class CalendarService {
 
 //Observables
 
-  getSessions(): Observable<any[]> {
-    return from(
-      supabase
-        .from('sessions')
-        .select('session_id, date, title, description, Advanced_group')
-        .eq('user_id', this.user.id)
-        .order('session_id', { ascending: true })
-    ).pipe(
-      map(({ data }) => data || []),
-      catchError(error => {
-        console.error("Error fetching sessions:", error);
-        return throwError(() => "Wystąpił błąd podczas pobierania sesji.");
-      })
-    );
-  }
+getSessions(): Observable<any[]> {
+  return from(
+    supabase
+      .from('sessions')
+      .select('session_id, date, title, description, Advanced_group')
+      .eq('user_id', this.user.id)
+      .order('session_id', { ascending: true })
+  ).pipe(
+    map(({ data, error }) => {
+      if (error) throw error;
+      return data || [];
+    }),
+    catchError(error => {
+      console.error("Error fetching sessions:", error);
+      return throwError(() => new Error("Wystąpił błąd podczas pobierania sesji."));
+    })
+  );
+}
 
   getWorkouts(): Observable<any[]> {
     return from(

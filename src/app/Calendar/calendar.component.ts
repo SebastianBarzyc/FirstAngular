@@ -26,14 +26,12 @@ interface Session {
 export class CalendarComponent implements OnInit {
   currentDate: Date = new Date();
   days: number[][] = [];
-  selectedDay: number = 0;
   sessions: Session[] = [];
   refreshNeeded$: Subject<void> = new Subject<void>();
   date2: string = '';
 
   constructor(private datePipe: DatePipe, private dialog: MatDialog, private calendarService: CalendarService) {
-    this.generateCalendar(this.currentDate);
-    this.subscribeToRefresh();
+
   }
 
   async ngOnInit(): Promise<void> {
@@ -42,12 +40,6 @@ export class CalendarComponent implements OnInit {
     });
     this.loadSessions();
     await this.calendarService.cleanAdvancedGroupSessions();
-  }
-
-  subscribeToRefresh(): void {
-    this.calendarService.refreshNeeded$.subscribe(() => {
-      this.loadSessions();
-    });
   }
 
   generateCalendar(date: Date): void {
@@ -130,12 +122,7 @@ export class CalendarComponent implements OnInit {
     return session ? session.title : null;
   }
   
-  private parseDate(dateString: string): Date {
-    const [day, month, year] = dateString.split('.').map(Number);
-    return new Date(year, month - 1, day);
-  }
-
-  getUpcomingSessions() {
+  getUpcomingSessions(): Session[] {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

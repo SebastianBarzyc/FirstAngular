@@ -10,6 +10,7 @@ import { CalendarService } from './calendar.service';
 import { MatOption } from '@angular/material/core';
 import { WorkoutService } from '../Workouts/workouts.service';
 import { DatePipe } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 interface Exercise2 {
   id: number;
@@ -50,7 +51,6 @@ interface Exercise {
     FormsModule,
     MatOption,
   ],
-  providers: [DatePipe],
 })
 export class CalendarAdvancedEditComponent {
   workouts: any[] = [];
@@ -69,73 +69,60 @@ export class CalendarAdvancedEditComponent {
     @Inject(MAT_DIALOG_DATA) public data: { group?: string }
   ) {}
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void{
     this.isEditMode = !!this.data.group;
     if (this.isEditMode) {
       this.newGroupTitle = this.data.group || '';
-      await this.loadDaysForGroup();
-      await this.loadWorkoutPlanName();
+      this.loadDaysForGroup();
+      this.loadWorkoutPlanName();
     }
-    await this.loadWorkouts();
+    this.loadWorkouts();
   }
 
-  loadWorkoutPlanName(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.calendarService.getSessions().subscribe({
-        next: (sessions) => {
-          const groupSession = sessions.find(session => session.Advanced_group === this.data.group);
-          if (groupSession) {
-            this.workoutPlanName = groupSession.title;
-          } else {
-            this.workoutPlanName = 'Unknown Plan';
-          }
-          console.log('Loaded workout plan name:', this.workoutPlanName);
-          resolve();
-        },
-        error: (err) => {
-          console.error('Error loading workout plan name:', err);
-          reject(err);
-        },
-      });
+  loadWorkoutPlanName(): void {
+    this.calendarService.getSessions().subscribe({
+      next: (sessions) => {
+        const groupSession = sessions.find(session => session.Advanced_group === this.data.group);
+        if (groupSession) {
+          this.workoutPlanName = groupSession.title;
+        } else {
+          this.workoutPlanName = 'Unknown Plan';
+        }
+        console.log('Loaded workout plan name:', this.workoutPlanName);
+      },
+      error: (err) => {
+        console.error('Error loading workout plan name:', err);
+      },
     });
   }
 
-  loadDaysForGroup(): Promise<void> {
-    return new Promise((resolve, reject) => {
+  loadDaysForGroup(): void {
       this.calendarService.getSessions().subscribe({
         next: (sessions) => {
           const groupSessions = sessions.filter(session => session.Advanced_group === this.data.group);
           this.days = groupSessions.map(session => session.date);
           console.log('Loaded days for group:', this.days);
-          resolve();
         },
         error: (err) => {
           console.error('Error loading days for group:', err);
-          reject(err);
         },
       });
+  }
+
+  loadWorkouts(): Subscription {
+    return this.calendarService.getWorkouts().subscribe({
+      next: (response) => {
+        this.workouts = response;
+      },
+      error: (error) => {
+        console.error('Error fetching workouts:', error);
+        this.workouts = [];
+      }
     });
   }
 
-  loadWorkouts(): Promise<void> {
-    return this.calendarService.getWorkouts().toPromise()
-      .then((response) => {
-        if (response && response) {
-          this.workouts = response;
-        } else {
-          console.error('No data received from getWorkouts.');
-          this.workouts = [];
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching workouts:', error);
-        this.workouts = [];
-      });
-  }
-
-  loadExercisesForPlan(planID: number ): Promise<void> {
+  loadExercisesForPlan(planID: number ): void {
     console.log('Loading exercises for planID:', planID);
-    return new Promise((resolve, reject) => {
       this.workoutService.getExercisesForPlan(planID).subscribe({
         next: (response: Exercise2[]) => {
           console.log('Received raw exercises for planID:', planID, response);
@@ -150,7 +137,6 @@ export class CalendarAdvancedEditComponent {
               : 1
           }));    
       }});
-    });
   }
 
   getDays(choosenDay: number): void {

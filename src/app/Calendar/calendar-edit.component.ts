@@ -8,11 +8,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CalendarService} from './calendar.service';
 import { MatOptionModule } from '@angular/material/core';
-import { Observable, Subject, tap } from 'rxjs';
+import { Subject, Subscription} from 'rxjs';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { CalendarItemComponent } from "./calendar-item.component";
-import { getUser } from '../supabase-client';
 import { Router } from '@angular/router';
 
 interface Session {
@@ -83,7 +82,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     title: '',
     description: ''
   };
-  planExercises: [] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { date: Date, refreshNeeded$: Subject<void> },
@@ -93,16 +91,15 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {
-    this.refreshNeeded$ = data.refreshNeeded$
   }
 
   @ViewChildren('textarea') textareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     console.log("CalendarEditComponent - data received:", this.data);
-    await this.loadSessions().toPromise();
-    await this.loadWorkouts();
-    await this.loadExercisesList();
+    this.loadSessions();
+    this.loadWorkouts();
+    this.loadExercisesList();
     const session = this.getSessionOrEmpty();
     if (session) {
       this.newSession.title = session.title;
@@ -127,17 +124,20 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     this.cdr.detectChanges(); 
   }
   
-  loadSessions(): Observable<Session[]> {
-    return this.calendarService.getSessions().pipe(
-      tap((data: Session[]) => {
-        this.sessions = data;
-      })
-    );
-  } 
+  loadSessions(): void {
+    this.calendarService.getSessions().subscribe({
+      next: (sessions) => {
+        this.sessions = sessions;
+      },
+      error: (err) => {
+        console.error('Error loading sessions:', err);
+      },
+    });
+  }
 
-  loadWorkouts(): Promise<void> {
-    return this.calendarService.getWorkouts().toPromise()
-      .then((response) => {
+  loadWorkouts(): Subscription {
+    return this.calendarService.getWorkouts().subscribe({
+      next: (response) => {
         if (response && response) {
           this.workouts = response;
           console.log('Loaded workouts:', this.workouts);
@@ -145,13 +145,13 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
           console.error('No data received from getWorkouts.');
           this.workouts = [];
         }
-      })
-      .catch((error) => {
+      },
+      error: (error) => {
         console.error('Error fetching workouts:', error);
         this.workouts = [];
-      });
+      }
+    });
   }
-  
   
   getSessionOrEmpty(): any {
     const date = this.getDate()
@@ -175,7 +175,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     }
     return Math.max(...this.sessions.map(session => session.session_id));
   }
-  
 
   async Delete(id: number): Promise<void>  {
     console.log("deleteid: ",id);
@@ -186,7 +185,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   }
 
   async Save(session: any): Promise<void> {
-    if (getUser() === null) {
+    if (this.calendarService.user === null) {
       console.error('User ID is null, cannot add exercise.');
       this.dialogRef.close();
       this.router.navigate(['/Profile']);
@@ -225,7 +224,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     }
   }
 
-  async createSession(session: any) {
+  async createSession(session: any): Promise<void> {
     console.log("create: ",session);
     try {
       const response = await this.calendarService.addSession(session);
@@ -236,7 +235,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     }
   }
 
-  async updateSession(session: any) {
+  async updateSession(session: any): Promise<void> {
     const response = await this.calendarService.editSession(session.session_id, session.title, session.description);
     this.refreshNeeded$.next();
     console.log('Response from server (updateSession):', response);
@@ -271,12 +270,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   isDateExist(): boolean{ 
     return this.sessions.some(session => {
       return session.date === this.getDate();
-    });
-  }
-
-  loadExercises(): Promise<void> {
-    return this.calendarService.getExercises().toPromise().then(response => {
-      this.exercises = response.data;
     });
   }
 
@@ -342,8 +335,18 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     }
   }
 
-  loadExercisesForPlan(planID: number): Promise<void> {
-    return new Promise((resolve, reject) => {
+  loadExercises(): Subscription {
+    return this.calendarService.getExercises().subscribe({
+      next: (response) => {
+        this.exercises = response.data;
+      },
+      error: (error) => {
+        console.error('Error loading exercises:', error);
+      }
+    });
+  }
+
+  loadExercisesForPlan(planID: number): void {
       this.workoutService.getExercisesForPlan(planID).subscribe({
         next: (response) => {
           console.log('Received raw exercises for planID:', planID, response);
@@ -360,7 +363,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
           }));
   
           console.log('Transformed exercises list:', this.exercisesList);
-          resolve();
           setTimeout(() => {
             this.textareas.forEach(textarea => {
               this.autoResize(textarea.nativeElement);
@@ -369,10 +371,8 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           console.error('Error fetching or transforming exercises:', err);
-          reject(err);
         }
       });
-    });
   }
   
 }

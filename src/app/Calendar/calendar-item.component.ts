@@ -6,7 +6,8 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
-import { ExerciseService } from '../Exercises/exercises.service';
+import { Subscription } from 'rxjs';
+import { CalendarService} from './calendar.service';
 
 interface Set {
   reps: number;
@@ -42,17 +43,11 @@ interface Exercise {
 })
 export class CalendarItemComponent {
   constructor(
-    private exerciseService: ExerciseService,
+    private calendarService: CalendarService,
   ) {}
   @Output() removeExerciseEvent = new EventEmitter<number>();
   @Input() exercises: any[] = [];
-  @Input() index: number = 0;
   @Input() exercise!: Exercise;
-
-  exercisesList: Exercise[] = [];
-
-
-  @Output() updateExercise = new EventEmitter<any>();
 
   updateExerciseTitle(selectedTitle: string): void {
     const selectedExercise = this.exercises.find(ex => ex.title === selectedTitle);
@@ -61,20 +56,14 @@ export class CalendarItemComponent {
       this.exercise.exercise_title = selectedExercise.title;
       this.exercise.exercise_id = selectedExercise.id;
   
-      this.updateExercise.emit({
-        exercise_id: this.exercise.exercise_id,
-        exercise_title: this.exercise.exercise_title
-      });
-  
       console.log("Updated exercise:", this.exercise.exercise_id, this.exercise.exercise_title);
     } else {
       console.error(`Exercise with title "${selectedTitle}" not found.`);
     }
   }
-  
 
-  async ngOnInit(): Promise<void> {
-    await this.loadExercises();
+  ngOnInit(): void {
+    this.loadExercises();
     if (this.exercise.reps && Array.isArray(this.exercise.reps)) {
       this.exercise.sets = this.exercise.reps.map((repsValue, index) => ({
       reps: repsValue,
@@ -88,22 +77,16 @@ export class CalendarItemComponent {
 
   removeExercise(id: number): void {
     this.removeExerciseEvent.emit(id);
-
   }
 
-  loadExercises(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.exerciseService.getData()
-        .subscribe({
-          next: (data) => {
-            this.exercises = data;
-            resolve(); 
-          },
-          error: (error) => {
-            console.error('Error loading exercises3:', error);
-            reject(error);
-          }
-        });
+  loadExercises(): Subscription {
+    return this.calendarService.getExercises().subscribe({
+      next: (response) => {
+        this.exercises = response.data;
+      },
+      error: (error) => {
+        console.error('Error loading exercises:', error);
+      }
     });
   }
 
