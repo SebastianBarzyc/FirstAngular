@@ -158,6 +158,7 @@ export class ProfileComponent implements OnInit {
       .from('sessions')
       .select('session_id, date')
       .lte('date', new Date().toISOString().split('T')[0])
+      .in('session_id', sessionIds)
       .then(({ data, error }) => {
         if (error) {
           console.error('Error fetching sessions:', error.message);
