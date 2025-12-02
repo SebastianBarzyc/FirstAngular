@@ -3,7 +3,7 @@
   <mat-form-field class="select-field">
     <mat-label>Exercise</mat-label>
     <mat-select [(ngModel)]="exercise.exercise_title" (selectionChange)="updateExerciseTitle($event.value)">
-      <mat-option *ngFor="let ex2 of exercises" [value]="ex2.title">
+      <mat-option *ngFor="let ex2 of allExercises" [value]="ex2.title">
         {{ ex2.title }}
       </mat-option>
     </mat-select>

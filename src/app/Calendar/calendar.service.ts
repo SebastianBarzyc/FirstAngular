@@ -72,7 +72,7 @@ getSessions(): Observable<any[]> {
       supabase
         .from('exercises')
         .select('*')
-        .eq('user_id', this.user.id)
+        .eq('user_id', this.user.id && '5d3ab3e6-e980-4df6-af92-e0063728a5fc')
         .order('id', { ascending: true })
     ).pipe(
       map(({ data }) => data || []),
@@ -173,7 +173,7 @@ getSessions(): Observable<any[]> {
 
 //Promises
 
-  async addSession(session: { date: string; title: string; description: string }): Promise<any> {
+  async addSession(session: { date: string; title: string; description: string, session_id: number }): Promise<any> {
     try {
       const { data, error } = await supabase
         .from('sessions')
@@ -182,6 +182,7 @@ getSessions(): Observable<any[]> {
           title: session.title,
           description: session.description,
           user_id: this.user.id,
+          session_id: session.session_id
         })
         .select('*')
         .single();

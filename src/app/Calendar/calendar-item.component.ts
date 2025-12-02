@@ -1,12 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output} from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
-import { Subscription } from 'rxjs';
 import { CalendarService} from './calendar.service';
 
 interface Set {
@@ -41,16 +40,32 @@ interface Exercise {
     MatButtonModule
   ],
 })
-export class CalendarItemComponent {
+export class CalendarItemComponent implements OnInit{
   constructor(
     private calendarService: CalendarService,
   ) {}
   @Output() removeExerciseEvent = new EventEmitter<number>();
-  @Input() exercises: any[] = [];
   @Input() exercise!: Exercise;
+  @Input() index: number = 0;
+  allExercises: any[] = [];
+
+  async ngOnInit(): Promise<void> {
+    await this.loadExercises();
+  }
+
+  private processExerciseSets(): void {
+    if (this.exercise.reps && Array.isArray(this.exercise.reps)) {
+      this.exercise.sets = this.exercise.reps.map((repsValue, index) => ({
+        reps: repsValue,
+        weight: this.exercise.sets[index]?.weight || 0,
+        breakTime: this.exercise.sets[index]?.breakTime || 0,
+        id: index + 1
+      }));
+    }
+  }
 
   updateExerciseTitle(selectedTitle: string): void {
-    const selectedExercise = this.exercises.find(ex => ex.title === selectedTitle);
+    const selectedExercise = this.allExercises.find(ex => ex.title === selectedTitle);
     
     if (selectedExercise) {
       this.exercise.exercise_title = selectedExercise.title;
@@ -62,32 +77,21 @@ export class CalendarItemComponent {
     }
   }
 
-  ngOnInit(): void {
-    this.loadExercises();
-    if (this.exercise.reps && Array.isArray(this.exercise.reps)) {
-      this.exercise.sets = this.exercise.reps.map((repsValue, index) => ({
-      reps: repsValue,
-      weight: this.exercise.sets[index]?.weight || 0,
-      breakTime: this.exercise.sets[index]?.breakTime || 0,
-      id: index + 1
-      }));
+  async loadExercises(): Promise<void> {
+    try {
+      this.calendarService.getExercises().subscribe(data => {
+        this.allExercises = data;
+      });
+      if (this.exercise) {
+        this.processExerciseSets();
+      }
+    } catch (error) {
+      console.error('Error loading exercises:', error);
     }
-    console.log("loadexercises: ", this.exercises);
   }
 
   removeExercise(id: number): void {
     this.removeExerciseEvent.emit(id);
-  }
-
-  loadExercises(): Subscription {
-    return this.calendarService.getExercises().subscribe({
-      next: (response) => {
-        this.exercises = response.data;
-      },
-      error: (error) => {
-        console.error('Error loading exercises:', error);
-      }
-    });
   }
 
   addSet(exercise: any): void {
@@ -103,4 +107,3 @@ export class CalendarItemComponent {
     }
   }
 }
-

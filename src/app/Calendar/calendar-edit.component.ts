@@ -77,6 +77,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   workouts: Workout[] = [];
   sessions: Session[] = [];
   selectedWorkoutTitle: string = '';
+  currentSession: Session | null = null; // Cache current session
   newSession = {
     date: this.getDate(),
     title: '',
@@ -95,17 +96,18 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
 
   @ViewChildren('textarea') textareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     console.log("CalendarEditComponent - data received:", this.data);
-    this.loadSessions();
+    await this.loadSessionsAsync();
+    this.currentSession = this.getSessionOrEmpty();
+    if (this.currentSession) {
+      this.newSession.title = this.currentSession.title;
+      this.newSession.description = this.currentSession.description;
+      this.newSession.date = this.currentSession.date;
+    }
+    
     this.loadWorkouts();
     this.loadExercisesList();
-    const session = this.getSessionOrEmpty();
-    if (session) {
-      this.newSession.title = session.title;
-      this.newSession.description = session.description;
-      this.newSession.date = session.date;
-    }
   }
 
   ngAfterViewInit(): void {
@@ -135,6 +137,22 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     });
   }
 
+  loadSessionsAsync(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.calendarService.getSessions().subscribe({
+        next: (sessions) => {
+          this.sessions = sessions;
+          console.log('Sessions loaded:', this.sessions);
+          resolve();
+        },
+        error: (err) => {
+          console.error('Error loading sessions:', err);
+          reject(err);
+        },
+      });
+    });
+  }
+
   loadWorkouts(): Subscription {
     return this.calendarService.getWorkouts().subscribe({
       next: (response) => {
@@ -156,7 +174,6 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   getSessionOrEmpty(): any {
     const date = this.getDate()
     const session = this.sessions.find(s => s.date === date);
-
     if (session) {
       return session;
     } else {
@@ -173,7 +190,9 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     if (this.sessions.length === 0) {
       return 0;
     }
-    return Math.max(...this.sessions.map(session => session.session_id));
+    const maxId = Math.max(...this.sessions.map(session => session.session_id));
+    console.log("Max Session ID:", maxId);
+    return maxId;
   }
 
   async Delete(id: number): Promise<void>  {
@@ -197,7 +216,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
         title: this.newSession.title || session.title,
         description: this.newSession.description || session.description,
         date: this.newSession.date || session.date,
-        session_id: this.getSessionOrEmpty().session_id || newSessionId
+        session_id: newSessionId
       };
     
       if (sessionToSave.session_id == newSessionId) {
@@ -218,7 +237,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
       }));
 
       const responseEditSession3 = await this.calendarService.editSession3(exercises, sessionToSave.session_id);
-      this.refreshNeeded$.next();
+      
       console.log('Session saved:', responseEditSession3);
       this.dialogRef.close();
     }
@@ -286,7 +305,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
     const newExercise: Exercise = {
       exercise_id: 0,
       exercise_title: '', 
-      title: this.getSessionOrEmpty().title || '',
+      title: this.currentSession?.title || '',
       sets: [
         { reps: 0, weight: 0, breakTime: 0 }
       ],
@@ -297,7 +316,7 @@ export class CalendarEditComponent implements OnInit, AfterViewInit {
   }
 
   loadExercisesList(): void {
-    const session = this.getSessionOrEmpty();
+    const session = this.currentSession || this.getSessionOrEmpty();
     console.log("Loading exercises for session:", session);
     if(session.session_id){
       this.calendarService.getExercisesList(session.session_id).subscribe({
