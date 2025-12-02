@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject} from 'rxjs';
+import { catchError, from, map, Observable, Subject, throwError} from 'rxjs';
 import { supabase, getUser } from '../supabase-client';
 
 interface Exercise {
@@ -33,137 +33,125 @@ export class CalendarService {
 //Observables
 
   getSessions(): Observable<any[]> {
-    return new Observable(observer => {
+    return from(
       supabase
         .from('sessions')
         .select('session_id, date, title, description, Advanced_group')
         .eq('user_id', this.user.id)
         .order('session_id', { ascending: true })
-        .then(({ data, error }) => {
-          if (error) {
-            console.error('Błąd podczas pobierania sesji:', error);
-            observer.error('Wystąpił błąd podczas pobierania sesji.');
-          } else {
-            observer.next(data || []);
-          }
-          observer.complete();
-        })
-    });
+    ).pipe(
+      map(({ data }) => data || []),
+      catchError(error => {
+        console.error("Error fetching sessions:", error);
+        return throwError(() => "Wystąpił błąd podczas pobierania sesji.");
+      })
+    );
   }
 
   getWorkouts(): Observable<any[]> {
-    return new Observable((observer) => {
-  
+    return from(
       supabase
         .from('training_plans')
         .select('*')
         .eq('user_id', this.user.id)
         .order('id', { ascending: true })
-        .then(({ data, error }) => {
-          if (error) {
-            console.error('Błąd Supabase:', error);
-            observer.error('Wystąpił błąd podczas pobierania planów treningowych.');
-          } else {
-            observer.next(data || []);
-          }
-          observer.complete();
-        })
-    });
-  }  
+    ).pipe(
+      map(({ data }) => data || []),
+      catchError(error => {
+        console.error("Error fetching workouts:", error);
+        return throwError(() => "Wystąpił błąd podczas pobierania planów treningowych.");
+      })
+    );
+  }
 
   getExercises(): Observable<any> {
-    return new Observable(observer => {
+    return from(
       supabase
         .from('exercises')
         .select('*')
         .eq('user_id', this.user.id)
         .order('id', { ascending: true })
-        .then(({ data, error }) => {
-          if (error) {
-            console.error('Supabase error:', error);
-            observer.error('Error fetching exercises from Supabase');
-          } else {
-            observer.next(data);
-            observer.complete();
-          }
-        })
-    });
+    ).pipe(
+      map(({ data }) => data || []),
+      catchError(error => {
+        console.error("Error fetching exercises:", error);
+        return throwError(() => "Wystąpił błąd podczas pobierania ćwiczeń.");
+      })
+    );
   }
 
   getExercisesList(sessionId: number): Observable<Exercise[]> {
     if (!sessionId) {
-      throw new Error(`Invalid sessionId: ${sessionId}`);
+      return throwError(() => new Error(`Invalid sessionId: ${sessionId}`));
     }
-  
-    return new Observable(observer => {
+
+    return from(
       supabase
         .from('session_exercises')
         .select('exercise_id, exercise_title, reps, weight, order, breakTime')
         .eq('session_id', sessionId)
         .order('order', { ascending: true })
-        .then(({ data, error }) => {
-          console.log('Zapytanie wyniki getexerciseslist:', { data, error });
-  
-          if (error) {
-            console.error('Supabase error:', error, "sessionId: ", sessionId);
-            observer.error('Error fetching exercises for session');
-            return;
-          }
-  
-          if (!data || data.length === 0) {
-            console.warn('Brak ćwiczeń dla sesji:', sessionId);
-            observer.next([]);
-            observer.complete();
-            return;
-          }
-  
-          const exercisesMap: { [key: number]: Exercise } = {};
-  
-          data.forEach(item => {
-            if (!item.exercise_id || !item.exercise_title) {
-              console.warn('Niepoprawny rekord ćwiczenia:', item);
-              return;
-            }
-  
-            if (!exercisesMap[item.exercise_id]) {
-              exercisesMap[item.exercise_id] = {
-                exercise_id: item.exercise_id,
-                exercise_title: item.exercise_title,
-                sets: [],
-                order: item.order || 0
-              };
-            }
-  
-            exercisesMap[item.exercise_id].sets.push({
-              reps: item.reps || 0,
-              weight: item.weight || 0,
-              breakTime: item.breakTime || 0
-            });
-          });
-          
-          const sortedExercises = Object.values(exercisesMap).sort((a, b) => a.order - b.order);
+    ).pipe(
+      map(({ data, error }) => {
+        console.log('Zapytanie wyniki getexerciseslist:', { data, error });
 
-          observer.next(sortedExercises);
-          console.log('Zapytanie wyniki getexerciseslist2:', { sortedExercises });
-          observer.complete();
+        if (error) {
+          console.error('Supabase error:', error, "sessionId:", sessionId);
+          throw new Error('Error fetching exercises for session');
+        }
+
+        if (!data || data.length === 0) {
+          console.warn('Brak ćwiczeń dla sesji:', sessionId);
+          return [];
+        }
+
+        const exercisesMap: { [key: number]: Exercise } = {};
+
+        data.forEach(item => {
+          if (!item.exercise_id || !item.exercise_title) {
+            console.warn('Niepoprawny rekord ćwiczenia:', item);
+            return;
+          }
+
+          if (!exercisesMap[item.exercise_id]) {
+            exercisesMap[item.exercise_id] = {
+              exercise_id: item.exercise_id,
+              exercise_title: item.exercise_title,
+              sets: [],
+              order: item.order || 0
+            };
+          }
+
+          exercisesMap[item.exercise_id].sets.push({
+            reps: item.reps || 0,
+            weight: item.weight || 0,
+            breakTime: item.breakTime || 0
+          });
         });
 
-    });
-
-  }  
+        const sortedExercises = Object.values(exercisesMap).sort((a, b) => a.order - b.order);
+        console.log('Zapytanie wyniki getexerciseslist2:', { sortedExercises });
+        return sortedExercises;
+      }),
+      catchError(err => {
+        console.error("Błąd w getExercisesList:", err);
+        return throwError(() => new Error("Error fetching exercises"));
+      })
+    );
+  }
 
   getAdvancedGroups(): Observable<string[]> {
-    return new Observable((observer) => {
+    return from(
       supabase
         .from('sessions')
         .select('Advanced_group')
         .eq('user_id', this.user.id)
         .not('Advanced_group', 'is', null)
-        .then(({ data, error }) => {
+    ).pipe (
+      map(({ data, error }) => {
           if (error) {
             console.error('Error fetching Advanced_group values:', error);
-            observer.error('Error fetching Advanced_group values');
-            return;
+            return [];
           }
   
           console.log('Fetched Advanced_group values:', data);
@@ -172,14 +160,12 @@ export class CalendarService {
             const uniqueGroups = Array.from(
               new Set(data.map((row) => row.Advanced_group))
             );
-            observer.next(uniqueGroups);
+            return uniqueGroups;
           } else {
-            observer.next([]);
+            return [];
           }
-  
-          observer.complete();
-        });
-    });
+        })
+    );
   }
 
 //Promises
